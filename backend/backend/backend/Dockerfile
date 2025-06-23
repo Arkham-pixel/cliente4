@@ -1,20 +1,15 @@
-# Usa una imagen oficial de Node.js
-FROM node:20
-
-# Establece el directorio de trabajo
-WORKDIR /usr/src/app
-
-# Copia los archivos de dependencias primero
+# Etapa de construcción
+FROM node:18 AS build
+WORKDIR /app
 COPY package*.json ./
-
-# Instala las dependencias
 RUN npm install
-
-# Copia el resto del código
 COPY . .
+RUN npm run build
 
-# Expone el puerto 8080
+# Etapa de producción
+FROM node:18-slim
+WORKDIR /app
+COPY --from=build /app /app
+RUN npm install --production
 EXPOSE 8080
-
-# Comando para iniciar la app
-CMD [ "node", "server.js" ]
+CMD ["node", "index.js"]
