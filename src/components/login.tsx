@@ -1,21 +1,23 @@
-import React from 'react';
-import { useState } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { loginUsuario } from '../services/userService';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [correo, setCorreo] = useState('');
+  const [contrasena, setContrasena] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     try {
-      const res = await axios.post('http://localhost:3000/auth/login', { email, password });
+      const res = await loginUsuario({ correo, contrasena });
       localStorage.setItem('token', res.data.access_token);
-      window.location.href = '/inicio';
+      navigate('/inicio'); // ✅ Redirige a tu dashboard o inicio
     } catch (err) {
-      setError('Credenciales inválidas');
+      console.error(err);
+      setError(err.response?.data?.error || 'Error al iniciar sesión');
     }
   };
 
@@ -29,26 +31,26 @@ export default function Login() {
           <input
             type="email"
             placeholder="Correo"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 rounded bg-slate-700 text-white border border-slate-600 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={correo}
+            onChange={(e) => setCorreo(e.target.value)}
+            className="w-full px-4 py-2 rounded bg-slate-700 border border-slate-600 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
           <input
             type="password"
             placeholder="Contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 rounded bg-slate-700 text-white border border-slate-600 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={contrasena}
+            onChange={(e) => setContrasena(e.target.value)}
+            className="w-full px-4 py-2 rounded bg-slate-700 border border-slate-600 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
-          {error && <p className="text-red-400 text-sm">{error}</p>}
           <button
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded text-white font-medium transition-colors"
           >
             Entrar
           </button>
+          {error && <p className="text-red-400 text-sm">{error}</p>}
         </form>
 
         <div className="mt-4 text-sm text-center">

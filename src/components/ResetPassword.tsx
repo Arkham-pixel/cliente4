@@ -1,5 +1,4 @@
-import React from 'react';
-import { useState } from "react";
+import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -8,15 +7,15 @@ export default function ResetPassword() {
   const [mensaje, setMensaje] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMensaje("");
 
     try {
-      await axios.post("http://localhost:3000/auth/reset-password", { correo });
-      setMensaje("Si el correo está registrado, recibirás instrucciones para restablecer tu contraseña.");
-    } catch (err) {
-      setMensaje("Hubo un error. Inténtalo de nuevo más tarde.");
+      await axios.post("http://localhost:8080/auth/reset-password", { correo });
+      setMensaje("Si el correo existe, se enviará un enlace para restablecer la contraseña.");
+    } catch (err: any) {
+      setMensaje("Error al solicitar el restablecimiento.");
     }
   };
 

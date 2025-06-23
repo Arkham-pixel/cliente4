@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import {
   Document,
   Packer,
@@ -16,10 +17,6 @@ import {
   Footer,
 } from "docx";
 import { SimpleField } from "docx";
-
-
-
-
 import { saveAs } from "file-saver";
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -40,299 +37,311 @@ import MapaDeCalor from "./MapaDeCalor";
 
 
 export default function FormularioInspeccion() {
+  const location = useLocation();
+  const datosPrevios = location.state || {};
+
   // Información general
-
-
-const municipios = ciudadesData.flatMap(dep =>
-  dep.ciudades.map(ciudad => ({
-    label: `${ciudad} - ${dep.departamento}`,
-    value: ciudad
-  }))
-);
-const [formData, setFormData] = useState({
-  ciudad_siniestro: ""
-});
-
-
-
-const [barrio, setBarrio] = useState("");
-const [departamento, setDepartamento] = useState("");
-const [horarioLaboral, setHorarioLaboral] = useState("");
-
-
-const [cargo, setCargo] = useState("");
-const [colaboladores, setColaboladores] = useState("");
-
-const [nombreEmpresa, setNombreEmpresa] = useState("");
-const [direccion, setDireccion] = useState("");
-const [municipio, setMunicipio] = useState("");
-const [personaEntrevistada, setPersonaEntrevistada] = useState("");
-
-
-// Datos de inspección
-const [nombreCliente, setNombreCliente] = useState("");
-//const [ciudad, setCiudad] = useState("");
-const [aseguradora, setAseguradora] = useState("");
-const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
-const [imagen, setImagen] = useState(null);
-const [preview, setPreview] = useState(null);
-const [imagenesRegistro, setImagenesRegistro] = useState([]);
-
-// Empresa y riesgo
-const [descripcionEmpresa, setDescripcionEmpresa] = useState("");
-const [infraestructura, setInfraestructura] = useState("");
-
-
-// Análisis de riesgos
-const [analisisRiesgos, setAnalisisRiesgos] = useState({
-  "Incendio/Explosión": "",
-  "Amit": "",
-  "Anegación": "",
-  "Daños por agua": "",
-  "Terremoto": "",
-  "Sustracción": "",
-  "Rotura de maquinaria": "",
-  "Responsabilidad civil": ""
-});
-
-// Infraestructura
-const [antiguedad, setAntiguedad] = useState("");
-const [areaLote, setAreaLote] = useState("");
-const [areaConstruida, setAreaConstruida] = useState("");
-const [numeroEdificios, setNumeroEdificios] = useState("");
-const [numeroPisos, setNumeroPisos] = useState("");
-const [sotanos, setSotanos] = useState("");
-const [tenencia, setTenencia] = useState(""); // Propio o arrendado
-const [descripcionInfraestructura, setDescripcionInfraestructura] = useState("");
-
-// Procesos
-const [procesos, setProcesos] = useState("");
-
-// Linderos
-const [linderoNorte, setLinderoNorte] = useState("");
-const [linderoSur, setLinderoSur] = useState("");
-const [linderoOriente, setLinderoOriente] = useState("");
-const [linderoOccidente, setLinderoOccidente] = useState("");
-// Mapa
-const mapaRef = useRef(null);
-
-//Servicios Industriales
-const [energiaProveedor, setEnergiaProveedor] = useState("");
-const [energiaTension, setEnergiaTension] = useState("");
-const [energiaPararrayos, setEnergiaPararrayos] = useState("");
-const [transformadores, setTransformadores] = useState({
-  subestacion: "",
-  marca: "",
-  tipo: "",
-  capacidad: "",
-  edad: "",
-  voltaje: ""
-});
-
-// Seguridad Electrónica
-const [alarmaMonitoreada, setAlarmaMonitoreada] = useState("");
-const [cctv, setCctv] = useState("");
-const [mantenimientoSeguridad, setMantenimientoSeguridad] = useState("");
-const [comentariosSeguridadElectronica, setComentariosSeguridadElectronica] = useState("");
-
-// Seguridad Física
-const [tipoVigilancia, setTipoVigilancia] = useState("");
-const [horariosVigilancia, setHorariosVigilancia] = useState("");
-const [accesos, setAccesos] = useState("");
-const [personalCierre, setPersonalCierre] = useState("");
-const [cerramientoPredio, setCerramientoPredio] = useState("");
-const [otrosCerramiento, setOtrosCerramiento] = useState("");
-const [comentariosSeguridadFisica, setComentariosSeguridadFisica] = useState("");
-
-const [plantasElectricas, setPlantasElectricas] = useState({
-  numero: "",
-  marca: "",
-  tipo: "",
-  capacidad: "",
-  edad: "",
-  transferencia: "",
-  voltajeCobertura: ""
-});
-const [energiaComentarios, setEnergiaComentarios ] =useState("");
-
-const [transformadorSubestacion, setTransformadorSubestacion] = useState("");
-const [transformadorMarca, setTransformadorMarca] = useState("");
-const [transformadorTipo, setTransformadorTipo] = useState("");
-const [transformadorCapacidad, setTransformadorCapacidad] = useState("");
-const [transformadorEdad, setTransformadorEdad] = useState("");
-const [transformadorRelacionVoltaje, setTransformadorRelacionVoltaje] = useState("");
-
-const [plantaNumero1, setPlantaNumero1] = useState("");
-const [plantaMarca1, setPlantaMarca1] = useState("");
-const [plantaTipo1, setPlantaTipo1] = useState("");
-const [plantaCapacidad1, setPlantaCapacidad1] = useState("");
-const [plantaEdad1, setPlantaEdad1] = useState("");
-const [plantaTransferencia1, setPlantaTransferencia1] = useState("");
-const [plantaVoltaje1, setPlantaVoltaje1] = useState("");
-const [plantaCobertura1, setPlantaCobertura1] = useState("");
-
-const [plantaNumero2, setPlantaNumero2] = useState("");
-const [plantaMarca2, setPlantaMarca2] = useState("");
-const [plantaTipo2, setPlantaTipo2] = useState("");
-const [plantaCapacidad2, setPlantaCapacidad2] = useState("");
-const [plantaEdad2, setPlantaEdad2] = useState("");
-const [plantaTransferencia2, setPlantaTransferencia2] = useState("");
-const [plantaVoltaje2, setPlantaVoltaje2] = useState("");
-const [plantaCobertura2, setPlantaCobertura2] = useState("");
+  const municipios = ciudadesData.flatMap(dep =>
+    dep.ciudades.map(ciudad => ({
+      label: `${ciudad} - ${dep.departamento}`,
+      value: ciudad
+    }))
+  );
+  const [formData, setFormData] = useState({
+    ciudad_siniestro: "",
+      aseguradora: datosPrevios.aseguradora || "",
+      direccion: datosPrevios.direccion || "",
+      ciudad: datosPrevios.ciudad || "",
+      asegurado: datosPrevios.asegurado || "",
+      fechaInspeccion: datosPrevios.fechaInspeccion || "",
+  });
 
 
 
+  const [barrio, setBarrio] = useState("");
+  const [departamento, setDepartamento] = useState("");
+  const [horarioLaboral, setHorarioLaboral] = useState("");
 
 
-//Agua
-const [aguaFuente, setAguaFuente] = useState("");
-const [aguaUso, setAguaUso] = useState("");
-const [aguaAlmacenamiento, setAguaAlmacenamiento] = useState("");
-const [aguaBombeo, setAguaBombeo] = useState("");
-const [aguaComentarios, setAguaComentarios] = useState("");
+  const [cargo, setCargo] = useState("");
+  const [colaboladores, setColaboladores] = useState("");
 
-// Proteccion contra Incendios
-const [extintor, setExtintor] = useState("");
-const [rci, setRci] = useState("");
-const [rociadores, setRociadores] = useState("");
-const [deteccion, setDeteccion] = useState("");
-const [alarmas, setAlarmas] = useState("");
-const [brigadas, setBrigadas] = useState("");
-const [bomberos, setBomberos] = useState("");
+  const [nombreEmpresa, setNombreEmpresa] = useState("");
+  const [direccion, setDireccion] = useState("");
+  const [municipio, setMunicipio] = useState("");
+  const [personaEntrevistada, setPersonaEntrevistada] = useState("");
 
 
-//Seguridad
-const [seguridadDescripcion, setSeguridadDescripcion] = useState("");
+  // Datos de inspección
+  const [nombreCliente, setNombreCliente] = useState("");
+  //const [ciudad, setCiudad] = useState("");
+  const [aseguradora, setAseguradora] = useState("");
+  const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
+  const [imagen, setImagen] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [imagenesRegistro, setImagenesRegistro] = useState([]);
 
-// Siniestralidad
+  // Empresa y riesgo
+  const [descripcionEmpresa, setDescripcionEmpresa] = useState("");
+  const [infraestructura, setInfraestructura] = useState("");
 
-const [siniestralidad, setSiniestralidad] = useState("");
 
-// recomendaciones 
+  // Análisis de riesgos
+  const [analisisRiesgos, setAnalisisRiesgos] = useState({
+    "Incendio/Explosión": "",
+    "Amit": "",
+    "Anegación": "",
+    "Daños por agua": "",
+    "Terremoto": "",
+    "Sustracción": "",
+    "Rotura de maquinaria": "",
+    "Responsabilidad civil": ""
+  });
 
-const [recomendaciones, setRecomendaciones] = useState("");
+  // Infraestructura
+  const [antiguedad, setAntiguedad] = useState("");
+  const [areaLote, setAreaLote] = useState("");
+  const [areaConstruida, setAreaConstruida] = useState("");
+  const [numeroEdificios, setNumeroEdificios] = useState("");
+  const [numeroPisos, setNumeroPisos] = useState("");
+  const [sotanos, setSotanos] = useState("");
+  const [tenencia, setTenencia] = useState(""); // Propio o arrendado
+  const [descripcionInfraestructura, setDescripcionInfraestructura] = useState("");
 
-const [maquinariaDescripcion, setMaquinariaDescripcion] = useState("");
+  // Procesos
+  const [procesos, setProcesos] = useState("");
+
+  // Linderos
+  const [linderoNorte, setLinderoNorte] = useState("");
+  const [linderoSur, setLinderoSur] = useState("");
+  const [linderoOriente, setLinderoOriente] = useState("");
+  const [linderoOccidente, setLinderoOccidente] = useState("");
+  // Mapa
+  const mapaRef = useRef(null);
+
+  //Servicios Industriales
+  const [energiaProveedor, setEnergiaProveedor] = useState("");
+  const [energiaTension, setEnergiaTension] = useState("");
+  const [energiaPararrayos, setEnergiaPararrayos] = useState("");
+  const [transformadores, setTransformadores] = useState({
+    subestacion: "",
+    marca: "",
+    tipo: "",
+    capacidad: "",
+    edad: "",
+    voltaje: ""
+  });
+
+  // Seguridad Electrónica
+  const [alarmaMonitoreada, setAlarmaMonitoreada] = useState("");
+  const [cctv, setCctv] = useState("");
+  const [mantenimientoSeguridad, setMantenimientoSeguridad] = useState("");
+  const [comentariosSeguridadElectronica, setComentariosSeguridadElectronica] = useState("");
+
+  // Seguridad Física
+  const [tipoVigilancia, setTipoVigilancia] = useState("");
+  const [horariosVigilancia, setHorariosVigilancia] = useState("");
+  const [accesos, setAccesos] = useState("");
+  const [personalCierre, setPersonalCierre] = useState("");
+  const [cerramientoPredio, setCerramientoPredio] = useState("");
+  const [otrosCerramiento, setOtrosCerramiento] = useState("");
+  const [comentariosSeguridadFisica, setComentariosSeguridadFisica] = useState("");
+
+  const [plantasElectricas, setPlantasElectricas] = useState({
+    numero: "",
+    marca: "",
+    tipo: "",
+    capacidad: "",
+    edad: "",
+    transferencia: "",
+    voltajeCobertura: ""
+  });
+  const [energiaComentarios, setEnergiaComentarios ] =useState("");
+
+  const [transformadorSubestacion, setTransformadorSubestacion] = useState("");
+  const [transformadorMarca, setTransformadorMarca] = useState("");
+  const [transformadorTipo, setTransformadorTipo] = useState("");
+  const [transformadorCapacidad, setTransformadorCapacidad] = useState("");
+  const [transformadorEdad, setTransformadorEdad] = useState("");
+  const [transformadorRelacionVoltaje, setTransformadorRelacionVoltaje] = useState("");
+
+  const [plantaNumero1, setPlantaNumero1] = useState("");
+  const [plantaMarca1, setPlantaMarca1] = useState("");
+  const [plantaTipo1, setPlantaTipo1] = useState("");
+  const [plantaCapacidad1, setPlantaCapacidad1] = useState("");
+  const [plantaEdad1, setPlantaEdad1] = useState("");
+  const [plantaTransferencia1, setPlantaTransferencia1] = useState("");
+  const [plantaVoltaje1, setPlantaVoltaje1] = useState("");
+  const [plantaCobertura1, setPlantaCobertura1] = useState("");
+
+  const [plantaNumero2, setPlantaNumero2] = useState("");
+  const [plantaMarca2, setPlantaMarca2] = useState("");
+  const [plantaTipo2, setPlantaTipo2] = useState("");
+  const [plantaCapacidad2, setPlantaCapacidad2] = useState("");
+  const [plantaEdad2, setPlantaEdad2] = useState("");
+  const [plantaTransferencia2, setPlantaTransferencia2] = useState("");
+  const [plantaVoltaje2, setPlantaVoltaje2] = useState("");
+  const [plantaCobertura2, setPlantaCobertura2] = useState("");
 
 
 
 
 
+  //Agua
+  const [aguaFuente, setAguaFuente] = useState("");
+  const [aguaUso, setAguaUso] = useState("");
+  const [aguaAlmacenamiento, setAguaAlmacenamiento] = useState("");
+  const [aguaBombeo, setAguaBombeo] = useState("");
+  const [aguaComentarios, setAguaComentarios] = useState("");
+
+  // Proteccion contra Incendios
+  const [extintor, setExtintor] = useState("");
+  const [rci, setRci] = useState("");
+  const [rociadores, setRociadores] = useState("");
+  const [deteccion, setDeteccion] = useState("");
+  const [alarmas, setAlarmas] = useState("");
+  const [brigadas, setBrigadas] = useState("");
+  const [bomberos, setBomberos] = useState("");
 
 
-// Tabla de riesgo
-const [tablaRiesgos, setTablaRiesgos] = useState([
-  { riesgo: "Incendio/Explosión", probabilidad: "", severidad: "", clasificacion: "" },
-  { riesgo: "AMIT", probabilidad: "", severidad: "", clasificacion: "" },
-  { riesgo: "Anegación", probabilidad: "", severidad: "", clasificacion: "" },
-  { riesgo: "Terremoto", probabilidad: "", severidad: "", clasificacion: "" },
-  { riesgo: "Sustracción", probabilidad: "", severidad: "", clasificacion: "" },
-  { riesgo: "Rotura de maquinaria", probabilidad: "", severidad: "", clasificacion: "" },
-  { riesgo: "Responsabilidad Civil", probabilidad: "", severidad: "", clasificacion: "" },
-]);
+  //Seguridad
+  const [seguridadDescripcion, setSeguridadDescripcion] = useState("");
+
+  // Siniestralidad
+
+  const [siniestralidad, setSiniestralidad] = useState("");
+
+  // recomendaciones 
+
+  const [recomendaciones, setRecomendaciones] = useState("");
+
+  const [maquinariaDescripcion, setMaquinariaDescripcion] = useState("");
 
 
-// Mensajes predeterminados
-const mensajesRecomendados = [
-  "Se recomienda actualizar el plan de emergencias.",
-  "Instalar un sistema de alarma contra incendios.",
-  "Realizar mantenimiento preventivo a los equipos.",
-  "Capacitar al personal en evacuación y manejo de extintores.",
-  "Actualizar señalización de rutas de evacuación.",
-  "Implementar un programa de inspección mensual.",
-];
 
-// Lista de recomendaciones (puedes ponerlas resumidas aquí o importarlas desde un JSON o txt si prefieres)
-const bancoRecomendaciones = {
-  "INCENDIO": [
-    "DURANTE EL PERÍODO DE VIGENCIA DE LA PÓLIZA DEBE VERIFICARSE EL CORRECTO ACONDICIONAMIENTO DE LAS INSTALACIONES ELÉCTRICAS Y SU RESPECTIVO MANTENIMIENTO COMO MÍNIMO CADA 6 MESES, QUE INCLUYA ENTUBAR TODOS LOS CIRCUITOS DE DISTRIBUCIÓN DE ENERGÍA, ELIMINAR EL USO DE EXTENSIONES COMO MEDIO PERMANENTE DE CONEXIÓN Y CIERRE DE TODAS LAS CAJAS DE PASO, TABLEROS DE DISTRIBUCIÓN DE ENERGÍA, PUNTOS DE CABLEADO EXPUESTO, LUMINARIAS, INTERRUPTORES Y TOMAS ELÉCTRICAS.",
-    "REALIZAR DURANTE LA VIGENCIA DE LA PÓLIZA LA SUSPENSIÓN DEL SUMINISTRO DE ENERGÍA ELÉCTRICA, DURANTE LAS HORAS Y DÍAS NO LABORABLES A LOS CIRCUITOS DE DISTRIBUCIÓN ELÉCTRICA, DE LOS EQUIPOS O ÁREAS NO INDISPENSABLES PARA EL DESARROLLO PROPIO DE LAS ACTIVIDADES DEL ASEGURADO;ENTENDIENDO COMO INDISPENSABLES LOS CIRCUITOS QUE SUMINISTRAN ENERGÍA A EQUIPOS O ÁREAS QUE POR EL FUNCIONAMIENTO DE LA EMPRESA, NO SE PUEDEN QUEDAR SIN ENERGÍA. ESTA SUSPENSIÓN DEBE EVIDENCIARSE POR MEDIO DE UN PROCEDIMIENTO CON RESPONSABLES DEFINIDOS Y REGISTROS SUFICIENTES.",
-    "DURANTE LA VIGENCIA DE LA PÓLIZA, MANTENER INSTALADOS LOS EXTINTORES NECESARIOS Y ADECUADOS PARA PROTEGER TODAS LAS INSTALACIONES.  ESTOS DEBERÁN PERMANECER EN BUEN ESTADO, CON CARGA VIGENTE (MÁXIMO 1 AÑO), SEÑALIZADOS Y UBICADOS EN UN LUGAR VISIBLE Y DE FÁCIL ACCESO. A LOS EFECTOS DE LO ANTERIORMENTE EXPUESTO, SE ENTIENDE POR EXTINTORES SUFICIENTES, QUE POR CADA 200M2 DE ÁREA CONSTRUIDA DE LA EMPRESA, SE DEBE CONTAR POR LO MENOS CON UN EXTINTOR. DE IGUAL MANERA SE ENTIENDE POR EXTINTORES ADECUADOS, QUE LAS ÁREAS EN DONDE SE CONCENTRA MATERIAL SÓLIDO COMBUSTIBLE TALES COMO PAPEL, MADERA, TEXTILES, ETC., DEBEN ESTAR PROTEGIDAS CON EXTINTORES TIPO A DE MÍNIMO 2 1/2 GAL DE CAPACIDAD. LAS ÁREAS EN DONDE SE CONCENTRAN PRODUCTOS INFLAMABLES TALES COMO GASOLINA, DISOLVENTES, ETC.; LO MISMO QUE LAS ÁREAS EN DONDE SE CONCENTRA MAQUINARIA SIN COMPONENTES ELECTRÓNICOS, DEBEN ESTAR PROTEGIDAS CON EXTINTORES TIPO BC DE MÍNIMO 20 LB. DE CAPACIDAD. LAS ÁREAS EN DONDE SE ENCUENTRA TANTO MATERIAL SÓLIDO COMBUSTIBLE, COMO PRODUCTOS INFLAMABLES Y/O MAQUINARIA, DEBEN ESTAR PROTEGIDAS CON EXTINTORES TIPO ABC DE MÍNIMO 20 LB. DE CAPACIDAD. LAS ÁREAS EN DONDE SE ENCUENTRAN EQUIPOS ELECTRÓNICOS Y/O MAQUINARIA CON COMPONENTES ELECTRÓNICOS, DEBEN ESTAR PROTEGIDAS CON EXTINTORES TIPO SOLKAFLAM 123 DE MÍNIMO 10 LB. DE CAPACIDAD.",
-    "MANTENER INSTALADO, DURANTE LA VIGENCIA DE LA PÓLIZA, UN SISTEMA DE DETECTORES AUTOMÁTICOS DE INCENDIO (TÉRMICOS, DE HUMO O DE LLAMA),  UBICADOS EN EL TECHO POR LO MENOS A 10 CM DE DISTANCIA DE LA PARED MÁS CERCANA O EN PAREDES LATERALES A 10 O 30 CM DEL TECHO, LA DISTANCIA VERTICAL DEL TECHO AL SENSOR DEBE SER MÍNIMO DE 50 CM, CON UNA DISPOSICIÓN UNIFORME DE MÁXIMO 9 M DE DISTANCIA ENTRE DETECTORES; ESTOS DISPOSITIVOS DEBEN ESTAR CONECTADOS A UN SISTEMA DE ALARMA SONORO O DE COMUNICACIÓN AUTOMÁTICA A LOS CUERPOS DE EMERGENCIA. EN CASO DE CONTAR CON OTRO TIPO DE DETECTORES APARTE DE LOS MENCIONADOS, SEGUIR LAS RECOMENDACIONES DEL FABRICANTE EN CUANTO A SU INSTALACIÓN..",
-    "LOS SISTEMAS DE ROCIADORES AUTOMÁTICOS (SPRINKLERS) SON LOS MÁS CONFIABLES Y ECONÓMICOS; ES IMPORTANTE RESALTAR QUE ES MÁS FÁCIL REHABILITAR UN DOCUMENTO HÚMEDO QUE UNO INCINERADO. POR SU PARTE, LOS SISTEMAS DE EXTINCIÓN CON ELEMENTOS GASEOSOS TIENEN A SU FAVOR QUE OCASIONAN MENOR DAÑO A LOS ARTÍCULOS ALMACENADOS, SU OPERACIÓN REQUIERE AISLAR AUTOMÁTICAMENTE LAS ÁREAS PROTEGIDAS Y EXISTEN LIMITACIONES PARA LA EXTINCIÓN, POR CUANTO AL ACTUAR POR SOFOCAMIENTO NO ENFRÍAN LOS ELEMENTOS QUE ESTÁN EN COMBUSTIÓN, HACIENDO QUE ÉSTOS PUEDAN SEGUIR AFECTÁNDOSE POR COMBUSTIÓN LENTA O CON EL RIESGO DE REIGNICIÓN; POR LO ANTERIOR, SE REQUIERE DE UNA INTERVENCIÓN CON AGUA PARA EXTINCIÓN FINAL, CON LOS PROBLEMAS DE DAÑOS ASOCIADOS A LA APLICACIÓN DE AGUA CON MANGUERAS.EN LA NFPA 13 , NFPA 15 Y NFPA 16 SE ENCUENTRAN LOS ASPECTOS A TENER EN CUENTA PARA LOS SISTEMAS DE ROCIADORES AUTOMÁTICOS.",
-    "ES CONVENIENTE QUE LOS DETECTORES DE HUMO SE UBIQUEN, COMO MÁXIMO, A 60 CM DEL TECHO, ESTO CON EL ÁNIMO DE REDUCIR UNA POSIBLE PROPAGACIÓN DE FUEGO, CON DETECCIÓN TARDÍA; ESPECIFICACIONES CONTENIDAS EN LA NFPA 72 E4.",
-    "SE SUGIERE REALIZAR PRUEBAS DE PRESIÓN Y CAUDAL A LA RED CONTRA INCENDIOS, VERIFICANDO EL ADECUADO FUNCIONAMIENTO DE LA MISMA; ESTE SUMINISTRO DEBE SER CAPAZ DE PROVEER EL CAUDAL Y LA PRESIÓN RESIDUAL, REQUERIDOS EN UN TIEMPO MÍNIMO, DE ACUERDO A NFPA 14 , NFPA 20 Y NFPA 25.",
-    "LOS EXTINTORES TIENEN UN ALCANCE VERTICAL ÓPTIMO DE 2,5 M, APLICADO POR UNA PERSONA CON EXPERIENCIA, LO QUE INDICA QUE PARA ESTANTERÍA DE 8,5 M LA COBERTURA DE EXTINTORES NO ES SUFICIENTE PARA LAS ALTURAS DE ALMACENAMIENTO MANEJADAS. SE SUGIERE ESTUDIAR LA POSIBILIDAD DE INSTALAR UN SISTEMA DE REACCIÓN MANUAL O AUTOMÁTICO CONTRA INCENDIOS (ÁREAS ADMINISTRATIVAS, DE ALMACENAMIENTO, PRODUCCIÓN, LABORATORIOS Y SERVICIO AL PÚBLICO); ÉSTE SISTEMA DEBERÁ ESTAR CONECTADO A UNA CENTRAL DE MONITOREO.",
-    "LOS MEDIDORES DE NIVEL DE LOS TANQUES DE COMBUSTIBLE, TENDRÁN QUE SER PREFERIBLEMENTE EN UN MATERIAL RESISTENTE AL FUEGO, EVITANDO EL USO DE MANGUERAS DE PLÁSTICO, LAS CUALES SON CONSUMIDAS DE INMEDIATO EN UN INCENDIO, OCASIONANDO EL CORRESPONDIENTE DERRAME DE COMBUSTIBLE",
-    "SE RECOMIENDA QUE EN LAS BODEGAS DONDE EXISTE ALMACENAMIENTO DE AEROSOLES EXISTA UNA JAULA METÁLICA ESPECIAL PARA EL ALMACENAMIENTO DE LOS MISMOS; DE IGUAL MANERA, ES CONVENIENTE QUE EL ESPACIO ENTRE LOS ESLABONES TENGA UNA SEPARACIÓN MÁXIMA DE 51 MM QUE IMPIDA, EN CASO DE INCENDIO, LA SALIDA DE UN AEROSOL DISPARADO POR EL FUEGO. ",
-    "ES CONVENIENTE QUE LOS DUCTOS DE ESCAPE DE HUMOS (CHIMENEAS O CAMPANAS) DE LOS RESTAURANTES CUENTEN CON UN PROGRAMA DE MANTENIMIENTO SEMESTRAL, CON EL ÁNIMO DE EVITAR LA ACUMULACIÓN DE GRASA Y ELEMENTOS EN SU INTERIOR QUE PUEDAN LLEGAR A GENERAR EL INICIO DE UN INCENDIO EN SU INTERIOR."
- 
+
+
+  // Tabla de riesgo
+  const [tablaRiesgos, setTablaRiesgos] = useState([
+    { riesgo: "Incendio/Explosión", probabilidad: "", severidad: "", clasificacion: "" },
+    { riesgo: "AMIT", probabilidad: "", severidad: "", clasificacion: "" },
+    { riesgo: "Anegación", probabilidad: "", severidad: "", clasificacion: "" },
+    { riesgo: "Terremoto", probabilidad: "", severidad: "", clasificacion: "" },
+    { riesgo: "Sustracción", probabilidad: "", severidad: "", clasificacion: "" },
+    { riesgo: "Rotura de maquinaria", probabilidad: "", severidad: "", clasificacion: "" },
+    { riesgo: "Responsabilidad Civil", probabilidad: "", severidad: "", clasificacion: "" },
+  ]);
+
+
+  // Mensajes predeterminados
+  const mensajesRecomendados = [
+    "Se recomienda actualizar el plan de emergencias.",
+    "Instalar un sistema de alarma contra incendios.",
+    "Realizar mantenimiento preventivo a los equipos.",
+    "Capacitar al personal en evacuación y manejo de extintores.",
+    "Actualizar señalización de rutas de evacuación.",
+    "Implementar un programa de inspección mensual.",
+  ];
+
+  // Lista de recomendaciones (puedes ponerlas resumidas aquí o importarlas desde un JSON o txt si prefieres)
+  const bancoRecomendaciones = {
+    "INCENDIO": [
+      "DURANTE EL PERÍODO DE VIGENCIA DE LA PÓLIZA DEBE VERIFICARSE EL CORRECTO ACONDICIONAMIENTO DE LAS INSTALACIONES ELÉCTRICAS Y SU RESPECTIVO MANTENIMIENTO COMO MÍNIMO CADA 6 MESES, QUE INCLUYA ENTUBAR TODOS LOS CIRCUITOS DE DISTRIBUCIÓN DE ENERGÍA, ELIMINAR EL USO DE EXTENSIONES COMO MEDIO PERMANENTE DE CONEXIÓN Y CIERRE DE TODAS LAS CAJAS DE PASO, TABLEROS DE DISTRIBUCIÓN DE ENERGÍA, PUNTOS DE CABLEADO EXPUESTO, LUMINARIAS, INTERRUPTORES Y TOMAS ELÉCTRICAS.",
+      "REALIZAR DURANTE LA VIGENCIA DE LA PÓLIZA LA SUSPENSIÓN DEL SUMINISTRO DE ENERGÍA ELÉCTRICA, DURANTE LAS HORAS Y DÍAS NO LABORABLES A LOS CIRCUITOS DE DISTRIBUCIÓN ELÉCTRICA, DE LOS EQUIPOS O ÁREAS NO INDISPENSABLES PARA EL DESARROLLO PROPIO DE LAS ACTIVIDADES DEL ASEGURADO;ENTENDIENDO COMO INDISPENSABLES LOS CIRCUITOS QUE SUMINISTRAN ENERGÍA A EQUIPOS O ÁREAS QUE POR EL FUNCIONAMIENTO DE LA EMPRESA, NO SE PUEDEN QUEDAR SIN ENERGÍA. ESTA SUSPENSIÓN DEBE EVIDENCIARSE POR MEDIO DE UN PROCEDIMIENTO CON RESPONSABLES DEFINIDOS Y REGISTROS SUFICIENTES.",
+      "DURANTE LA VIGENCIA DE LA PÓLIZA, MANTENER INSTALADOS LOS EXTINTORES NECESARIOS Y ADECUADOS PARA PROTEGER TODAS LAS INSTALACIONES.  ESTOS DEBERÁN PERMANECER EN BUEN ESTADO, CON CARGA VIGENTE (MÁXIMO 1 AÑO), SEÑALIZADOS Y UBICADOS EN UN LUGAR VISIBLE Y DE FÁCIL ACCESO. A LOS EFECTOS DE LO ANTERIORMENTE EXPUESTO, SE ENTIENDE POR EXTINTORES SUFICIENTES, QUE POR CADA 200M2 DE ÁREA CONSTRUIDA DE LA EMPRESA, SE DEBE CONTAR POR LO MENOS CON UN EXTINTOR. DE IGUAL MANERA SE ENTIENDE POR EXTINTORES ADECUADOS, QUE LAS ÁREAS EN DONDE SE CONCENTRA MATERIAL SÓLIDO COMBUSTIBLE TALES COMO PAPEL, MADERA, TEXTILES, ETC., DEBEN ESTAR PROTEGIDAS CON EXTINTORES TIPO A DE MÍNIMO 2 1/2 GAL DE CAPACIDAD. LAS ÁREAS EN DONDE SE CONCENTRAN PRODUCTOS INFLAMABLES TALES COMO GASOLINA, DISOLVENTES, ETC.; LO MISMO QUE LAS ÁREAS EN DONDE SE CONCENTRA MAQUINARIA SIN COMPONENTES ELECTRÓNICOS, DEBEN ESTAR PROTEGIDAS CON EXTINTORES TIPO BC DE MÍNIMO 20 LB. DE CAPACIDAD. LAS ÁREAS EN DONDE SE ENCUENTRA TANTO MATERIAL SÓLIDO COMBUSTIBLE, COMO PRODUCTOS INFLAMABLES Y/O MAQUINARIA, DEBEN ESTAR PROTEGIDAS CON EXTINTORES TIPO ABC DE MÍNIMO 20 LB. DE CAPACIDAD. LAS ÁREAS EN DONDE SE ENCUENTRAN EQUIPOS ELECTRÓNICOS Y/O MAQUINARIA CON COMPONENTES ELECTRÓNICOS, DEBEN ESTAR PROTEGIDAS CON EXTINTORES TIPO SOLKAFLAM 123 DE MÍNIMO 10 LB. DE CAPACIDAD.",
+      "MANTENER INSTALADO, DURANTE LA VIGENCIA DE LA PÓLIZA, UN SISTEMA DE DETECTORES AUTOMÁTICOS DE INCENDIO (TÉRMICOS, DE HUMO O DE LLAMA),  UBICADOS EN EL TECHO POR LO MENOS A 10 CM DE DISTANCIA DE LA PARED MÁS CERCANA O EN PAREDES LATERALES A 10 O 30 CM DEL TECHO, LA DISTANCIA VERTICAL DEL TECHO AL SENSOR DEBE SER MÍNIMO DE 50 CM, CON UNA DISPOSICIÓN UNIFORME DE MÁXIMO 9 M DE DISTANCIA ENTRE DETECTORES; ESTOS DISPOSITIVOS DEBEN ESTAR CONECTADOS A UN SISTEMA DE ALARMA SONORO O DE COMUNICACIÓN AUTOMÁTICA A LOS CUERPOS DE EMERGENCIA. EN CASO DE CONTAR CON OTRO TIPO DE DETECTORES APARTE DE LOS MENCIONADOS, SEGUIR LAS RECOMENDACIONES DEL FABRICANTE EN CUANTO A SU INSTALACIÓN..",
+      "LOS SISTEMAS DE ROCIADORES AUTOMÁTICOS (SPRINKLERS) SON LOS MÁS CONFIABLES Y ECONÓMICOS; ES IMPORTANTE RESALTAR QUE ES MÁS FÁCIL REHABILITAR UN DOCUMENTO HÚMEDO QUE UNO INCINERADO. POR SU PARTE, LOS SISTEMAS DE EXTINCIÓN CON ELEMENTOS GASEOSOS TIENEN A SU FAVOR QUE OCASIONAN MENOR DAÑO A LOS ARTÍCULOS ALMACENADOS, SU OPERACIÓN REQUIERE AISLAR AUTOMÁTICAMENTE LAS ÁREAS PROTEGIDAS Y EXISTEN LIMITACIONES PARA LA EXTINCIÓN, POR CUANTO AL ACTUAR POR SOFOCAMIENTO NO ENFRÍAN LOS ELEMENTOS QUE ESTÁN EN COMBUSTIÓN, HACIENDO QUE ÉSTOS PUEDAN SEGUIR AFECTÁNDOSE POR COMBUSTIÓN LENTA O CON EL RIESGO DE REIGNICIÓN; POR LO ANTERIOR, SE REQUIERE DE UNA INTERVENCIÓN CON AGUA PARA EXTINCIÓN FINAL, CON LOS PROBLEMAS DE DAÑOS ASOCIADOS A LA APLICACIÓN DE AGUA CON MANGUERAS.EN LA NFPA 13 , NFPA 15 Y NFPA 16 SE ENCUENTRAN LOS ASPECTOS A TENER EN CUENTA PARA LOS SISTEMAS DE ROCIADORES AUTOMÁTICOS.",
+      "ES CONVENIENTE QUE LOS DETECTORES DE HUMO SE UBIQUEN, COMO MÁXIMO, A 60 CM DEL TECHO, ESTO CON EL ÁNIMO DE REDUCIR UNA POSIBLE PROPAGACIÓN DE FUEGO, CON DETECCIÓN TARDÍA; ESPECIFICACIONES CONTENIDAS EN LA NFPA 72 E4.",
+      "SE SUGIERE REALIZAR PRUEBAS DE PRESIÓN Y CAUDAL A LA RED CONTRA INCENDIOS, VERIFICANDO EL ADECUADO FUNCIONAMIENTO DE LA MISMA; ESTE SUMINISTRO DEBE SER CAPAZ DE PROVEER EL CAUDAL Y LA PRESIÓN RESIDUAL, REQUERIDOS EN UN TIEMPO MÍNIMO, DE ACUERDO A NFPA 14 , NFPA 20 Y NFPA 25.",
+      "LOS EXTINTORES TIENEN UN ALCANCE VERTICAL ÓPTIMO DE 2,5 M, APLICADO POR UNA PERSONA CON EXPERIENCIA, LO QUE INDICA QUE PARA ESTANTERÍA DE 8,5 M LA COBERTURA DE EXTINTORES NO ES SUFICIENTE PARA LAS ALTURAS DE ALMACENAMIENTO MANEJADAS. SE SUGIERE ESTUDIAR LA POSIBILIDAD DE INSTALAR UN SISTEMA DE REACCIÓN MANUAL O AUTOMÁTICO CONTRA INCENDIOS (ÁREAS ADMINISTRATIVAS, DE ALMACENAMIENTO, PRODUCCIÓN, LABORATORIOS Y SERVICIO AL PÚBLICO); ÉSTE SISTEMA DEBERÁ ESTAR CONECTADO A UNA CENTRAL DE MONITOREO.",
+      "LOS MEDIDORES DE NIVEL DE LOS TANQUES DE COMBUSTIBLE, TENDRÁN QUE SER PREFERIBLEMENTE EN UN MATERIAL RESISTENTE AL FUEGO, EVITANDO EL USO DE MANGUERAS DE PLÁSTICO, LAS CUALES SON CONSUMIDAS DE INMEDIATO EN UN INCENDIO, OCASIONANDO EL CORRESPONDIENTE DERRAME DE COMBUSTIBLE",
+      "SE RECOMIENDA QUE EN LAS BODEGAS DONDE EXISTE ALMACENAMIENTO DE AEROSOLES EXISTA UNA JAULA METÁLICA ESPECIAL PARA EL ALMACENAMIENTO DE LOS MISMOS; DE IGUAL MANERA, ES CONVENIENTE QUE EL ESPACIO ENTRE LOS ESLABONES TENGA UNA SEPARACIÓN MÁXIMA DE 51 MM QUE IMPIDA, EN CASO DE INCENDIO, LA SALIDA DE UN AEROSOL DISPARADO POR EL FUEGO. ",
+      "ES CONVENIENTE QUE LOS DUCTOS DE ESCAPE DE HUMOS (CHIMENEAS O CAMPANAS) DE LOS RESTAURANTES CUENTEN CON UN PROGRAMA DE MANTENIMIENTO SEMESTRAL, CON EL ÁNIMO DE EVITAR LA ACUMULACIÓN DE GRASA Y ELEMENTOS EN SU INTERIOR QUE PUEDAN LLEGAR A GENERAR EL INICIO DE UN INCENDIO EN SU INTERIOR."
+   
+    ],
+    "ROTURA DE MAQUINARIA": [
+      "DE ACUERDO A LAS CLÁUSULAS DE MANTENIMIENTO DE MAQUINARIA Y EQUIPO, SEGÚN LAS RECOMENDACIONES DE LOS FABRICANTES, ES NECESARIO ESTABLECER UN PLAN DE MANTENIMIENTO PREVENTIVO; ÉSTE MANTENIMIENTO DEBE SER REALIZADO POR PERSONAL ESPECIALIZADO PARA TODOS LOS EQUIPOS ELECTRÓNICOS, DONDE DEBE INCLUIRSE UNA REVISIÓN GENERAL COMO MÍNIMO CADA SEIS MESES. DE IGUAL MANERA, SE SUGIERE LLEVAR Y MANTENER LOS REGISTROS DE LAS ACTIVIDADES EJECUTADAS.",
+      "EN UN AMBIENTE CON BASTANTE POLVO, EL MANTENIMIENTO QUE SE REALIZA A LOS EQUIPOS REQUIERE DE UNA FRECUENCIA MAYOR, YA QUE SE ENCUENTRAN EXPUESTOS A DAÑOS OCASIONADOS POR ÉSTA CAUSA."
+    ],
+    "ALMACENAMIENTO": [
+      "MANTENER ALMACENADOS LOS PRODUCTOS INFLAMABLES (POR EJEMPLO: ACPM) EN LUGARES VENTILADOS Y SEPARADOS DE FUENTES DE IGNICIÓN (POR EJEMPLO: INSTALACIONES ELÉCTRICAS, LLAMA ABIERTA, ENTRE OTRAS).",
+      "EN TODAS LAS ÁREAS DONDE SE ALMACENEN ELEMENTOS INFLAMABLES, LAS INSTALACIONES Y LOS EQUIPOS DEBEN SER A PRUEBA DE EXPLOSIÓN (EXPLOSION PROOF).",
+      "LOS TANQUES DE ALMACENAMIENTO DE LÍQUIDOS INFLAMABLES Y CORROSIVOS DEBEN ESTAR Y MANTENERSE DEBIDAMENTE MARCADOS; DE IGUAL MANERA, LA CAPACIDAD DE CADA TANQUE DEBERÁ ESTAR INCLUIDA DENTRO DE LA ETIQUETA. PARA ELLO, ES CONVENIENTE ACOGERSE A LA NFPA 30. ",
+      "LA ZONA DE ALMACENAMIENTO DE ELEMENTOS CORROSIVOS, LÍQUIDOS INFLAMABLES Y CUALQUIER MERCANCÍA PELIGROSA DEBE ESTAR DEBIDAMENTE UBICADA, CONSIDERANDO LA COMPATIBILIDAD QUÍMICA DE TODAS LAS MERCANCÍAS.",
+      "LOS PRODUCTOS CORROSIVOS Y LÍQUIDOS INFLAMABLES, ALMACENADOS CON OTROS INSUMOS, AGRAVAN EL FACTOR DE RIESGOS Y POR LO TANTO NO DEBE OCURRIR BAJO NINGUNA CIRCUNSTANCIA; LAS MERCANCÍAS PELIGROSAS DEBERÁN ESTAR ALMACENADAS EN ÁREAS ESPECIALES, AISLADAS DE LOS DEMÁS ELEMENTOS Y, PREFERIBLEMENTE, SEPARADAS MEDIANTE JAULAS METÁLICAS, CON LOS DEBIDOS RÓTULOS DE MARCACIÓN.",
+      "DEBEN ANCLARSE LOS CILINDROS DE GAS QUE NO ESTÁN SIENDO UTILIZADOS, ESTO CON EL ÁNIMO DE PREVENIR LA CAÍDA DE UNO DE ELLOS, CON SUS CORRESPONDIENTES CONSECUENCIAS. ",    
+      "SE DEBEN CONSERVAR Y MANTENER ADECUADAS FORMAS DE ALMACENAMIENTO, DE ACUERDO A LA NFPA 23018: O EN LAS BODEGAS DE ALMACENAMIENTO, LA MERCANCÍA NO DEBE LLEGAR HASTA LA CUBIERTA, DEBIDO A LA DIFICULTAD QUE PRESENTA EL CONTROL DE UN INCENDIO; DEBERÁ EXISTIR, COMO MÍNIMO, UNA DISTANCIA DE 60 CM ENTRE EL MATERIAL ALMACENADO Y EL TECHO. O SE RECOMIENDA MANTENER TODA LA MERCANCÍA LIBRE DE CONTACTO DIRECTO CON EL PISO, MEDIANTE ESTANTERÍA O ESTIBAS, PLÁSTICAS O DE MADERA; EN AMBOS CASOS, A UNA ALTURA SUPERIOR DE 10 CM. O LA MERCANCÍA DEBE PERMANECER SEPARADA, POR LO MENOS, 50 CM DE PAREDES Y FUENTES TÉRMICAS (POR EJEMPLO: LÁMPARAS, INTERRUPTORES, TABLEROS ELÉCTRICOS, ENTRE OTROS). O EN LAS BODEGAS DE MATERIA PRIMA Y PRODUCTO TERMINADO, ES NECESARIO MANEJAR Y MANTENER FORMAS ADECUADAS DE ALMACENAMIENTO, YA QUE LA ALTURA INADECUADA ES UNO DE LOS FACTORES MÁS INFLUYENTES EN EL PROGRESO DE UN INCENDIO, DIFICULTANDO EL CONTROL DEL MISMO. LA INESTABILIDAD DE LOS APILAMIENTOS NO ES DESEABLE, YA QUE FACILITA QUE LOS MATERIALES CAIGAN A LOS PASILLOS; ASÍ MISMO, PROPORCIONAN UN PUENTE PARA QUE EL FUEGO LOS CRUCE Y DIFICULTA LAS OPERACIONES DE LUCHA CONTRA INCENDIOS. SE PUDO APRECIAR QUE EXISTEN PILAS DE PRODUCTOS ALMACENADOS MUY ALTAS HACIENDO QUE EXISTA INESTABILIDAD EN LAS MISMAS Y SE GENERE UNA SITUACIÓN PELIGROSA; POR LO ANTERIOR, SE SUGIERE DISMINUIR LA ALTURA DE ALMACENAMIENTO O INSTALAR ESTANTERÍA METÁLICA QUE PUEDA SERVIR DE SOPORTE PARA ESTOS ELEMENTOS. O EL ÚLTIMO NIVEL DE LOS RACKS, EN ALGUNAS ZONAS, PRESENTA MAYOR DENSIDAD DE ALMACENAMIENTO; EXISTIENDO UNA ALTURA MÁXIMA APROXIMADA DE 8,5 M, EL MEDIO DE TRANSPORTE Y MANEJO DE MERCANCÍA SON MONTACARGAS. SE DEBE CAMBIAR LA ESTRATEGIA DE ALMACENAMIENTO, UBICANDO LA MERCANCÍA DE MAYOR DENSIDAD DE ALMACENAMIENTO EN LOS NIVELES MÁS BAJOS DE LOS RACKS; CON ESTO SE BUSCA AMINORAR EL RIESGO DE RUPTURA DE LA MERCANCÍA EN UNA MANIOBRA, YA QUE EL MONTACARGAS DESPUÉS DE 2,5 M DE ALTURA DE MANIPULACIÓN PRESENTARÁ PUNTOS CIEGOS PARA EL OPERARIO.",
+    ],
+    "SUSTRACCIÓN Y MANEJO": [
+    "SE SUGIERE INSTALAR UN SISTEMA DE DETECCIÓN AUTOMÁTICA CONTRA INTRUSOS EN LAS ZONAS MENCIONADAS Ó IMPLANTAR UN SISTEMA CON PLACAS AUTOADHESIVAS EN LOS EQUIPOS QUE ALERTEN AL PERSONAL DE SEGURIDAD AL CRUZAR POR ARCOS DE DETECCIÓN, DE MANERA SIMILAR AL SISTEMA EMPLEADO EN ALMACENES DE VENTA DE DISCOS, LIBROS O PRENDAS DE VESTIR.",
+    "ES CONVENIENTE MANTENER INSTALADO UN SISTEMA DE ALARMA QUE CUENTE CON SENSORES DE MOVIMIENTO QUE PROTEJAN TODAS LAS INSTALACIONES, SENSORES MAGNÉTICOS DE APERTURA Y DEMÁS SENSORES NECESARIOS PARA PROTEGER LOS DIFERENTES ACCESOS AL PREDIO. EL SISTEMA DEBE ESTAR CONECTADO A UNA SIRENA; EN CASO DE FALLAS EN EL SUMINISTRO DE ENERGÍA, LA ALARMA DEBE CONTAR CON UNA BATERÍA DE RESERVA QUE SOPORTE EL SISTEMA, COMO MÍNIMO 4 HORAS; DE IGUAL MANERA, EL SISTEMA DEBE ESTAR MONITOREADO (CON SERVICIO DE REACCIÓN) VÍA TELEFÓNICA CON UNA FIRMA ESPECIALIZADA INSCRITA EN LA SUPERINTENDENCIA DE VIGILANCIA.",
+    "EL SISTEMA DE ALARMA Y VIGILANCIA DEBE GARANTIZAR LA PROTECCIÓN DE EQUIPOS MÉDICOS ESPECIALIZADOS (LOS CUALES NORMALMENTE TIENEN COSTOS ELEVADOS) DE FÁCIL EXTRACCIÓN.",
+    "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE INSTALAR O UBICAR UNA CAJA FUERTE EN UN LUGAR NO VISIBLE, EMPOTRADA AL PISO O LA PARED, PARA GUARDAR Y CUSTODIAR LOS DINEROS Y/O TÍTULOS VALORES DERIVADOS DE SU ACTIVIDAD COMERCIAL.",
+    "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE MANTENER INSTALADO UN CIRCUITO CERRADO DE TELEVISIÓN (CCTV), ACTIVO, LAS 24 HORAS LOS 365 DÍAS DEL AÑO. EL SISTEMA DEBE CONTAR CON CÁMARAS INTERNAS Y EXTERNAS QUE PROTEJAN LAS INSTALACIONES DEL PREDIO (PERÍMETROS Y ACCESOS). EN CASO DE FALLAS EN EL SUMINISTRO DE ENERGÍA EL CCTV DEBE ESTAR RESPALDADO POR: UNA UPS, BANCO DE BATERÍAS O PLANTA DE EMERGENCIA.",
+    "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE MANTENER UN SERVICIO DE VIGILANCIA POR PARTE DE PERSONAL DEDICADO A ESTA LABOR DURANTE LAS 24 HORAS DEL DÍA, TODOS LOS DÍAS DE LA SEMANA; EL PERSONAL DEDICADO A ESTA LABOR NO DEBE CONTAR CON LLAVES DE LAS PUERTAS DE ACCESO AL PREDIO, NI CLAVES DE APERTURA Y CIERRE DEL SISTEMA DE ALARMA.",
+    "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE MANTENER UN SERVICIO DE VIGILANCIA POR PARTE DE PERSONAL DE FIRMA ESPECIALIZADA, INSCRITA EN LA SUPERINTENDENCIA DE VIGILANCIA DURANTE LAS 24 HORAS DEL DÍA, TODOS LOS DÍAS DE LA SEMANA; EL PERSONAL DEDICADO A ESTA LABOR NO DEBE CONTAR CON LLAVES DE LAS PUERTAS DE ACCESO AL PREDIO, NI CLAVES DE APERTURA Y CIERRE DEL SISTEMA DE ALARMA.",
+    "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE MANTENER INSTALADO Y ACTIVO, UN SISTEMA DE ALARMA QUE PROTEJA LAS INSTALACIONES Y POSIBLES ACCESOS CON SENSORES DE MOVIMIENTO, SENSORES MAGNÉTICOS DE APERTURA, SENSORES DE PÁNICO INALÁMBRICOS Y/O FIJOS. EL SISTEMA DEBE ESTAR MONITOREADO VÍA RADIO, GPRS Y/O CELULAR CON EMPRESA ESPECIALIZADA INSCRITA EN LA SUPERINTENDENCIA DE VIGILANCIA; LA CUAL CUENTE CON SERVICIO DE REACCIÓN. LA ALARMA DEBE CONTAR CON UNA BATERÍA DE RESERVA QUE SOPORTE EL SISTEMA COMO MÍNIMO CUATRO (4) HORAS.",
+    "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE MANTENER INSTALADO POR ENCIMA DE LOS MUROS Y/O EN LAS REJAS PERIMETRALES COLINDANTES A LOS PREDIOS ALEDAÑOS, UN SISTEMA DE ALAMBRADO ELÉCTRICO. EL SISTEMA DEBE CONTAR CON UNA BATERÍA DE RESERVA QUE SOPORTE EL SISTEMA COMO MÍNIMO CUATRO (4) HORAS.",
+    "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE MANTENER INSTALADO POR ENCIMA DE LOS MUROS Y/O EN LAS REJAS PERIMETRALES COLINDANTES A LOS PREDIOS ALEDAÑOS, UN SISTEMA DE CONCERTINAS. ENTIÉNDASE POR CONCERTINA: ALAMBRE ENROLLADO CON FILAMENTOS CORTO PUNZANTES."
   ],
-  "ROTURA DE MAQUINARIA": [
-    "DE ACUERDO A LAS CLÁUSULAS DE MANTENIMIENTO DE MAQUINARIA Y EQUIPO, SEGÚN LAS RECOMENDACIONES DE LOS FABRICANTES, ES NECESARIO ESTABLECER UN PLAN DE MANTENIMIENTO PREVENTIVO; ÉSTE MANTENIMIENTO DEBE SER REALIZADO POR PERSONAL ESPECIALIZADO PARA TODOS LOS EQUIPOS ELECTRÓNICOS, DONDE DEBE INCLUIRSE UNA REVISIÓN GENERAL COMO MÍNIMO CADA SEIS MESES. DE IGUAL MANERA, SE SUGIERE LLEVAR Y MANTENER LOS REGISTROS DE LAS ACTIVIDADES EJECUTADAS.",
-    "EN UN AMBIENTE CON BASTANTE POLVO, EL MANTENIMIENTO QUE SE REALIZA A LOS EQUIPOS REQUIERE DE UNA FRECUENCIA MAYOR, YA QUE SE ENCUENTRAN EXPUESTOS A DAÑOS OCASIONADOS POR ÉSTA CAUSA."
+  "RESPONSABILIDAD CIVIL CONTRACTUAL Y EXTRACONTRACTUAL / MEDIO AMBIENTE": [
+    "MUCHOS TIPOS DE EDIFICIOS TIENEN, EN SU INTERIOR, RECINTOS PARA LA RECOLECCIÓN DE BASURAS. ALGUNOS DE ESTOS CUENTAN CON UN SISTEMA DE CONDUCCIÓN DE BASURAS O “CHUTES” POR LOS CUALES, SE LANZAN LOS DESECHOS, PARA POSTERIORMENTE SER ALMACENADOS EN RECIPIENTES DE MAYOR TAMAÑO.",
+    "DADO QUE ESTOS ESPACIOS RECIBEN TODO TIPO DE MATERIALES, PUEDEN ENCONTRARSE OBJETOS CON ALTA CARGA COMBUSTIBLE QUE, EN EL MOMENTO DE GENERARSE FUENTES DE IGNICIÓN, PODRÍA PRODUCIRSE UN EVENTO DE INCENDIO. POR ESTO SE RECOMIENDA QUE LOS DEPÓSITOS DE BASURA CUENTEN CON LAS SIGUIENTES CARACTERÍSTICAS ESTIPULADAS EN LA NORMA NFPA 82 – ESTÁNDAR EN INCINERADORES Y DESECHOS Y SISTEMAS DE MANEJO DE LINOS Y EQUIPAMIENTO:",
+    "· EL RECINTO DEBE ESTAR PROVISTO DE UNA PUERTA CON CIERRE AUTOMÁTICO CON RESISTENCIA AL FUEGO NO MENOR A 1 ½ HORA.",
+    "· SE DEBEN REALIZAR LABORES DE MANTENIMIENTO Y LIMPIEZA ADECUADOS ANUALMENTE O SEGÚN COMO LO RECOMIENDE EL CONSTRUCTOR.",
+    "· SI EL RECINTO DE ALMACENAMIENTO ALBERGA MÁS DE 0,75 M3 DE BASURA SIN COMPACTAR EN SU INTERIOR, ÉSTE DEBE ESTAR AISLADO DE OTROS RECINTOS DEL EDIFICIO POR PAREDES Y CUBIERTAS CON RESISTENCIA AL FUEGO NO INFERIOR A 2 HORAS.",
+    "· EL RECINTO DE BASURAS DEBE CONTAR CON UN SISTEMA DE REGADERAS AUTOMÁTICAS PARA LA EXTINCIÓN DE FUEGO, SIGUIENDO LOS LINEAMIENTOS DE LA NFPA 13 – STANDARD PARA INSTALACIÓN DE SISTEMAS DE REGADERAS.",
+    "· POR SER UN ÁREA, EN SU MAYORÍA DEL TIEMPO, DESPOBLADA, SE RECOMIENDA INSTALAR UN SISTEMA DE DETECCIÓN DE INCENDIOS, QUE SE ENCUENTRA MONITOREADO CONSTANTEMENTE POR PERSONAL DE VIGILANCIA."
   ],
-  "ALMACENAMIENTO": [
-    "MANTENER ALMACENADOS LOS PRODUCTOS INFLAMABLES (POR EJEMPLO: ACPM) EN LUGARES VENTILADOS Y SEPARADOS DE FUENTES DE IGNICIÓN (POR EJEMPLO: INSTALACIONES ELÉCTRICAS, LLAMA ABIERTA, ENTRE OTRAS).",
-    "EN TODAS LAS ÁREAS DONDE SE ALMACENEN ELEMENTOS INFLAMABLES, LAS INSTALACIONES Y LOS EQUIPOS DEBEN SER A PRUEBA DE EXPLOSIÓN (EXPLOSION PROOF).",
-    "LOS TANQUES DE ALMACENAMIENTO DE LÍQUIDOS INFLAMABLES Y CORROSIVOS DEBEN ESTAR Y MANTENERSE DEBIDAMENTE MARCADOS; DE IGUAL MANERA, LA CAPACIDAD DE CADA TANQUE DEBERÁ ESTAR INCLUIDA DENTRO DE LA ETIQUETA. PARA ELLO, ES CONVENIENTE ACOGERSE A LA NFPA 30. ",
-    "LA ZONA DE ALMACENAMIENTO DE ELEMENTOS CORROSIVOS, LÍQUIDOS INFLAMABLES Y CUALQUIER MERCANCÍA PELIGROSA DEBE ESTAR DEBIDAMENTE UBICADA, CONSIDERANDO LA COMPATIBILIDAD QUÍMICA DE TODAS LAS MERCANCÍAS.",
-    "LOS PRODUCTOS CORROSIVOS Y LÍQUIDOS INFLAMABLES, ALMACENADOS CON OTROS INSUMOS, AGRAVAN EL FACTOR DE RIESGOS Y POR LO TANTO NO DEBE OCURRIR BAJO NINGUNA CIRCUNSTANCIA; LAS MERCANCÍAS PELIGROSAS DEBERÁN ESTAR ALMACENADAS EN ÁREAS ESPECIALES, AISLADAS DE LOS DEMÁS ELEMENTOS Y, PREFERIBLEMENTE, SEPARADAS MEDIANTE JAULAS METÁLICAS, CON LOS DEBIDOS RÓTULOS DE MARCACIÓN.",
-    "DEBEN ANCLARSE LOS CILINDROS DE GAS QUE NO ESTÁN SIENDO UTILIZADOS, ESTO CON EL ÁNIMO DE PREVENIR LA CAÍDA DE UNO DE ELLOS, CON SUS CORRESPONDIENTES CONSECUENCIAS. ",    
-    "SE DEBEN CONSERVAR Y MANTENER ADECUADAS FORMAS DE ALMACENAMIENTO, DE ACUERDO A LA NFPA 23018: O EN LAS BODEGAS DE ALMACENAMIENTO, LA MERCANCÍA NO DEBE LLEGAR HASTA LA CUBIERTA, DEBIDO A LA DIFICULTAD QUE PRESENTA EL CONTROL DE UN INCENDIO; DEBERÁ EXISTIR, COMO MÍNIMO, UNA DISTANCIA DE 60 CM ENTRE EL MATERIAL ALMACENADO Y EL TECHO. O SE RECOMIENDA MANTENER TODA LA MERCANCÍA LIBRE DE CONTACTO DIRECTO CON EL PISO, MEDIANTE ESTANTERÍA O ESTIBAS, PLÁSTICAS O DE MADERA; EN AMBOS CASOS, A UNA ALTURA SUPERIOR DE 10 CM. O LA MERCANCÍA DEBE PERMANECER SEPARADA, POR LO MENOS, 50 CM DE PAREDES Y FUENTES TÉRMICAS (POR EJEMPLO: LÁMPARAS, INTERRUPTORES, TABLEROS ELÉCTRICOS, ENTRE OTROS). O EN LAS BODEGAS DE MATERIA PRIMA Y PRODUCTO TERMINADO, ES NECESARIO MANEJAR Y MANTENER FORMAS ADECUADAS DE ALMACENAMIENTO, YA QUE LA ALTURA INADECUADA ES UNO DE LOS FACTORES MÁS INFLUYENTES EN EL PROGRESO DE UN INCENDIO, DIFICULTANDO EL CONTROL DEL MISMO. LA INESTABILIDAD DE LOS APILAMIENTOS NO ES DESEABLE, YA QUE FACILITA QUE LOS MATERIALES CAIGAN A LOS PASILLOS; ASÍ MISMO, PROPORCIONAN UN PUENTE PARA QUE EL FUEGO LOS CRUCE Y DIFICULTA LAS OPERACIONES DE LUCHA CONTRA INCENDIOS. SE PUDO APRECIAR QUE EXISTEN PILAS DE PRODUCTOS ALMACENADOS MUY ALTAS HACIENDO QUE EXISTA INESTABILIDAD EN LAS MISMAS Y SE GENERE UNA SITUACIÓN PELIGROSA; POR LO ANTERIOR, SE SUGIERE DISMINUIR LA ALTURA DE ALMACENAMIENTO O INSTALAR ESTANTERÍA METÁLICA QUE PUEDA SERVIR DE SOPORTE PARA ESTOS ELEMENTOS. O EL ÚLTIMO NIVEL DE LOS RACKS, EN ALGUNAS ZONAS, PRESENTA MAYOR DENSIDAD DE ALMACENAMIENTO; EXISTIENDO UNA ALTURA MÁXIMA APROXIMADA DE 8,5 M, EL MEDIO DE TRANSPORTE Y MANEJO DE MERCANCÍA SON MONTACARGAS. SE DEBE CAMBIAR LA ESTRATEGIA DE ALMACENAMIENTO, UBICANDO LA MERCANCÍA DE MAYOR DENSIDAD DE ALMACENAMIENTO EN LOS NIVELES MÁS BAJOS DE LOS RACKS; CON ESTO SE BUSCA AMINORAR EL RIESGO DE RUPTURA DE LA MERCANCÍA EN UNA MANIOBRA, YA QUE EL MONTACARGAS DESPUÉS DE 2,5 M DE ALTURA DE MANIPULACIÓN PRESENTARÁ PUNTOS CIEGOS PARA EL OPERARIO.",
+  "INSTALACIONES ELÉCTRICAS": [
+    "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE MANTENER TODOS LOS EQUIPOS ELECTRÓNICOS CON CONEXIÓN DE PUESTA A TIERRA Y SISTEMAS DE REGULACIÓN TALES COMO REGULADORES DE VOLTAJE (ESTABILIZADORES) O UPS \"ON LINE\" DE SUFICIENTE CAPACIDAD. ASÍ MISMO SE DEBE GARANTIZAR EL CORRECTO CUMPLIMIENTO DE LAS RECOMENDACIONES DEL FABRICANTE DEL SISTEMA. REALIZAR MANTENIMIENTO PREVENTIVO SEMESTRAL A LOS EQUIPOS DE PROTECCIÓN. EVIDENCIAR LAS ACTIVIDADES DE MANTENIMIENTO POR MEDIO DE UN REGISTRO DOCUMENTADO.",
+    "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE MANTENER TODOS LOS EQUIPOS ELECTRÓNICOS QUE TENGAN ENTRADA DE COMUNICACIÓN TELEFÓNICA (CENTRALES TELEFÓNICAS, FAXES, COMPUTADORES, EQUIPO DE CÓMPUTO, ENTRE OTROS), CON SUPRESORES DE PICOS INSTALADOS A LA SALIDA DE LAS TOMACORRIENTES O MULTITOMAS. REALIZAR VERIFICACIÓN COMO MÍNIMO CADA SEIS (6) MESES, SU CORRECTO FUNCIONAMIENTO. EVIDENCIAR LAS ACTIVIDADES DE MANTENIMIENTO POR MEDIO DE UN REGISTRO DOCUMENTADO O BITÁCORA.",
+    "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE MANTENER UN CONTRATO DE MANTENIMIENTO PREVENTIVO CON UN TERCERO ESPECIALIZADO PARA TODOS LOS EQUIPOS ELECTRÓNICOS, EL CUAL INCLUYA UNA REVISIÓN GENERAL COMO MÍNIMO CADA SEIS (6) MESES. EVIDENCIAR LAS ACTIVIDADES DE MANTENIMIENTO POR MEDIO DE UN REGISTRO DOCUMENTADO O BITÁCORA POR EQUIPO.",
+    "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE MANTENER UN CONTRATO DE MANTENIMIENTO PREVENTIVO CON UN TERCERO ESPECIALIZADO PARA TODOS LOS EQUIPOS ELECTRÓNICOS, EL CUAL INCLUYA UN PROCESO DE MANTENIMIENTO CADA TRES (3) MESES. EVIDENCIAR LAS ACTIVIDADES DE MANTENIMIENTO POR MEDIO DE UN REGISTRO DOCUMENTADO O BITÁCORA POR EQUIPO.",
+    "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE GARANTIZAR QUE TODOS LOS TABLEROS ELÉCTRICOS DE DISTRIBUCIÓN DE LA SUBESTACIÓN O AQUELLAS LÍNEAS DE ALIMENTACIÓN A EQUIPOS ELECTRÓNICOS ESPECIALIZADOS, DISPONGAN DE DISPOSITIVOS DE PROTECCIÓN CONTRA SOBRETENSIONES TRANSITORIAS, CON UN SISTEMA APROPIADO DE PUESTA A TIERRA. PARA LA INSTALACIÓN DE UN SISTEMA APROPIADO DE PUESTA A TIERRA, TOMAR EN CONSIDERACIÓN EL REGLAMENTO TÉCNICO DE INSTALACIONES ELÉCTRICAS (RETIE).",
+    "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE MANTENER UN SISTEMA DE PUESTA A TIERRA DE CAPACIDAD SUFICIENTE PARA PROTEGER LOS EQUIPOS ELECTRÓNICOS EXISTENTES EN LAS INSTALACIONES Y REALIZAR MANTENIMIENTO PREVENTIVO ANUAL AL SISTEMA. EVIDENCIAR LAS ACTIVIDADES DE MANTENIMIENTO POR MEDIO DE UN REGISTRO DOCUMENTADO. PARA LA INSTALACIÓN DE UN SISTEMA APROPIADO DE PUESTA A TIERRA, TOMAR EN CONSIDERACIÓN EL REGLAMENTO TÉCNICO DE INSTALACIONES ELÉCTRICAS (RETIE)."
   ],
-"SUSTRACCIÓN Y MANEJO": [
-  "SE SUGIERE INSTALAR UN SISTEMA DE DETECCIÓN AUTOMÁTICA CONTRA INTRUSOS EN LAS ZONAS MENCIONADAS Ó IMPLANTAR UN SISTEMA CON PLACAS AUTOADHESIVAS EN LOS EQUIPOS QUE ALERTEN AL PERSONAL DE SEGURIDAD AL CRUZAR POR ARCOS DE DETECCIÓN, DE MANERA SIMILAR AL SISTEMA EMPLEADO EN ALMACENES DE VENTA DE DISCOS, LIBROS O PRENDAS DE VESTIR.",
-  "ES CONVENIENTE MANTENER INSTALADO UN SISTEMA DE ALARMA QUE CUENTE CON SENSORES DE MOVIMIENTO QUE PROTEJAN TODAS LAS INSTALACIONES, SENSORES MAGNÉTICOS DE APERTURA Y DEMÁS SENSORES NECESARIOS PARA PROTEGER LOS DIFERENTES ACCESOS AL PREDIO. EL SISTEMA DEBE ESTAR CONECTADO A UNA SIRENA; EN CASO DE FALLAS EN EL SUMINISTRO DE ENERGÍA, LA ALARMA DEBE CONTAR CON UNA BATERÍA DE RESERVA QUE SOPORTE EL SISTEMA, COMO MÍNIMO 4 HORAS; DE IGUAL MANERA, EL SISTEMA DEBE ESTAR MONITOREADO (CON SERVICIO DE REACCIÓN) VÍA TELEFÓNICA CON UNA FIRMA ESPECIALIZADA INSCRITA EN LA SUPERINTENDENCIA DE VIGILANCIA.",
-  "EL SISTEMA DE ALARMA Y VIGILANCIA DEBE GARANTIZAR LA PROTECCIÓN DE EQUIPOS MÉDICOS ESPECIALIZADOS (LOS CUALES NORMALMENTE TIENEN COSTOS ELEVADOS) DE FÁCIL EXTRACCIÓN.",
-  "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE INSTALAR O UBICAR UNA CAJA FUERTE EN UN LUGAR NO VISIBLE, EMPOTRADA AL PISO O LA PARED, PARA GUARDAR Y CUSTODIAR LOS DINEROS Y/O TÍTULOS VALORES DERIVADOS DE SU ACTIVIDAD COMERCIAL.",
-  "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE MANTENER INSTALADO UN CIRCUITO CERRADO DE TELEVISIÓN (CCTV), ACTIVO, LAS 24 HORAS LOS 365 DÍAS DEL AÑO. EL SISTEMA DEBE CONTAR CON CÁMARAS INTERNAS Y EXTERNAS QUE PROTEJAN LAS INSTALACIONES DEL PREDIO (PERÍMETROS Y ACCESOS). EN CASO DE FALLAS EN EL SUMINISTRO DE ENERGÍA EL CCTV DEBE ESTAR RESPALDADO POR: UNA UPS, BANCO DE BATERÍAS O PLANTA DE EMERGENCIA.",
-  "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE MANTENER UN SERVICIO DE VIGILANCIA POR PARTE DE PERSONAL DEDICADO A ESTA LABOR DURANTE LAS 24 HORAS DEL DÍA, TODOS LOS DÍAS DE LA SEMANA; EL PERSONAL DEDICADO A ESTA LABOR NO DEBE CONTAR CON LLAVES DE LAS PUERTAS DE ACCESO AL PREDIO, NI CLAVES DE APERTURA Y CIERRE DEL SISTEMA DE ALARMA.",
-  "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE MANTENER UN SERVICIO DE VIGILANCIA POR PARTE DE PERSONAL DE FIRMA ESPECIALIZADA, INSCRITA EN LA SUPERINTENDENCIA DE VIGILANCIA DURANTE LAS 24 HORAS DEL DÍA, TODOS LOS DÍAS DE LA SEMANA; EL PERSONAL DEDICADO A ESTA LABOR NO DEBE CONTAR CON LLAVES DE LAS PUERTAS DE ACCESO AL PREDIO, NI CLAVES DE APERTURA Y CIERRE DEL SISTEMA DE ALARMA.",
-  "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE MANTENER INSTALADO Y ACTIVO, UN SISTEMA DE ALARMA QUE PROTEJA LAS INSTALACIONES Y POSIBLES ACCESOS CON SENSORES DE MOVIMIENTO, SENSORES MAGNÉTICOS DE APERTURA, SENSORES DE PÁNICO INALÁMBRICOS Y/O FIJOS. EL SISTEMA DEBE ESTAR MONITOREADO VÍA RADIO, GPRS Y/O CELULAR CON EMPRESA ESPECIALIZADA INSCRITA EN LA SUPERINTENDENCIA DE VIGILANCIA; LA CUAL CUENTE CON SERVICIO DE REACCIÓN. LA ALARMA DEBE CONTAR CON UNA BATERÍA DE RESERVA QUE SOPORTE EL SISTEMA COMO MÍNIMO CUATRO (4) HORAS.",
-  "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE MANTENER INSTALADO POR ENCIMA DE LOS MUROS Y/O EN LAS REJAS PERIMETRALES COLINDANTES A LOS PREDIOS ALEDAÑOS, UN SISTEMA DE ALAMBRADO ELÉCTRICO. EL SISTEMA DEBE CONTAR CON UNA BATERÍA DE RESERVA QUE SOPORTE EL SISTEMA COMO MÍNIMO CUATRO (4) HORAS.",
-  "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE MANTENER INSTALADO POR ENCIMA DE LOS MUROS Y/O EN LAS REJAS PERIMETRALES COLINDANTES A LOS PREDIOS ALEDAÑOS, UN SISTEMA DE CONCERTINAS. ENTIÉNDASE POR CONCERTINA: ALAMBRE ENROLLADO CON FILAMENTOS CORTO PUNZANTES."
-],
-"RESPONSABILIDAD CIVIL CONTRACTUAL Y EXTRACONTRACTUAL / MEDIO AMBIENTE": [
-  "MUCHOS TIPOS DE EDIFICIOS TIENEN, EN SU INTERIOR, RECINTOS PARA LA RECOLECCIÓN DE BASURAS. ALGUNOS DE ESTOS CUENTAN CON UN SISTEMA DE CONDUCCIÓN DE BASURAS O “CHUTES” POR LOS CUALES, SE LANZAN LOS DESECHOS, PARA POSTERIORMENTE SER ALMACENADOS EN RECIPIENTES DE MAYOR TAMAÑO.",
-  "DADO QUE ESTOS ESPACIOS RECIBEN TODO TIPO DE MATERIALES, PUEDEN ENCONTRARSE OBJETOS CON ALTA CARGA COMBUSTIBLE QUE, EN EL MOMENTO DE GENERARSE FUENTES DE IGNICIÓN, PODRÍA PRODUCIRSE UN EVENTO DE INCENDIO. POR ESTO SE RECOMIENDA QUE LOS DEPÓSITOS DE BASURA CUENTEN CON LAS SIGUIENTES CARACTERÍSTICAS ESTIPULADAS EN LA NORMA NFPA 82 – ESTÁNDAR EN INCINERADORES Y DESECHOS Y SISTEMAS DE MANEJO DE LINOS Y EQUIPAMIENTO:",
-  "· EL RECINTO DEBE ESTAR PROVISTO DE UNA PUERTA CON CIERRE AUTOMÁTICO CON RESISTENCIA AL FUEGO NO MENOR A 1 ½ HORA.",
-  "· SE DEBEN REALIZAR LABORES DE MANTENIMIENTO Y LIMPIEZA ADECUADOS ANUALMENTE O SEGÚN COMO LO RECOMIENDE EL CONSTRUCTOR.",
-  "· SI EL RECINTO DE ALMACENAMIENTO ALBERGA MÁS DE 0,75 M3 DE BASURA SIN COMPACTAR EN SU INTERIOR, ÉSTE DEBE ESTAR AISLADO DE OTROS RECINTOS DEL EDIFICIO POR PAREDES Y CUBIERTAS CON RESISTENCIA AL FUEGO NO INFERIOR A 2 HORAS.",
-  "· EL RECINTO DE BASURAS DEBE CONTAR CON UN SISTEMA DE REGADERAS AUTOMÁTICAS PARA LA EXTINCIÓN DE FUEGO, SIGUIENDO LOS LINEAMIENTOS DE LA NFPA 13 – STANDARD PARA INSTALACIÓN DE SISTEMAS DE REGADERAS.",
-  "· POR SER UN ÁREA, EN SU MAYORÍA DEL TIEMPO, DESPOBLADA, SE RECOMIENDA INSTALAR UN SISTEMA DE DETECCIÓN DE INCENDIOS, QUE SE ENCUENTRA MONITOREADO CONSTANTEMENTE POR PERSONAL DE VIGILANCIA."
-],"INSTALACIONES ELÉCTRICAS": [
-  "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE MANTENER TODOS LOS EQUIPOS ELECTRÓNICOS CON CONEXIÓN DE PUESTA A TIERRA Y SISTEMAS DE REGULACIÓN TALES COMO REGULADORES DE VOLTAJE (ESTABILIZADORES) O UPS \"ON LINE\" DE SUFICIENTE CAPACIDAD. ASÍ MISMO SE DEBE GARANTIZAR EL CORRECTO CUMPLIMIENTO DE LAS RECOMENDACIONES DEL FABRICANTE DEL SISTEMA. REALIZAR MANTENIMIENTO PREVENTIVO SEMESTRAL A LOS EQUIPOS DE PROTECCIÓN. EVIDENCIAR LAS ACTIVIDADES DE MANTENIMIENTO POR MEDIO DE UN REGISTRO DOCUMENTADO.",
-  "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE MANTENER TODOS LOS EQUIPOS ELECTRÓNICOS QUE TENGAN ENTRADA DE COMUNICACIÓN TELEFÓNICA (CENTRALES TELEFÓNICAS, FAXES, COMPUTADORES, EQUIPO DE CÓMPUTO, ENTRE OTROS), CON SUPRESORES DE PICOS INSTALADOS A LA SALIDA DE LAS TOMACORRIENTES O MULTITOMAS. REALIZAR VERIFICACIÓN COMO MÍNIMO CADA SEIS (6) MESES, SU CORRECTO FUNCIONAMIENTO. EVIDENCIAR LAS ACTIVIDADES DE MANTENIMIENTO POR MEDIO DE UN REGISTRO DOCUMENTADO O BITÁCORA.",
-  "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE MANTENER UN CONTRATO DE MANTENIMIENTO PREVENTIVO CON UN TERCERO ESPECIALIZADO PARA TODOS LOS EQUIPOS ELECTRÓNICOS, EL CUAL INCLUYA UNA REVISIÓN GENERAL COMO MÍNIMO CADA SEIS (6) MESES. EVIDENCIAR LAS ACTIVIDADES DE MANTENIMIENTO POR MEDIO DE UN REGISTRO DOCUMENTADO O BITÁCORA POR EQUIPO.",
-  "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE MANTENER UN CONTRATO DE MANTENIMIENTO PREVENTIVO CON UN TERCERO ESPECIALIZADO PARA TODOS LOS EQUIPOS ELECTRÓNICOS, EL CUAL INCLUYA UN PROCESO DE MANTENIMIENTO CADA TRES (3) MESES. EVIDENCIAR LAS ACTIVIDADES DE MANTENIMIENTO POR MEDIO DE UN REGISTRO DOCUMENTADO O BITÁCORA POR EQUIPO.",
-  "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE GARANTIZAR QUE TODOS LOS TABLEROS ELÉCTRICOS DE DISTRIBUCIÓN DE LA SUBESTACIÓN O AQUELLAS LÍNEAS DE ALIMENTACIÓN A EQUIPOS ELECTRÓNICOS ESPECIALIZADOS, DISPONGAN DE DISPOSITIVOS DE PROTECCIÓN CONTRA SOBRETENSIONES TRANSITORIAS, CON UN SISTEMA APROPIADO DE PUESTA A TIERRA. PARA LA INSTALACIÓN DE UN SISTEMA APROPIADO DE PUESTA A TIERRA, TOMAR EN CONSIDERACIÓN EL REGLAMENTO TÉCNICO DE INSTALACIONES ELÉCTRICAS (RETIE).",
-  "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE MANTENER UN SISTEMA DE PUESTA A TIERRA DE CAPACIDAD SUFICIENTE PARA PROTEGER LOS EQUIPOS ELECTRÓNICOS EXISTENTES EN LAS INSTALACIONES Y REALIZAR MANTENIMIENTO PREVENTIVO ANUAL AL SISTEMA. EVIDENCIAR LAS ACTIVIDADES DE MANTENIMIENTO POR MEDIO DE UN REGISTRO DOCUMENTADO. PARA LA INSTALACIÓN DE UN SISTEMA APROPIADO DE PUESTA A TIERRA, TOMAR EN CONSIDERACIÓN EL REGLAMENTO TÉCNICO DE INSTALACIONES ELÉCTRICAS (RETIE)."
-],"INSTALACIONES FÍSICAS, CONSTRUCCIÓN, ORDEN, ASEO": [
-  "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE REALIZAR MANTENIMIENTO GENERAL A LAS CANALES Y BAJANTES CÓMO MÍNIMO CADA SEIS (6) MESES, QUE INCLUYA LIMPIEZA Y CAMBIO DE ELEMENTOS DEFECTUOSOS (TEJAS, GANCHOS, ENTRE OTROS). EVIDENCIAR LAS ACTIVIDADES DE MANTENIMIENTO POR MEDIO DE UN REGISTRO DOCUMENTADO O BITÁCORA.",
-  "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE REALIZAR MANTENIMIENTO, POR LO MENOS CADA SEIS (6) MESES, A LA IMPERMEABILIZACIÓN, CANALES Y BAJANTES, EL CUAL INCLUYE SU LIMPIEZA Y LA REVISIÓN DEL MANTO QUE PROTEGE LA CUBIERTA. EVIDENCIAR LAS ACTIVIDADES DE MANTENIMIENTO POR MEDIO DE UN REGISTRO DOCUMENTADO O BITÁCORA.",
-  "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE REALIZAR MANTENIMIENTO POR LO MENOS CADA TRES (3) MESES, A LOS CANALES Y BAJANTES DE AGUAS LLUVIAS Y CAJAS DE INSPECCIÓN, ENTRE OTROS, EL CUAL INCLUYE SU LIMPIEZA Y LA REVISIÓN DE LOS DESAGÜES DE AGUAS LLUVIAS QUE PROTEGEN EL PREDIO DE INUNDACIONES. RESPALDAR EL DESAGÜE CON UN SISTEMA DE BOMBEO CON MOTOBOMBAS SUMERGIBLES, PARA EVACUAR CUALQUIER FLUIDO EN CASO DE INUNDACIÓN."
-],
+  "INSTALACIONES FÍSICAS, CONSTRUCCIÓN, ORDEN, ASEO": [
+    "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE REALIZAR MANTENIMIENTO GENERAL A LAS CANALES Y BAJANTES CÓMO MÍNIMO CADA SEIS (6) MESES, QUE INCLUYA LIMPIEZA Y CAMBIO DE ELEMENTOS DEFECTUOSOS (TEJAS, GANCHOS, ENTRE OTROS). EVIDENCIAR LAS ACTIVIDADES DE MANTENIMIENTO POR MEDIO DE UN REGISTRO DOCUMENTADO O BITÁCORA.",
+    "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE REALIZAR MANTENIMIENTO, POR LO MENOS CADA SEIS (6) MESES, A LA IMPERMEABILIZACIÓN, CANALES Y BAJANTES, EL CUAL INCLUYE SU LIMPIEZA Y LA REVISIÓN DEL MANTO QUE PROTEGE LA CUBIERTA. EVIDENCIAR LAS ACTIVIDADES DE MANTENIMIENTO POR MEDIO DE UN REGISTRO DOCUMENTADO O BITÁCORA.",
+    "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE REALIZAR MANTENIMIENTO POR LO MENOS CADA TRES (3) MESES, A LOS CANALES Y BAJANTES DE AGUAS LLUVIAS Y CAJAS DE INSPECCIÓN, ENTRE OTROS, EL CUAL INCLUYE SU LIMPIEZA Y LA REVISIÓN DE LOS DESAGÜES DE AGUAS LLUVIAS QUE PROTEGEN EL PREDIO DE INUNDACIONES. RESPALDAR EL DESAGÜE CON UN SISTEMA DE BOMBEO CON MOTOBOMBAS SUMERGIBLES, PARA EVACUAR CUALQUIER FLUIDO EN CASO DE INUNDACIÓN."
+  ],
 
-};
+  };
 
-const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("");
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("");
 
 
-const handleAgregarRecomendacion = (recomendacion) => {
-  if (recomendacion && !recomendaciones.includes(recomendacion)) {
-    setRecomendaciones((prev) =>
-      prev ? prev + "\n• " + recomendacion : "• " + recomendacion
-    );
-  }
-};
+  const handleAgregarRecomendacion = (recomendacion) => {
+    if (recomendacion && !recomendaciones.includes(recomendacion)) {
+      setRecomendaciones((prev) =>
+        prev ? prev + "\n• " + recomendacion : "• " + recomendacion
+      );
+    }
+  };
 
 
+  useEffect(() => {
+    const datosPrevios = location.state || {}; // ✅ Aquí se declara dentro del efecto
+    setFormData((prev) => ({
+      ...prev,
+      ...datosPrevios,
+    }));
+  }, [location.state]);
 
 
-const getCellColor = (r) => {
-  if (r >= 13) {
-    return "FF0000"; // rojo
-  } else if (r >= 9) {
-    return "00B0F0"; // azul
-  } else if (r >= 5) {
-    return "FFFF00"; // amarillo
-  } else {
-   return "92D050"; // verde  
-   }
-};
+  const getCellColor = (r) => {
+    if (r >= 13) {
+      return "FF0000"; // rojo
+    } else if (r >= 9) {
+      return "00B0F0"; // azul
+    } else if (r >= 5) {
+      return "FFFF00"; // amarillo
+    } else {
+     return "92D050"; // verde  
+     }
+  };
 
- 
 
 
   const calcularClasificacion = (r) => {
@@ -358,41 +367,41 @@ const getCellColor = (r) => {
     setTablaRiesgos(nuevaTabla);
   };
 
-const celdaMatrizRiesgo = (R, porcentaje, textoRiesgo) =>
-  new TableCell({
-    shading: {
-      fill: getCellColor(R),
-    },
-    borders: {
-      top: { color: "000000", size: 2 },
-      bottom: { color: "000000", size: 2 },
-      left: { color: "000000", size: 2 },
-      right: { color: "000000", size: 2 },
-    },
-    children: [
-      new Paragraph({
-        children: [
-          new TextRun({
-            text: `${R}`,
-            bold: true,
-            color: "FFFFFF", // texto blanco para contraste
-          }),
-          new TextRun({
-            text: ` (${porcentaje}%)`,
-            color: "FFFFFF",
-            break: 1,
-          }),
-          new TextRun({
-            text: textoRiesgo || "",
-            color: "FFFFFF",
-            break: 1,
-          }),
-        ],
-        alignment: AlignmentType.CENTER,
-      }),
-    ],
-    verticalAlign: "center",
-  });
+  const celdaMatrizRiesgo = (R, porcentaje, textoRiesgo) =>
+    new TableCell({
+      shading: {
+        fill: getCellColor(R),
+      },
+      borders: {
+        top: { color: "000000", size: 2 },
+        bottom: { color: "000000", size: 2 },
+        left: { color: "000000", size: 2 },
+        right: { color: "000000", size: 2 },
+      },
+      children: [
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `${R}`,
+              bold: true,
+              color: "FFFFFF", // texto blanco para contraste
+            }),
+            new TextRun({
+              text: ` (${porcentaje}%)`,
+              color: "FFFFFF",
+              break: 1,
+            }),
+            new TextRun({
+              text: textoRiesgo || "",
+              color: "FFFFFF",
+              break: 1,
+            }),
+          ],
+          alignment: AlignmentType.CENTER,
+        }),
+      ],
+      verticalAlign: "center",
+    });
 
 
 
@@ -937,8 +946,6 @@ docContent.push(
           new TableCell({ children: [new Paragraph("")] }),
         ],
       }),
-
-
     ],
   })
 );
@@ -1335,6 +1342,8 @@ docContent.push(
     rows: [
       filaDoble("EXTINTOR", extintor),
       filaDoble("RED CONTRAINCENDIO", rci),
+      filaDoble("EXTINTOR", extintor),
+      filaDoble("RED CONTRAINCENDIO", rci),
       filaDoble("SISTEMA DE ROCIADORES", rociadores),
       filaDoble("DETECCIÓN DE INCENDIOS", deteccion),
       filaDoble("ALARMAS DE INCENDIO", alarmas),
@@ -1718,15 +1727,17 @@ return (
 
 
 
-<div className="mb-6">
-  <label className="block text-sm font-medium mb-1">Aseguradora</label>
-  <select
-    value={aseguradora}
-    onChange={(e) => setAseguradora(e.target.value)}
-    className="w-full border border-gray-300 rounded px-3 py-2"
-  >
-    <option value="">Selecciona una aseguradora</option>
-    <option value="PORTO & COMPAÑIA LTDA">PORTO & COMPAÑIA LTDA</option>
+      <div className="mb-6">
+        <label className="block text-sm font-medium mb-1">Aseguradora</label>
+        <select
+          name="aseguradora"
+          value={formData.aseguradora}
+          onChange={e =>
+            setFormData({ ...formData, aseguradora: e.target.value })
+          }
+          className="w-full border border-gray-300 rounded px-3 py-2"
+        >
+          <option value="">Selecciona una aseguradora</option>    <option value="PORTO & COMPAÑIA LTDA">PORTO & COMPAÑIA LTDA</option>
     <option value="UNISEG RIESGOS Y SEGUROS">UNISEG RIESGOS Y SEGUROS</option>
     <option value="ALIANZ SEGURO S.A.">ALIANZ SEGURO S.A.</option>
     <option value="ASEGURADORA SOLIDARIA DE COLOMBIA">ASEGURADORA SOLIDARIA DE COLOMBIA</option>
@@ -2025,8 +2036,7 @@ return (
 </div>
 
 
-
- {/* INFORME DE INSPECCIÓN - INFORMACIÓN GENERAL */}
+{/* INFORME DE INSPECCIÓN - INFORMACIÓN GENERAL */}
  <div className="mt-10 bg-white p-6 border rounded shadow-sm">
  <h2 className="text-xl font-bold mb-4">1. INFORMACIÓN GENERAL</h2>
 

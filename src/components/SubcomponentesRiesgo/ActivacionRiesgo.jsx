@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Button from "@mui/material/Button";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const ActivacionRiesgo = () => {
   const navigate = useNavigate();
@@ -27,7 +26,7 @@ const ActivacionRiesgo = () => {
 
   return (
     <div className="p-4">
-      <Button onClick={iniciarInspeccion}>Iniciar Inspección</Button>
+      <button onClick={iniciarInspeccion}>Iniciar Inspección</button>
 
       {/* Aquí vienen los campos, ejemplo: */}
       <div className="grid grid-cols-2 gap-4">

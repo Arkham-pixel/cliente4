@@ -1,7 +1,6 @@
-import React from 'react';
-import { useState } from "react";
+import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { registrarUsuario } from '../services/userService'; // ✅ Usa servicio centralizado
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -12,34 +11,28 @@ export default function Register() {
     contrasena: "",
     confirmarContrasena: "",
   });
-
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
     if (formData.contrasena !== formData.confirmarContrasena) {
-      setError("Las contraseñas no coinciden.");
+      setError("Las contraseñas no coinciden");
       return;
     }
 
     try {
-      await axios.post("http://localhost:3000/auth/register", {
-        nombre: formData.nombre,
-        cedula: formData.cedula,
-        celular: formData.celular,
-        correo: formData.correo,
-        contrasena: formData.contrasena,
-      });
+      await registrarUsuario(formData); // ✅ Usa servicio
       navigate("/login");
     } catch (err) {
-      setError("Error en el registro. Verifica los datos.");
+      console.error(err);
+      setError(err.response?.data?.error || "Error al registrar");
     }
   };
 

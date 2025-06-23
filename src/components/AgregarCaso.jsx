@@ -6,6 +6,19 @@ import { aseguradorasConFuncionarios } from '../data/aseguradorasFuncionarios';
 import { useDropzone } from 'react-dropzone';
 import { useParams, useNavigate } from 'react-router-dom'; // 👈 Importar
 import { getCasoComplex } from '../services/complexService'; // 👈 Importar
+import axios from 'axios';
+
+const API_URL = 'http://localhost:4000/api/complex';
+
+const crearCaso = async (formData) => {
+  try {
+    const response = await axios.post(API_URL, formData);
+    console.log('Caso creado:', response.data);
+  } catch (error) {
+    console.error('Error al crear el caso:', error);
+  }
+};
+
 
 
 const municipios = ciudadesData.flatMap(dep =>
