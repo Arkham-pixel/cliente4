@@ -27,7 +27,7 @@ export default function Layout() {
             <div className="absolute hidden group-hover:block bg-white text-black mt-1 p-2 shadow z-50">
               <Link to="/riesgos/agregar" className="block px-4 py-2 hover:bg-gray-100">Agregar Casos</Link>
               <Link to="/riesgos/dashboard" className="block px-4 py-2 hover:bg-gray-100">Dashboard</Link>
-              <Link to="/riesgos/excel" className="block px-4 py-2 hover:bg-gray-100">Ver Excel</Link>
+              <Link to="/riesgos/exportar" className="block px-4 py-2 hover:bg-gray-100">Exportar Excel</Link>
             </div>
           </div>
 

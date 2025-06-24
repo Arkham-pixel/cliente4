@@ -39,7 +39,6 @@ import MapaDeCalor from "./MapaDeCalor";
 export default function FormularioInspeccion() {
   const location = useLocation();
   const datosPrevios = location.state || {};
-
   // Información general
   const municipios = ciudadesData.flatMap(dep =>
     dep.ciudades.map(ciudad => ({
@@ -48,12 +47,13 @@ export default function FormularioInspeccion() {
     }))
   );
   const [formData, setFormData] = useState({
-    ciudad_siniestro: "",
+    ciudad_siniestro: datosPrevios.ciudad || "",
+      departamento_siniestro: datosPrevios.departamento || "",
       aseguradora: datosPrevios.aseguradora || "",
       direccion: datosPrevios.direccion || "",
-      ciudad: datosPrevios.ciudad || "",
       asegurado: datosPrevios.asegurado || "",
       fechaInspeccion: datosPrevios.fechaInspeccion || "",
+      asegurado: datosPrevios.asegurado || "",
   });
 
 
@@ -73,7 +73,7 @@ export default function FormularioInspeccion() {
 
 
   // Datos de inspección
-  const [nombreCliente, setNombreCliente] = useState("");
+const [nombreCliente, setNombreCliente] = useState(datosPrevios.nombreCliente || "");
   //const [ciudad, setCiudad] = useState("");
   const [aseguradora, setAseguradora] = useState("");
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
@@ -1698,8 +1698,8 @@ return (
         </label>
         <input
           type="text"
-          value={direccion}
-          onChange={(e) => setDireccion(e.target.value)}
+          value={formData.direccion}
+          onChange={e => setFormData({ ...formData, direccion: e.target.value })}
           className="w-full border border-gray-300 rounded px-3 py-2"
           placeholder="Dirección"
         />
@@ -1711,18 +1711,18 @@ return (
 
       <div className="md:col-span-2">
         <label className="block text-sm font-medium">Ciudad del Siniestro</label>
-        <Select
-          options={municipios}
-          value={municipios.find(
-            (opt) =>
-              opt.value === formData.ciudad_siniestro &&
-              opt.label.includes(formData.departamento_siniestro || "")
-          )}
-          onChange={handleCiudadChange}
-          placeholder="Selecciona una ciudad..."
-          isSearchable
-          className="w-full"
-        />
+          <Select
+            options={municipios}
+            value={municipios.find(
+              (opt) =>
+                opt.value === formData.ciudad_siniestro &&
+                opt.label.includes(formData.departamento_siniestro || "")
+            )}
+            onChange={handleCiudadChange}
+            placeholder="Selecciona una ciudad..."
+            isSearchable
+            className="w-full"
+          />
       </div>
 
 
@@ -2100,8 +2100,8 @@ return (
       <input
         type="text"
         placeholder="Ej: Norte de Santander"
-        value={departamento}
-        onChange={(e) => setDepartamento(e.target.value)}
+        value={formData.departamento_siniestro}
+        onChange={e => setFormData({ ...formData, departamento_siniestro: e.target.value })}
         className="w-full border border-gray-300 rounded px-3 py-2"
       />
     </div>

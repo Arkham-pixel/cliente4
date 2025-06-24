@@ -46,9 +46,9 @@ export default function Menu() {
           </button>
           {openMenu === 'riesgos' && (
             <ul className="absolute z-10 bg-gray-700 mt-2 rounded shadow text-sm w-40">
-              <li><Link to="/riesgo/agregar">Agregar Riesgo</Link></li>
-              <li><Link to="/riesgos/dashboard" className="block px-4 py-2 hover:bg-gray-600">Dashboard</Link></li>
-              <li><Link to="/riesgos/exportar" className="block px-4 py-2 hover:bg-gray-600">Exportar Excel</Link></li>
+              <li><Link to="/riesgos/agregar" className="block px-4 py-2 hover:bg-gray-100">Agregar Casos</Link></li>
+              <li><Link to="/riesgos/dashboard" className="block px-4 py-2 hover:bg-gray-100">Dashboard</Link></li>
+              <li><Link to="/riesgos/exportar" className="block px-4 py-2 hover:bg-gray-100">Exportar Excel</Link></li>
             </ul>
           )}
         </li>
