@@ -5,6 +5,7 @@ import SeguimientoRiesgo from "./SeguimientoRiesgo.jsx";
 import FacturacionRiesgo from "./FacturacionRiesgo.jsx";
 import ListaCasosRiesgo from "./ListaCasosRiesgo";
 import { useCasosRiesgo } from "../../context/CasosRiesgoContext";
+import ciudadesColombia from "../../data/colombia.json"; // si usas react-select
 
 const initialFormData = {
   aseguradora: '',
@@ -23,17 +24,37 @@ const initialFormData = {
 const AgregarCasoRiesgo = () => {
   const [pestanaActiva, setPestanaActiva] = useState('activacion');
   const [formData, setFormData] = useState(initialFormData);
-  const { agregarCaso } = useCasosRiesgo();
+  const [editando, setEditando] = useState(false);
+  const [casoEditadoIndex, setCasoEditadoIndex] = useState(null);
+  const { agregarCaso, editarCaso, casos } = useCasosRiesgo();
   const navigate = useNavigate();
 
+  const onEditarCaso = (caso, idx) => {
+    setFormData({
+      ...caso,
+      ciudad: ciudadesColombia.find(c => c.label === caso.ciudad) || null,
+      clasificacion: { label: caso.clasificacion, value: caso.clasificacion },
+      quienSolicita: { label: caso.quienSolicita, value: caso.quienSolicita },
+    });
+    setEditando(true);
+    setCasoEditadoIndex(idx);
+    setPestanaActiva('activacion');
+  };
+
   const guardarCaso = () => {
-    agregarCaso({
+    const nuevoCaso = {
       ...formData,
       ciudad: formData.ciudad ? formData.ciudad.label : "",
       quienSolicita: formData.quienSolicita ? formData.quienSolicita.label : "",
       clasificacion: formData.clasificacion ? formData.clasificacion.label : "",
-    });
-    // Opcional: limpiar el formulario
+    };
+    if (editando && casoEditadoIndex !== null) {
+      editarCaso(casoEditadoIndex, nuevoCaso);
+      setEditando(false);
+      setCasoEditadoIndex(null);
+    } else {
+      agregarCaso(nuevoCaso);
+    }
     setFormData(initialFormData);
   };
 
@@ -42,14 +63,14 @@ const AgregarCasoRiesgo = () => {
   };
 
   const iniciarInspeccion = () => {
-    const { ciudad, ...rest } = formData;
     navigate('/formularioinspeccion', {
       state: {
-        ...rest,
-        nombreCliente: formData.asegurado, // <-- Aquí el mapeo correcto
+        ...formData,
+        nombreCliente: formData.asegurado,
+        ciudad_siniestro: formData.ciudad && typeof formData.ciudad.label === "string" ? formData.ciudad.label : "",
+        departamento_siniestro: formData.ciudad && typeof formData.ciudad.departamento === "string" ? formData.ciudad.departamento : "",
         quienSolicita: formData.quienSolicita ? formData.quienSolicita.label : "",
         clasificacion: formData.clasificacion ? formData.clasificacion.label : "",
-        // No se envía ciudad ni departamento
       }
     });
   };
@@ -125,7 +146,15 @@ const AgregarCasoRiesgo = () => {
           INICIAR INSPECCIÓN
         </button>
       </div>
-      <ListaCasosRiesgo />
+      <ListaCasosRiesgo onEditarCaso={onEditarCaso} />
+      <p>
+        {formData.ciudad && formData.ciudad.label
+          ? formData.ciudad.label.split("/")[0]
+          : ""}
+      </p>
+      <p>
+        {formData.ciudad_siniestro ? formData.ciudad_siniestro.split("/")[0] : "_________"}
+      </p>
     </div>
   );
 };

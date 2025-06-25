@@ -329,6 +329,12 @@ const [nombreCliente, setNombreCliente] = useState(datosPrevios.nombreCliente ||
     }));
   }, [location.state]);
 
+    useEffect(() => {
+    if (datosPrevios.nombreCliente) {
+      setNombreCliente(datosPrevios.nombreCliente);
+    }
+  }, [datosPrevios.nombreCliente]);
+
 
   const getCellColor = (r) => {
     if (r >= 13) {
@@ -1711,18 +1717,18 @@ return (
 
       <div className="md:col-span-2">
         <label className="block text-sm font-medium">Ciudad del Siniestro</label>
-          <Select
-            options={municipios}
-            value={municipios.find(
-              (opt) =>
-                opt.value === formData.ciudad_siniestro &&
-                opt.label.includes(formData.departamento_siniestro || "")
-            )}
-            onChange={handleCiudadChange}
-            placeholder="Selecciona una ciudad..."
-            isSearchable
-            className="w-full"
-          />
+            <Select
+              options={municipios}
+              value={municipios.find(
+                (opt) =>
+                  opt.value === formData.ciudad_siniestro &&
+                  opt.label.includes(formData.departamento_siniestro || "")
+              ) || null}
+              onChange={handleCiudadChange}
+              placeholder="Selecciona una ciudad..."
+              isSearchable
+              className="w-full"
+            />
       </div>
 
 
@@ -1796,7 +1802,12 @@ return (
       {/* Carta de presentación */}
       <div className="bg-gray-50 p-4 rounded border mb-6 text-sm text-gray-700 leading-relaxed">
         <p>
-          {formData.ciudad_siniestro ? formData.ciudad_siniestro.split("/")[0] : "_________"},{" "}          <strong>
+      {formData.ciudad_siniestro
+    ? (typeof formData.ciudad_siniestro === "object" && formData.ciudad_siniestro.label
+        ? formData.ciudad_siniestro.label
+        : formData.ciudad_siniestro)
+    : "_________"}
+             <strong>
             {new Date(fecha).toLocaleDateString("es-CO", {
               day: "numeric",
               month: "numeric",
@@ -2064,16 +2075,18 @@ return (
 
     <div className="md:col-span-2">
         <label className="block text-sm font-medium">Ciudad del Siniestro</label>
-        <Select
-          options={municipios}
-          value={municipios.find(opt => opt.value === formData.ciudad_siniestro)}
-          onChange={(selectedOption) =>
-            setFormData({ ...formData, ciudad_siniestro: selectedOption.value })
-          }
-          placeholder="Selecciona una ciudad..."
-          isSearchable
-          className="w-full"
-        />
+       <Select
+            options={municipios}
+            value={municipios.find(
+              (opt) =>
+                opt.value === formData.ciudad_siniestro &&
+                opt.label.includes(formData.departamento_siniestro || "")
+            )}
+            onChange={handleCiudadChange}
+            placeholder="Selecciona una ciudad..."
+            isSearchable
+            className="w-full"
+          />
       </div>
     <div>
       <label className="block text-sm font-semibold mb-1">Persona Entrevistada</label>

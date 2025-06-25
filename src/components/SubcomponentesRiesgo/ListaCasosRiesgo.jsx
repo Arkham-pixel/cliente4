@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useCasosRiesgo } from "../../context/CasosRiesgoContext";
 
-const ListaCasosRiesgo = () => {
+const ListaCasosRiesgo = ({ onEditarCaso }) => {
   const { casos } = useCasosRiesgo();
   const [pagina, setPagina] = useState(1);
   const casosPorPagina = 10;
@@ -17,12 +17,13 @@ const ListaCasosRiesgo = () => {
             <th className="border px-2 py-1 font-bold">Asegurado</th>
             <th className="border px-2 py-1 font-bold">Ciudad</th>
             <th className="border px-2 py-1 font-bold">Estado</th>
+            <th className="border px-2 py-1 font-bold">Acciones</th>
           </tr>
         </thead>
         <tbody>
           {casos.length === 0 ? (
             <tr>
-              <td colSpan={3} className="border px-2 py-4 text-gray-400">No hay casos registrados</td>
+              <td colSpan={4} className="border px-2 py-4 text-gray-400">No hay casos registrados</td>
             </tr>
           ) : (
             casosPagina.map((caso, idx) => (
@@ -30,6 +31,14 @@ const ListaCasosRiesgo = () => {
                 <td className="border px-2 py-1">{caso.asegurado}</td>
                 <td className="border px-2 py-1">{caso.ciudad}</td>
                 <td className="border px-2 py-1">{caso.estado}</td>
+                <td className="border px-2 py-1">
+                  <button
+                    className="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded"
+                    onClick={() => onEditarCaso && onEditarCaso(caso, idx)}
+                  >
+                    Editar
+                  </button>
+                </td>
               </tr>
             ))
           )}
