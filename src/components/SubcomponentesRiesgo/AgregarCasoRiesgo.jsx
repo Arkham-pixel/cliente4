@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from "react-router-dom";
 import ActivacionRiesgo from "./ActivacionRiesgo.jsx";
 import SeguimientoRiesgo from "./SeguimientoRiesgo.jsx";
 import FacturacionRiesgo from "./FacturacionRiesgo.jsx";
@@ -26,8 +26,10 @@ const AgregarCasoRiesgo = () => {
   const [formData, setFormData] = useState(initialFormData);
   const [editando, setEditando] = useState(false);
   const [casoEditadoIndex, setCasoEditadoIndex] = useState(null);
+  const [busqueda, setBusqueda] = useState("");
   const { agregarCaso, editarCaso, casos } = useCasosRiesgo();
   const navigate = useNavigate();
+  const { id } = useParams();
 
   const onEditarCaso = (caso, idx) => {
     setFormData({
@@ -88,6 +90,35 @@ const AgregarCasoRiesgo = () => {
     }
   };
 
+  // Función para saber si hay coincidencia en algún campo
+  const hayCoincidencia = (valor) => {
+    if (!busqueda.trim()) return false;
+    if (!valor) return false;
+    return valor.toString().toLowerCase().includes(busqueda.toLowerCase());
+  };
+
+  // Ejemplo usando fetch (puedes usar axios si prefieres)
+  useEffect(() => {
+    if (busqueda.trim() === "") return; // No buscar si está vacío
+
+    fetch(`/api/casos?busqueda=${encodeURIComponent(busqueda)}`)
+      .then(res => res.json())
+      .then(data => {
+        // Aquí actualizas tu lista de casos con los resultados del backend
+        // setCasos(data);
+      });
+  }, [busqueda]);
+
+  useEffect(() => {
+    if (id && casos.length > 0) {
+      const idx = casos.findIndex(c => c.id_riesgo?.toString() === id || c.id?.toString() === id);
+      if (idx !== -1) {
+        onEditarCaso(casos[idx], idx);
+      }
+    }
+    // eslint-disable-next-line
+  }, [id, casos]);
+
   return (
     <div className="p-4">
       <div className="flex justify-center space-x-2 mb-4">
@@ -121,6 +152,15 @@ const AgregarCasoRiesgo = () => {
         >
           Facturación
         </button>
+      </div>
+      <div className="mb-4 flex justify-center">
+        <input
+          type="text"
+          value={busqueda}
+          onChange={e => setBusqueda(e.target.value)}
+          placeholder="Buscar en el formulario..."
+          className="border px-3 py-2 rounded w-full max-w-lg"
+        />
       </div>
       {renderizarContenido()}
       <div className="mt-6 flex justify-center space-x-4">

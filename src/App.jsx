@@ -11,6 +11,11 @@ import DashboardComplex from './components/DashboardComplex';
 import AgregarCasoRiesgo from './components/SubcomponentesRiesgo/AgregarCasoRiesgo';
 import RutaPrivada from "./components/RutaPrivada";
 import { CasosRiesgoProvider } from "./context/CasosRiesgoContext";
+import Dashboard from './components/SubcomponenteRiesgoDash/Dashboard';
+import ReporteRiesgo from './components/SubcompoeneteRiesgoExport/ReporteRiesgo';
+import Cuenta from './components/SubcomponenteCuenta/Cuenta';
+import MiCuenta from './components/SubcomponenteCuenta/miCuenta';
+import FormularioMaquinaria from './components/SubcomponenteMaquinaria/FormularioMaquinaria';
 
 export default function App() {
   return (
@@ -29,8 +34,13 @@ export default function App() {
           <Route path="complex/dashboard" element={<DashboardComplex />} />
           <Route path="editar-caso/:id" element={<AgregarCaso modoEdicion={true} />} />
           <Route path="riesgos/agregar" element={<AgregarCasoRiesgo />} /> 
-          <Route path="riesgos/dashboard" element={<div>Dashboard de riesgos (en desarrollo)</div>} />
-          <Route path="riesgos/exportar" element={<div>Exportar Excel de riesgos (en desarrollo)</div>} />
+          <Route path="riesgos/dashboard" element={<Dashboard />} />
+          <Route path="riesgos/exportar" element={<ReporteRiesgo/>} />
+          <Route path="riesgos/editar/:id" element={<AgregarCasoRiesgo />} />
+          <Route path="cuenta" element={<Cuenta />} />
+          <Route path="micuenta" element={<MiCuenta />} />
+          <Route path="formulario-maquinaria" element={<FormularioMaquinaria />} /> 
+
           {/* Puedes agregar más rutas aquí según sea necesario */}
         </Route>
 

@@ -4,5 +4,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: './', // importante para rutas relativas en producción
+  define: {
+    global: 'window', // <---- Esta línea es clave
+  },
 })

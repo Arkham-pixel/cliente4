@@ -34,6 +34,7 @@ import ciudadesData from '../data/colombia.json';
 import Select from 'react-select';
 import 'leaflet/dist/leaflet.css'
 import MapaDeCalor from "./MapaDeCalor";
+import FormularioAreas from "./SubcomponenteFRiesgo/FormularioAreas";
 
 
 export default function FormularioInspeccion() {
@@ -53,7 +54,6 @@ export default function FormularioInspeccion() {
       direccion: datosPrevios.direccion || "",
       asegurado: datosPrevios.asegurado || "",
       fechaInspeccion: datosPrevios.fechaInspeccion || "",
-      asegurado: datosPrevios.asegurado || "",
   });
 
 
@@ -110,6 +110,10 @@ const [nombreCliente, setNombreCliente] = useState(datosPrevios.nombreCliente ||
 
   // Procesos
   const [procesos, setProcesos] = useState("");
+  const [areas, setAreas] = useState([]);
+  const [datosEquipos, setDatosEquipos] = useState([]);
+
+
 
   // Linderos
   const [linderoNorte, setLinderoNorte] = useState("");
@@ -470,24 +474,36 @@ const filaDoble = (label, value) => new TableRow({
   };
 
 
-const handleCiudadChange = (selectedOption) => {
-  const [ciudad, departamento] = selectedOption.label.split(" - ");
-  setFormData({
-    ...formData,
-    ciudad_siniestro: ciudad,
-    departamento_siniestro: departamento,
-  });
+  const handleCiudadChange = (selectedOption) => {
+    if (!selectedOption) {
+      setFormData({
+        ...formData,
+        ciudad_siniestro: "",
+        departamento_siniestro: "",
+      });
+      return;
+    }
+    setFormData({
+      ...formData,
+      ciudad_siniestro: selectedOption,
+      departamento_siniestro: selectedOption.label.split(" - ")[1] || "",
+    });
+
+
 };
 
 
 
-
   const generarWord = async () => {
+
     const fechaFormateada = new Date(fecha).toLocaleDateString("es-CO", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
+      
     });
+
+
   
 const seccion = (titulo) =>
   new Paragraph({
@@ -519,6 +535,7 @@ const seccion = (titulo) =>
           spacing: { after: 100 },
         });
         
+
       
     const docContent = [];
     const encabezadoTabla = (texto) =>
@@ -1148,6 +1165,63 @@ docContent.push(
   linea(maquinariaDescripcion || "No se ingresó información.")
 );
 
+docContent.push(
+  new Paragraph({ text: "", spacing: { after: 300 } }), // Espacio antes
+  new Paragraph({
+    text: "INVENTARIO DE EQUIPOS ELÉCTRICOS Y ELECTRÓNICOS",
+    heading: HeadingLevel.HEADING_2,
+    spacing: { after: 300 },
+  })
+);
+
+  datosEquipos.forEach((area) => {
+  docContent.push(
+    new Paragraph({
+      
+      text: `${area.nombre} (Subtotal: $${area.equipos.reduce((sum, eq) => sum + (parseFloat(eq.precio) || 0), 0).toLocaleString('es-CO')})`,
+      heading: HeadingLevel.HEADING_3,
+      spacing: { after: 200 },
+    }),
+    new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: [
+        new TableRow({
+          children: [
+            encabezadoTabla("CANT"),
+            encabezadoTabla("EQUIPO"),
+            encabezadoTabla("MARCA"),
+            encabezadoTabla("PRECIO"),
+            encabezadoTabla("CAPACIDAD"),
+            encabezadoTabla("APARIENCIA"),
+          ],
+        }),
+        ...area.equipos.map(eq =>
+          new TableRow({
+            children: [
+              celdaTexto(String(eq.cantidad)),
+              celdaTexto(eq.equipo),
+              celdaTexto(eq.marca),
+              celdaTexto(`$${Number(eq.precio).toLocaleString('es-CO')}`),
+              celdaTexto(eq.capacidad),
+              celdaTexto(eq.apariencia),
+            ],
+          })
+        )
+      ],
+    })
+  );
+});
+docContent.push(
+  new Paragraph({
+    text: `TOTAL VALOR ESTIMADO: $${datosEquipos.reduce(
+      (sum, area) => sum + area.equipos.reduce((s, eq) => s + (parseFloat(eq.precio) || 0), 0),
+      0
+    ).toLocaleString('es-CO')}`,
+    heading: HeadingLevel.HEADING_2,
+    spacing: { before: 300, after: 300 },
+  })
+);
+
   
 
 
@@ -1716,19 +1790,14 @@ return (
       
 
       <div className="md:col-span-2">
-        <label className="block text-sm font-medium">Ciudad del Siniestro</label>
-            <Select
-              options={municipios}
-              value={municipios.find(
-                (opt) =>
-                  opt.value === formData.ciudad_siniestro &&
-                  opt.label.includes(formData.departamento_siniestro || "")
-              ) || null}
-              onChange={handleCiudadChange}
-              placeholder="Selecciona una ciudad..."
-              isSearchable
-              className="w-full"
-            />
+      <Select
+        options={municipios}
+        value={formData.ciudad_siniestro || null}
+        onChange={handleCiudadChange}
+        placeholder="Selecciona una ciudad..."
+        isSearchable
+        className="w-full"
+      />
       </div>
 
 
@@ -1800,26 +1869,28 @@ return (
       </div>
 
       {/* Carta de presentación */}
-      <div className="bg-gray-50 p-4 rounded border mb-6 text-sm text-gray-700 leading-relaxed">
+'      <div className="bg-gray-50 p-4 rounded border mb-6 text-sm text-gray-700 leading-relaxed">
         <p>
-      {formData.ciudad_siniestro
-    ? (typeof formData.ciudad_siniestro === "object" && formData.ciudad_siniestro.label
-        ? formData.ciudad_siniestro.label
-        : formData.ciudad_siniestro)
-    : "_________"}
-             <strong>
-            {new Date(fecha).toLocaleDateString("es-CO", {
-              day: "numeric",
-              month: "numeric",
-              year: "numeric",
-            })}
-          </strong>
+          Ciudad: {
+            typeof formData.ciudad_siniestro === "object" && formData.ciudad_siniestro !== null
+              ? formData.ciudad_siniestro.label
+              : (typeof formData.ciudad_siniestro === "string"
+                  ? formData.ciudad_siniestro
+                  : "_________")
+          }'
         </p>
-        <br />
+                <br />
         <p>Señores</p>
         <p><strong>{aseguradora}</strong></p>
-        <p>Ciudad: {formData.ciudad_siniestro}</p>
-        <br />
+        <p>
+          Ciudad: {
+            typeof formData.ciudad_siniestro === "object" && formData.ciudad_siniestro !== null
+              ? formData.ciudad_siniestro.label
+              : (typeof formData.ciudad_siniestro === "string"
+                  ? formData.ciudad_siniestro
+                  : "_________")
+          }
+        </p>        <br />
         <p><strong>REF&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: INFORME DE INSPECCIÓN</strong></p>
         <p>
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ASEGURADO: {nombreCliente}<br />
@@ -2348,6 +2419,9 @@ return (
 />
 </div>
 
+<FormularioAreas onChange={(areas) => setDatosEquipos(areas)} />
+
+
 
 
 <div className="mt-8 bg-white p-6 border rounded shadow-sm">
@@ -2757,7 +2831,7 @@ return (
       <div className="text-right">
       <button
 type="button"
-onClick={generarWord}
+onClick={() => generarWord (datosEquipos)}
 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded mt-4"
 >
 📝 Exportar Word
