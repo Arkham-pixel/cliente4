@@ -22,6 +22,7 @@ mongoose
   .then(() => {
     console.log("✅ Conectado a MongoDB");
 
+    console.log("Usando MONGO_URI:", MONGO_URI);
     // Rutas y arranque del servidor…
     app.use("/api/auth", authRoutes);
     app.use("/api/usuarios", userRoutes);
