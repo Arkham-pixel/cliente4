@@ -6,7 +6,7 @@ import { useDriveToken } from '../../userDriveToken';
 
 export default function Login() {
   const [correo, setCorreo] = useState('');
-  const [contrasena, setContrasena] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [localLoggedIn, setLocalLoggedIn] = useState(false);
   const { accessToken, requestAccess } = useDriveToken();
@@ -14,7 +14,7 @@ export default function Login() {
 
   // Redirige solo cuando se completa login local y Google
   useEffect(() => {
-    if (localLoggedIn && accessToken) {
+    if (localLoggedIn ) {
       navigate('/inicio');
     }
   }, [localLoggedIn, accessToken, navigate]);
@@ -23,7 +23,7 @@ export default function Login() {
     e.preventDefault();
     setError('');
     try {
-      const res = await loginUsuario({ correo, contrasena });
+      const res = await loginUsuario({ correo, password });
       localStorage.setItem('token', res.data.access_token);
       setLocalLoggedIn(true);
     } catch (err) {
@@ -57,9 +57,9 @@ export default function Login() {
           />
           <input
             type="password"
-            placeholder="Contraseña"
-            value={contrasena}
-            onChange={(e) => setContrasena(e.target.value)}
+            placeholder="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className="w-full px-4 py-2 rounded bg-gray-100 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
