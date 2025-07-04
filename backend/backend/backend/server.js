@@ -17,23 +17,18 @@ if (!MONGO_URI) {
   process.exit(1);
 }
 
-// Conectamos a MongoDB y sólo arrancamos Express cuando la conexión sea exitosa
 mongoose
-  .connect(MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(MONGO_URI)
   .then(() => {
     console.log("✅ Conectado a MongoDB");
 
-    // Rutas de la API
+    // Rutas y arranque del servidor…
     app.use("/api/auth", authRoutes);
     app.use("/api/usuarios", userRoutes);
-
     const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => {
-      console.log(`Servidor corriendo en http://localhost:${PORT}`);
-    });
+    app.listen(PORT, () =>
+      console.log(`Servidor corriendo en http://localhost:${PORT}`)
+    );
   })
   .catch((err) => {
     console.error("❌ Error conectando a MongoDB:", err);
