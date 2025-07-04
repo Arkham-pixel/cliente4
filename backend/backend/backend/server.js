@@ -34,12 +34,12 @@ mongoose
 
     console.log("Usando MONGO_URI:", MONGO_URI);
   
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () =>
-      console.log(`Servidor corriendo en http://localhost:${PORT}`)
-    );
   })
   .catch((err) => {
     console.error("❌ Error conectando a MongoDB:", err);
     process.exit(1);
   });
+const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () =>
+      console.log(`Servidor corriendo en http://localhost:${PORT}`)
+    );
