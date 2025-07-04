@@ -24,7 +24,7 @@ if (!MONGO_URI) {
   process.exit(1);
 }
 // Rutas y arranque del servidor…
-app.use("/api/auth.routes", authRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/usuarios", userRoutes);
 
 mongoose
