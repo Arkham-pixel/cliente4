@@ -24,6 +24,9 @@ if (!MONGO_URI) {
   console.error("❌ La variable de entorno MONGO_URI no está definida.");
   process.exit(1);
 }
+// Rutas y arranque del servidor…
+app.use("/api/auth", authRoutes);
+app.use("/api/usuarios", userRoutes);
 
 mongoose
   .connect(MONGO_URI)
@@ -31,9 +34,7 @@ mongoose
     console.log("✅ Conectado a MongoDB");
 
     console.log("Usando MONGO_URI:", MONGO_URI);
-    // Rutas y arranque del servidor…
-    app.use("/api/auth", authRoutes);
-    app.use("/api/usuarios", userRoutes);
+  
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () =>
       console.log(`Servidor corriendo en http://localhost:${PORT}`)
