@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginUsuario } from '../services/userService';
-import proserLogo from '../img/PROSER_FIRMA_BLANCA_V2 (3).gif';
+//import proserLogo from '../img/PROSER_FIRMA_BLANCA_V2 (3).gif';
 import { useDriveToken } from '../../userDriveToken';
 
 export default function Login() {
@@ -36,7 +36,7 @@ export default function Login() {
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 relative">
       {/* Logo */}
       <img
-        src={proserLogo}
+      //  src={proserLogo}
         alt="Logo PROSER"
         className="absolute top-6 left-6 h-20 w-auto object-contain"
         style={{ zIndex: 10 }}

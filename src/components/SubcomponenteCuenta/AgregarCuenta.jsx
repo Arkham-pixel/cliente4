@@ -37,7 +37,7 @@ export default function AgregarCuenta() {
         form.append(key, value);
       });
 
-      await axios.post("https://TU-BACKEND/api/usuarios/crear", form, {
+      await axios.post("http://13.59.106.174/api/usuarios/crear", form, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,

@@ -1,8 +1,7 @@
 // src/services/complexService.js
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL; // ej: http://localhost:4000/api
-
+const API_URL ="http:13.59.106.174/api"
 export const obtenerCasosComplex = async () => {
   const response = await fetch(`${API_URL}/complex`);
   if (!response.ok) throw new Error("Error al obtener los casos");
