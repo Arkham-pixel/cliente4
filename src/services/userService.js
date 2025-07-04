@@ -3,7 +3,7 @@ import axios from "axios";
 const API_URL ="http://13.59.106.174:3000/api";
 
 export const registrarUsuario = async (datos) => {
-  return axios.post(`${API_URL}/auth/register`, datos);
+  return axios.post(`${API_URL}/auth/registro`, datos);
 };
 
 export const loginUsuario = async (datos) => {
