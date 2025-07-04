@@ -12,10 +12,9 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: "http://localhost:5173", // o el dominio/puerto donde sirves tu React
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,               // si envías cookies o auth headers
+    origin: "http://localhost:5173",
+    methods: ["GET","POST","PUT","DELETE","OPTIONS"],
+    allowedHeaders: ["Content-Type","Authorization"],
   })
 );
 // Cargamos la URI desde .env
@@ -25,7 +24,7 @@ if (!MONGO_URI) {
   process.exit(1);
 }
 // Rutas y arranque del servidor…
-app.use("/api/auth", authRoutes);
+app.use("/api/auth.routes", authRoutes);
 app.use("/api/usuarios", userRoutes);
 
 mongoose
