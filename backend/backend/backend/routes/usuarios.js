@@ -5,20 +5,27 @@ import multer from 'multer';
 import path from 'path';
 
 const router = Router();
+const uploadsDir = path.resolve('uploads');
 
-// Guarda en disco en /uploads
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
-  filename:    (req, file, cb) => {
+  destination: (req, file, cb) => {
+    // Le dice a multer: guarda el archivo dentro de uploadsDir
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    // Le dice a multer cómo nombrar el archivo:
+    // <userId>-<timestamp><extensión original>
     const ext = path.extname(file.originalname);
-    cb(null, `${Date.now()}-${file.originalname}`);
+    cb(null, `${req.usuario.id}-${Date.now()}${ext}`);
   }
 });
-const upload = multer({ storage });
+export const upload = multer({ storage });
+
 
 // POST /api/usuarios/crear
 router.post(
   '/crear',
+  verificarToken, 
   upload.single('foto'),
   async (req, res) => {
     try {

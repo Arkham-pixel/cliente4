@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { obtenerPerfil } from "../../services/userService";  // ruta corregida
+import { obtenerPerfil, actualizarFoto } from "../../services/userService";
 
 const estados = {
   Conectado: "bg-green-500 text-white",
@@ -14,26 +14,24 @@ export default function MiCuenta() {
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
   const [estado, setEstado] = useState("Conectado");
-  const [foto, setFoto] = useState("");
+  const [fotoPreview, setFotoPreview] = useState("");
   const fileInputRef = useRef();
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      // Si no hay token, vamos al login
       navigate("/login");
       return;
     }
 
-    // Llamamos a la API para traer el perfil
     obtenerPerfil(token)
       .then(({ data }) => {
-        setUsuario(data);     // asumo que el endpoint devuelve directamente el objeto usuario
+        // asumimos que data es el objeto usuario con campo .foto
+        setUsuario(data);
       })
       .catch((err) => {
         console.error("Error cargando perfil:", err);
-        // si el token está expirado o inválido, forzar login
         navigate("/login");
       })
       .finally(() => {
@@ -41,12 +39,27 @@ export default function MiCuenta() {
       });
   }, [navigate]);
 
-  const handleFotoChange = (e) => {
+  const handleFotoChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => setFoto(ev.target.result);
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    // 1️⃣ Preview inmediato
+    const reader = new FileReader();
+    reader.onload = (ev) => setFotoPreview(ev.target.result);
+    reader.readAsDataURL(file);
+
+    // 2️⃣ Preparar subida al servidor
+    const token = localStorage.getItem("token");
+    const formData = new FormData();
+    formData.append("foto", file);
+
+    try {
+      const { data } = await actualizarFoto(formData, token);
+      // data.fotoPerfil viene del backend, actualiza el usuario
+      setUsuario((u) => ({ ...u, foto: data.fotoPerfil }));
+      setFotoPreview("");
+    } catch (err) {
+      console.error("Error subiendo foto:", err);
     }
   };
 
@@ -57,9 +70,8 @@ export default function MiCuenta() {
       </div>
     );
   }
-
   if (!usuario) {
-    return null; // ya redirigimos al login
+    return null;
   }
 
   return (
@@ -67,7 +79,13 @@ export default function MiCuenta() {
       <div className="flex items-center space-x-4 mb-6">
         <div className="relative">
           <img
-            src={foto || usuario.fotoPerfil || "/img/placeholder.png"}
+            src={
+              fotoPreview
+                ? fotoPreview
+                : usuario.foto
+                ? `https://aplicacion.grupoproser.com.co${usuario.foto}`
+                : "/img/placeholder.png"
+            }
             alt="Foto de perfil"
             className="w-20 h-20 rounded-full object-cover border-4 border-blue-200"
           />
@@ -86,6 +104,7 @@ export default function MiCuenta() {
             onChange={handleFotoChange}
           />
         </div>
+
         <div>
           <h2 className="text-2xl font-bold">
             {usuario.nombre} {usuario.apellido}
@@ -103,6 +122,7 @@ export default function MiCuenta() {
           </select>
         </div>
       </div>
+
       <div className="space-y-2 text-gray-700">
         <div>
           <span className="font-semibold">Fecha de nacimiento: </span>

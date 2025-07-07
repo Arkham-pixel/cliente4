@@ -2,6 +2,8 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
+import fs from "fs";
+import path from "path";
 
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/user.routes.js";
@@ -10,21 +12,30 @@ dotenv.config();
 
 const app = express();
 
-// 1. Middlewares globales
+// 1️⃣ Middlewares globales
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://aplicacion.grupoproser.com.co"],
+    origin: [
+      "http://localhost:5173",
+      "https://aplicacion.grupoproser.com.co"
+    ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 app.use(express.json());
 
-// 2. Sirve los uploads de fotos de perfil
-import path from "path";
-app.use("/uploads", express.static(path.resolve("uploads")));
+// 2️⃣ Asegúrate de que exista la carpeta uploads/
+const uploadsDir = path.resolve("uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log("📁 Carpeta 'uploads/' creada.");
+}
 
-// 3. Conexión a MongoDB y arranque de servidor
+// 3️⃣ Sirve los archivos subidos de forma estática
+app.use("/uploads", express.static(uploadsDir));
+
+// 4️⃣ Conexión a MongoDB y arranque de servidor
 const MONGO_URI = process.env.MONGO_URI;
 if (!MONGO_URI) {
   console.error("❌ La variable de entorno MONGO_URI no está definida.");
@@ -37,7 +48,7 @@ mongoose
     console.log("✅ Conectado a MongoDB");
     console.log("Usando MONGO_URI:", MONGO_URI);
 
-    // 4. Monta aquí tus rutas (tras DB up)
+    // 5️⃣ Monta aquí tus rutas (después de que la DB esté arriba)
     app.use("/api/auth", authRoutes);
     app.use("/api/usuarios", userRoutes);
 
