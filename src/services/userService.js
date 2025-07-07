@@ -1,9 +1,12 @@
 // src/services/userService.js
 import axios from "axios";
 
+
 // Asegúrate de usar el protocolo correcto:
-//const API_URL = "https://grupoproser.com.co/api";
-const API_URL = "https://api.grupoproser.com.co/api";
+const API_URL = "https://grupoproser.com.co/api";
+//const API_URL = "https://api.grupoproser.com.co/api";
+//const API_URL = "http://13.59.106.174/api"
+
 
 export const registrarUsuario = async (datos) => {
   return axios.post(`${API_URL}/auth/registro`, datos);
