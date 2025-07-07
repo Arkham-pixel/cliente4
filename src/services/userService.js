@@ -21,10 +21,14 @@ export const obtenerPerfil = async (token) => {
 
 // Nueva función para subir y actualizar la foto de perfil
 export const actualizarFoto = async (formData, token) => {
-  return axios.put(`${API_URL}/usuarios/perfil`, formData, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "multipart/form-data"
+ return axios.put(
+    `${API_URL}/usuarios/perfil`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`
+      }
     }
-  });
+  );
 };

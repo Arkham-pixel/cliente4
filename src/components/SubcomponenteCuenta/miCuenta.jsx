@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { obtenerPerfil, actualizarFoto } from "../../services/userService"; // <-- import corregido
+import { obtenerPerfil, actualizarFoto } from "../../services/userService";
 
 const estados = {
   Conectado: "bg-green-500 text-white",
@@ -56,8 +56,8 @@ export default function MiCuenta() {
 
     try {
       const { data } = await actualizarFoto(formData, token);
-      // data.fotoPerfil = "/uploads/tu-nombre-de-archivo.ext"
-      setUsuario((u) => ({ ...u, foto: data.fotoPerfil }));
+      // data.fotoPerfil es la URL relativa guardada en Mongo
+      setUsuario(u => ({ ...u, foto: data.fotoPerfil }));
       setFotoPreview("");
     } catch (err) {
       console.error("Error subiendo foto:", err);

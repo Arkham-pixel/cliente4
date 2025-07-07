@@ -93,4 +93,32 @@ router.get(
   }
 );
 
+// ─── Ruta para ACTUALIZAR foto de perfil ───────────────────────
+router.put(
+  "/perfil",
+  verificarToken,
+  upload.single("foto"),         // reutiliza tu multer upload
+  async (req, res) => {
+    try {
+      const usuario = await Usuario.findById(req.usuario.id);
+      if (!usuario) {
+        return res.status(404).json({ message: "Usuario no encontrado" });
+      }
+
+      if (req.file) {
+        // Sobrescribimos el campo foto con la URL relativa
+        usuario.foto = `/uploads/${req.file.filename}`;
+      }
+
+      await usuario.save();
+      // devolvemos la URL actualizada
+      return res.json({ fotoPerfil: usuario.foto });
+    } catch (error) {
+      console.error("Error actualizando foto:", error);
+      return res.status(500).json({ message: "Error interno al actualizar foto" });
+    }
+  }
+);
+
+
 export default router;
