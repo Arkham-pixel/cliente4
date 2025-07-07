@@ -9,22 +9,17 @@
 <meta http-equiv="Content-Security-Policy"
       content="
         default-src 'self';
-        script-src  'self'
-                    https://apis.google.com
-                    https://accounts.google.com
-                    https://www.gstatic.com
-                    'unsafe-inline'
-                    'unsafe-eval';
+        script-src  'self' https://apis.google.com https://accounts.google.com https://www.gstatic.com 'unsafe-inline' 'unsafe-eval';
         style-src   'self' 'unsafe-inline';
         img-src     'self'
                     data:
                     blob:
                     https://www.gstatic.com
                     https://content.googleapis.com
-                    https://via.placeholder.com;
-        frame-src   https://accounts.google.com
-                    https://*.googleusercontent.com
-                    https://content.googleapis.com;
+                    https://via.placeholder.com
+                    https://aplicacion.grupoproser.com.co
+                    https://*.tile.openstreetmap.org;
+        frame-src   https://accounts.google.com https://*.googleusercontent.com https://content.googleapis.com;
         connect-src 'self'
                     http://13.59.106.174
                     http://13.59.106.174:3000
@@ -34,6 +29,7 @@
                     ws:
                     wss:;
       " />
+
 
 
 

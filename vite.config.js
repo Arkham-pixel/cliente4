@@ -10,11 +10,13 @@ export default defineConfig({
         target: 'http://13.59.106.174:3000',
         changeOrigin: true,
         secure: false
+      },
+      '/uploads': {
+        target: 'http://13.59.106.174:3000',
+        changeOrigin: true,
+        secure: false
       }
     }
   },
-  // opcional: alias global → window
-  define: {
-    global: 'window'
-  }
+  define: { global: 'window' }
 })

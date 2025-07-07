@@ -93,11 +93,10 @@ router.get(
   }
 );
 
-// ─── Ruta para ACTUALIZAR foto de perfil ───────────────────────
 router.put(
   "/perfil",
   verificarToken,
-  upload.single("foto"),         // reutiliza tu multer upload
+  upload.single("foto"),         
   async (req, res) => {
     try {
       const usuario = await Usuario.findById(req.usuario.id);

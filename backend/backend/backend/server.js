@@ -17,7 +17,8 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://aplicacion.grupoproser.com.co"
+      "https://aplicacion.grupoproser.com.co",
+      "https://api.grupoproser.com.co"
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
