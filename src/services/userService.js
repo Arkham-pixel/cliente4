@@ -15,3 +15,4 @@ export const obtenerPerfil = async (token) => {
     headers: { Authorization: `Bearer ${token}` }
   });
 };
+
