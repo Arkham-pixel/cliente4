@@ -104,8 +104,9 @@ export default function Layout() {
           </Link>
         </div>
 
-        {/* User & Logout */}
-        <div className="hidden md:flex items-center space-x-4">
+       {/* User & Logout */}
+       
+       <div className="hidden md:flex items-center space-x-4">
           <Link to="/micuenta" className="flex items-center gap-2 text-gray-700 hover:text-blue-700 font-medium transition">
             <FaUserCircle /> Mi cuenta
           </Link>
@@ -113,6 +114,7 @@ export default function Layout() {
             <FaSignOutAlt /> Cerrar sesión
           </Link>
         </div>
+  
 
         {/* Mobile Hamburger */}
         <button

@@ -1,6 +1,9 @@
+// src/services/userService.js
 import axios from "axios";
 
-const API_URL ="grupoproser.com.co/api";
+// Asegúrate de usar el protocolo correcto:
+//const API_URL = "https://grupoproser.com.co/api";
+const API_URL = "/api";
 
 export const registrarUsuario = async (datos) => {
   return axios.post(`${API_URL}/auth/registro`, datos);
@@ -16,3 +19,12 @@ export const obtenerPerfil = async (token) => {
   });
 };
 
+// Nueva función para subir y actualizar la foto de perfil
+export const actualizarFoto = async (formData, token) => {
+  return axios.put(`${API_URL}/usuarios/perfil`, formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "multipart/form-data"
+    }
+  });
+};

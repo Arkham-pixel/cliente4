@@ -1,6 +1,8 @@
+// src/components/SubcomponenteCuenta/miCuenta.jsx
+
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { obtenerPerfil, actualizarFoto } from "../../services/userService";
+import { obtenerPerfil, actualizarFoto } from "../../services/userService"; // <-- import corregido
 
 const estados = {
   Conectado: "bg-green-500 text-white",
@@ -27,7 +29,6 @@ export default function MiCuenta() {
 
     obtenerPerfil(token)
       .then(({ data }) => {
-        // asumimos que data es el objeto usuario con campo .foto
         setUsuario(data);
       })
       .catch((err) => {
@@ -43,19 +44,19 @@ export default function MiCuenta() {
     const file = e.target.files[0];
     if (!file) return;
 
-    // 1️⃣ Preview inmediato
+    // Muestra preview mientras sube
     const reader = new FileReader();
     reader.onload = (ev) => setFotoPreview(ev.target.result);
     reader.readAsDataURL(file);
 
-    // 2️⃣ Preparar subida al servidor
+    // Sube la imagen al servidor
     const token = localStorage.getItem("token");
     const formData = new FormData();
     formData.append("foto", file);
 
     try {
       const { data } = await actualizarFoto(formData, token);
-      // data.fotoPerfil viene del backend, actualiza el usuario
+      // data.fotoPerfil = "/uploads/tu-nombre-de-archivo.ext"
       setUsuario((u) => ({ ...u, foto: data.fotoPerfil }));
       setFotoPreview("");
     } catch (err) {
@@ -70,6 +71,7 @@ export default function MiCuenta() {
       </div>
     );
   }
+
   if (!usuario) {
     return null;
   }
