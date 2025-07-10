@@ -7,6 +7,7 @@
 
     <!-- CSP actualizado -->
 <meta http-equiv="Content-Security-Policy"
+<<<<<<< HEAD
   content="
     default-src 'self';
     connect-src 'self' data:
@@ -35,6 +36,32 @@
               https://content.googleapis.com
               https://*.firebaseapp.com;
   " />
+=======
+      content="
+        default-src 'self';
+        script-src  'self' https://apis.google.com https://accounts.google.com https://www.gstatic.com 'unsafe-inline' 'unsafe-eval';
+        style-src   'self' 'unsafe-inline';
+        img-src     'self'
+                    data:
+                    blob:
+                    https://www.gstatic.com
+                    https://content.googleapis.com
+                    https://via.placeholder.com
+                    https://aplicacion.grupoproser.com.co
+                    https://*.tile.openstreetmap.org;
+        frame-src   https://accounts.google.com https://*.googleusercontent.com https://content.googleapis.com;
+        connect-src 'self'
+                    http://13.59.106.174
+                    http://13.59.106.174:3000
+                    https://grupoproser.com.co
+                    https://aplicacion.grupoproser.com.co
+                    https://content.googleapis.com
+                    ws:
+                    wss:;
+      " />
+>>>>>>> 6df747633d2fa06c0f582752e6d4703edf89e2c1
+
+
 
 
     <title>Vite + React</title>

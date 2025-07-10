@@ -1,68 +1,65 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginUsuario } from '../services/userService';
-//import proserLogo from '../img/PROSER_FIRMA_BLANCA_V2 (3).gif';
-import { useDriveToken } from '../../userDriveToken';
+import axios from 'axios';
 
 export default function Login() {
   const [correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [localLoggedIn, setLocalLoggedIn] = useState(false);
-  const { accessToken, requestAccess } = useDriveToken();
   const navigate = useNavigate();
-
-  // Redirige solo cuando se completa login local y Google
-  useEffect(() => {
-    if (localLoggedIn ) {
-      navigate('/inicio');
-    }
-  }, [localLoggedIn, accessToken, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     try {
-      const res = await loginUsuario({ correo, password });
-      localStorage.setItem('token', res.data.access_token);
-      setLocalLoggedIn(true);
+      // Llamada directa con URL absoluta para evitar redirecciones incorrectas
+      const res = await axios.post(
+        'http://13.59.106.174:3000/api/auth/login',
+        { correo, password }
+      );
+
+      const jwt = res.data.token;
+      if (!jwt) {
+        setError('Credenciales incorrectas');
+        return;
+      }
+
+      localStorage.setItem('token', jwt);
+      navigate('/inicio');
     } catch (err) {
-      console.error(err);
-      setError(err.response?.data?.error || 'Error al iniciar sesión');
+      console.error('Error en login:', err);
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        'Error al iniciar sesión';
+      setError(msg);
     }
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 relative">
-      {/* Logo */}
-      <img
-      //  src={proserLogo}
-        alt="Logo PROSER"
-        className="absolute top-6 left-6 h-20 w-auto object-contain"
-        style={{ zIndex: 10 }}
-      />
-
-      <div className="w-full max-w-md bg-white text-gray-800 p-8 rounded-xl shadow-lg border">
-        <h1 className="text-2xl font-bold text-center mb-2 tracking-wide">APLICATIVO GRUPO PROSER</h1>
-        <h2 className="text-lg font-semibold text-center mb-6">Iniciar Sesión</h2>
-
+    <div className="min-h-screen bg-white flex items-center justify-center px-4">
+      <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg border">
+        <h1 className="text-2xl font-bold text-center mb-6">
+          APLICATIVO GRUPO PROSER
+        </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="email"
             placeholder="Correo"
             value={correo}
             onChange={(e) => setCorreo(e.target.value)}
-            className="w-full px-4 py-2 rounded bg-gray-100 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 rounded bg-gray-100 border focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
           <input
             type="password"
-            placeholder="password"
+            placeholder="Contraseña"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 rounded bg-gray-100 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 rounded bg-gray-100 border focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
+
 
           <div className="flex flex-col space-y-2">
             <button
@@ -74,13 +71,23 @@ export default function Login() {
 
           </div>
 
+
+          <button
+            type="submit"
+            className="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded text-white font-medium transition-colors"
+          >
+            Entrar
+          </button>
           {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
         </form>
-
         <div className="mt-4 text-sm text-center">
-          <a href="/register" className="text-blue-600 hover:underline">Registrarse</a>
-          <span className="text-gray-400 mx-2">|</span>
-          <a href="/reset-password" className="text-blue-600 hover:underline">¿Olvidaste tu contraseña?</a>
+          <a href="/register" className="text-blue-600 hover:underline">
+            Registrarse
+          </a>
+          <span className="mx-2 text-gray-400">|</span>
+          <a href="/reset-password" className="text-blue-600 hover:underline">
+            ¿Olvidaste tu contraseña?
+          </a>
         </div>
       </div>
     </div>

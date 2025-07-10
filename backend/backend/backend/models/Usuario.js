@@ -1,14 +1,15 @@
+// models/Usuario.js
 import mongoose from "mongoose";
 
 const UsuarioSchema = new mongoose.Schema({
-  nombre: { type: String, required: true },
-  correo: { type: String, required: true, unique: true },
-  password: { type: String, required: true }, // contraseña encriptada con bcrypt
-  rol: {
-    type: String,
-    enum: ["admin", "soporte", "usuario"],
-    default: "usuario",
-  }
+  nombre:           { type: String, required: true, trim: true },
+  correo:           { type: String, required: true, unique: true, lowercase: true, trim: true },
+  password:         { type: String, required: true },
+  rol:              { type: String, enum: ["admin","soporte","usuario"], default: "usuario" },
+  celular:          { type: String, trim: true },
+  cedula:           { type: String, trim: true },
+  fechaNacimiento:  { type: Date },
+  foto:             { type: String } 
 }, {
   timestamps: true
 });
