@@ -72,15 +72,6 @@ export default function Login() {
               Entrar con usuario y contraseña
             </button>
 
-            {/* Botón Google Sign-in */}
-            <button
-              type="button"
-              onClick={requestAccess}
-              className="w-full bg-red-600 hover:bg-red-700 py-2 rounded text-white font-medium transition-colors flex items-center justify-center"
-            >
-              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google icon" className="h-5 w-5 mr-2" />
-              Iniciar sesión con Google
-            </button>
           </div>
 
           {error && <p className="text-red-500 text-sm mt-2">{error}</p>}

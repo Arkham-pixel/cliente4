@@ -217,7 +217,8 @@ const [nombreCliente, setNombreCliente] = useState(datosPrevios.nombreCliente ||
 
   // recomendaciones 
 
-  const [recomendaciones, setRecomendaciones] = useState("");
+const [nuevaRecomendacion, setNuevaRecomendacion] = useState("");
+const [recomendaciones, setRecomendaciones] = useState("");
 
   const [maquinariaDescripcion, setMaquinariaDescripcion] = useState("");
 
@@ -248,7 +249,9 @@ const [nombreCliente, setNombreCliente] = useState(datosPrevios.nombreCliente ||
   ];
 
   // Lista de recomendaciones (puedes ponerlas resumidas aquí o importarlas desde un JSON o txt si prefieres)
-  const bancoRecomendaciones = {
+  const [bancoRecomendaciones, setBancoRecomendaciones] = useState(() =>{
+     const stored = localStorage.getItem("bancoRecomendaciones");
+    return stored ? JSON.parse(stored) : {
     "INCENDIO": [
       "DURANTE EL PERÍODO DE VIGENCIA DE LA PÓLIZA DEBE VERIFICARSE EL CORRECTO ACONDICIONAMIENTO DE LAS INSTALACIONES ELÉCTRICAS Y SU RESPECTIVO MANTENIMIENTO COMO MÍNIMO CADA 6 MESES, QUE INCLUYA ENTUBAR TODOS LOS CIRCUITOS DE DISTRIBUCIÓN DE ENERGÍA, ELIMINAR EL USO DE EXTENSIONES COMO MEDIO PERMANENTE DE CONEXIÓN Y CIERRE DE TODAS LAS CAJAS DE PASO, TABLEROS DE DISTRIBUCIÓN DE ENERGÍA, PUNTOS DE CABLEADO EXPUESTO, LUMINARIAS, INTERRUPTORES Y TOMAS ELÉCTRICAS.",
       "REALIZAR DURANTE LA VIGENCIA DE LA PÓLIZA LA SUSPENSIÓN DEL SUMINISTRO DE ENERGÍA ELÉCTRICA, DURANTE LAS HORAS Y DÍAS NO LABORABLES A LOS CIRCUITOS DE DISTRIBUCIÓN ELÉCTRICA, DE LOS EQUIPOS O ÁREAS NO INDISPENSABLES PARA EL DESARROLLO PROPIO DE LAS ACTIVIDADES DEL ASEGURADO;ENTENDIENDO COMO INDISPENSABLES LOS CIRCUITOS QUE SUMINISTRAN ENERGÍA A EQUIPOS O ÁREAS QUE POR EL FUNCIONAMIENTO DE LA EMPRESA, NO SE PUEDEN QUEDAR SIN ENERGÍA. ESTA SUSPENSIÓN DEBE EVIDENCIARSE POR MEDIO DE UN PROCEDIMIENTO CON RESPONSABLES DEFINIDOS Y REGISTROS SUFICIENTES.",
@@ -310,8 +313,13 @@ const [nombreCliente, setNombreCliente] = useState(datosPrevios.nombreCliente ||
     "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE REALIZAR MANTENIMIENTO, POR LO MENOS CADA SEIS (6) MESES, A LA IMPERMEABILIZACIÓN, CANALES Y BAJANTES, EL CUAL INCLUYE SU LIMPIEZA Y LA REVISIÓN DEL MANTO QUE PROTEGE LA CUBIERTA. EVIDENCIAR LAS ACTIVIDADES DE MANTENIMIENTO POR MEDIO DE UN REGISTRO DOCUMENTADO O BITÁCORA.",
     "DURANTE LA VIGENCIA DE LA PÓLIZA, EL ASEGURADO DEBE REALIZAR MANTENIMIENTO POR LO MENOS CADA TRES (3) MESES, A LOS CANALES Y BAJANTES DE AGUAS LLUVIAS Y CAJAS DE INSPECCIÓN, ENTRE OTROS, EL CUAL INCLUYE SU LIMPIEZA Y LA REVISIÓN DE LOS DESAGÜES DE AGUAS LLUVIAS QUE PROTEGEN EL PREDIO DE INUNDACIONES. RESPALDAR EL DESAGÜE CON UN SISTEMA DE BOMBEO CON MOTOBOMBAS SUMERGIBLES, PARA EVACUAR CUALQUIER FLUIDO EN CASO DE INUNDACIÓN."
   ],
+    };
+  });
 
-  };
+  useEffect(() => {
+  localStorage.setItem("bancoRecomendaciones", JSON.stringify(bancoRecomendaciones));
+}, [bancoRecomendaciones]);
+
 
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("");
 
@@ -939,10 +947,8 @@ docContent.push(
       }),
       new TableRow({
         children: [
-          encabezadoTabla("Municipio"),
-          celdaTexto(municipio),
-          encabezadoTabla("Persona Entrevistada"),
-          celdaTexto(personaEntrevistada),
+          encabezadoTabla("Ciudad"),
+          celdaTexto(municipios)
         ],
       }),
       new TableRow({
@@ -1420,8 +1426,6 @@ docContent.push(
   new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: [
-      filaDoble("EXTINTOR", extintor),
-      filaDoble("RED CONTRAINCENDIO", rci),
       filaDoble("EXTINTOR", extintor),
       filaDoble("RED CONTRAINCENDIO", rci),
       filaDoble("SISTEMA DE ROCIADORES", rociadores),
@@ -2569,8 +2573,9 @@ return (
 
 
 
-  {/* Agua */}
+  {/* SISTEMA DE AGUA */}
   <div className="overflow-x-auto mb-6">
+  <h2 className="text-xl font-bold mb-4">SISTEMA DE AGUA</h2>
   <table className="min-w-full text-sm text-left border border-gray-300">
     <thead className="bg-gray-100 text-gray-800 font-bold">
       <tr>
@@ -2803,11 +2808,39 @@ return (
           </option>
         ))}
       </select>
+
+      {/* Input para nueva recomendación */}
+      <label className="block text-sm font-semibold mb-2">
+        Nueva recomendación
+      </label>
+      <input
+        type="text"
+        value={nuevaRecomendacion}
+        onChange={(e) => setNuevaRecomendacion(e.target.value)}
+        placeholder="Escribe una nueva recomendación..."
+        className="w-full border border-gray-300 rounded px-3 py-2 mb-2"
+      />
+      <button
+        onClick={() => {
+          if (!nuevaRecomendacion.trim()) return;
+          setBancoRecomendaciones((prev) => ({
+            ...prev,
+            [categoriaSeleccionada]: [
+              ...prev[categoriaSeleccionada],
+              nuevaRecomendacion.trim(),
+            ],
+          }));
+          setNuevaRecomendacion("");
+        }}
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+      >
+        Agregar recomendación
+      </button>
     </>
   )}
 
   {/* Textarea editable */}
-  <label className="block text-sm font-semibold mb-2">
+  <label className="block text-sm font-semibold mt-6 mb-2">
     Recomendaciones generales (editable)
   </label>
   <textarea
@@ -2818,6 +2851,7 @@ return (
     className="w-full border border-gray-300 rounded px-3 py-2"
   />
 </div>
+
 
 
 
