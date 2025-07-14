@@ -50,3 +50,17 @@ export const loginSecurUser = async (req, res) => {
     res.status(500).json({ mensaje: "Error en el login", error: error.message });
   }
 };
+
+export const obtenerPerfilSecurUser = async (req, res) => {
+  try {
+    // El id viene del token JWT
+    const userId = req.usuario.id;
+    const user = await SecurUserSecundario.findById(userId).select("-pswd");
+    if (!user) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado" });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error al obtener perfil", error: error.message });
+  }
+};

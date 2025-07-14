@@ -1,44 +1,63 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import Login from './components/login';
-import Register from './components/Register';
-import ResetPassword from './components/ResetPassword';
-import Layout from './components/Layout';
-import Inicio from './components/Inicio';
-import FormularioInspeccion from './components/FormularioInspeccion';
-import AgregarCaso from './components/AgregarCaso';
-import ReporteComplex from './components/ReporteComplex';
-import DashboardComplex from './components/DashboardComplex';
-import AgregarCasoRiesgo from './components/SubcomponentesRiesgo/AgregarCasoRiesgo';
-import Dashboard from './components/SubcomponenteRiesgoDash/Dashboard';
-import ReporteRiesgo from './components/SubcompoeneteRiesgoExport/ReporteRiesgo';
-import Cuenta from './components/SubcomponenteCuenta/Cuenta';
-import MiCuenta from './components/SubcomponenteCuenta/miCuenta';
-import FormularioMaquinaria from './components/SubcomponenteMaquinaria/FormularioMaquinaria';
-import { CasosRiesgoProvider } from './context/CasosRiesgoContext';
+// src/App.jsx
+import React from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
 
-// Helper para saber si está autenticado (puedes cambiar la lógica si usas contexto)
-const isAuthenticated = () => !!localStorage.getItem('token');
+import Login from './components/login'
+import Register from './components/Register'
+import ResetPassword from './components/ResetPassword'
+import Layout from './components/Layout'
+import Inicio from './components/Inicio'
+import FormularioInspeccion from './components/FormularioInspeccion'
+import AgregarCaso from './components/AgregarCaso'
+import ReporteComplex from './components/ReporteComplex'
+import DashboardComplex from './components/DashboardComplex'
+import AgregarCasoRiesgo from './components/SubcomponentesRiesgo/AgregarCasoRiesgo'
+import Dashboard from './components/SubcomponenteRiesgoDash/Dashboard'
+import ReporteRiesgo from './components/SubcompoeneteRiesgoExport/ReporteRiesgo'
+import Cuenta from './components/SubcomponenteCuenta/Cuenta'
+import MiCuenta from './components/SubcomponenteCuenta/miCuenta'
+import FormularioMaquinaria from './components/SubcomponenteMaquinaria/FormularioMaquinaria'
 
-// Componente wrapper para login que redirige si ya está autenticado
+import { CasosRiesgoProvider } from './context/CasosRiesgoContext'
+import RequireAuth from './components/RequireAuth'
+
+// Comprueba si tenemos un token en localStorage
+const isAuthenticated = () => !!localStorage.getItem('token')
+
+// Para redirigir al dashboard si ya estás logueado
 function LoginRedirect() {
-  return isAuthenticated() ? <Navigate to="/inicio" replace /> : <Login />;
+  return isAuthenticated()
+    ? <Navigate to="/inicio" replace />
+    : <Login />
 }
 
 export default function App() {
   return (
     <CasosRiesgoProvider>
       <Routes>
-        {/* Redirige raíz a /inicio */}
-        <Route path="/" element={<Navigate to="/inicio" replace />} />
+        {/* Ruta raíz: si estás, vas a /inicio, si no, a /login */}
+        <Route
+          path="/"
+          element={
+            isAuthenticated()
+              ? <Navigate to="/inicio" replace />
+              : <Navigate to="/login" replace />
+          }
+        />
 
         {/* Rutas públicas */}
         <Route path="/login" element={<LoginRedirect />} />
         <Route path="/register" element={<Register />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* Rutas principales con Layout (menú siempre visible) */}
-        <Route element={<Layout />}>
+        {/* Rutas privadas protegidas por RequireAuth */}
+        <Route
+          element={
+            <RequireAuth>
+              <Layout />
+            </RequireAuth>
+          }
+        >
           <Route path="inicio" element={<Inicio />} />
           <Route path="formularioinspeccion" element={<FormularioInspeccion />} />
           <Route path="complex/agregar" element={<AgregarCaso />} />
@@ -54,9 +73,9 @@ export default function App() {
           <Route path="formulario-maquinaria" element={<FormularioMaquinaria />} />
         </Route>
 
-        {/* Ruta catch-all: si no coincide, vuelve a /inicio */}
-        <Route path="*" element={<Navigate to="/inicio" replace />} />
+        {/* Cualquier otra ruta redirige a la raíz */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </CasosRiesgoProvider>
-  );
+  )
 }

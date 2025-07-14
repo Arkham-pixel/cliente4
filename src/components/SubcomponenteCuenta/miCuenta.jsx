@@ -27,7 +27,8 @@ export default function MiCuenta() {
       return;
     }
 
-    obtenerPerfil(token)
+    const tipoUsuario = localStorage.getItem("tipoUsuario") || "normal";
+    obtenerPerfil(token, tipoUsuario)
       .then(({ data }) => {
         setUsuario(data);
       })

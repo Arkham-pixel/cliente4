@@ -17,8 +17,12 @@ export const loginUsuario = async (datos) => {
   return axios.post(`${API_URL}/api/auth/login`, datos);
 };
 
-export const obtenerPerfil = async (token) => {
-  return axios.get(`${API_URL}/api/usuarios/perfil`, {
+export const obtenerPerfil = async (token, tipo = "normal") => {
+  const url =
+    tipo === "secur"
+      ? "http://13.59.106.174:3000/api/secur-users/perfil"
+      : "http://13.59.106.174:3000/api/usuarios/perfil";
+  return axios.get(url, {
     headers: { Authorization: `Bearer ${token}` }
   });
 };
