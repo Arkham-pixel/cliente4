@@ -14,6 +14,7 @@ export default function EditarCuentas() {
     cedula: "",
     celular: "",
     correo: "", // <-- ¡Agregado!
+    passwordConfirm: "",
   });
   const [tipoUsuario, setTipoUsuario] = useState("normal");
   const [mensaje, setMensaje] = useState("");
@@ -59,6 +60,7 @@ export default function EditarCuentas() {
           email: form.email,
           phone: form.phone,
           role: form.role,
+          passwordConfirm: form.passwordConfirm,
         };
       } else {
         dataToSend = {
@@ -67,6 +69,7 @@ export default function EditarCuentas() {
           fechaNacimiento: form.fechaNacimiento,
           cedula: form.cedula,
           celular: form.celular,
+          passwordConfirm: form.passwordConfirm,
         };
       }
       await actualizarPerfil(dataToSend, token, tipoUsuario);
@@ -115,6 +118,15 @@ export default function EditarCuentas() {
               onChange={handleChange}
               placeholder="Rol"
               className="w-full px-4 py-2 rounded border"
+            />
+            <input
+              type="password"
+              name="passwordConfirm"
+              value={form.passwordConfirm || ""}
+              onChange={handleChange}
+              placeholder="Confirma tu contraseña para guardar cambios"
+              className="w-full px-4 py-2 rounded border"
+              required
             />
           </>
         ) : (
@@ -168,6 +180,15 @@ export default function EditarCuentas() {
               onChange={handleChange}
               placeholder="Fecha de nacimiento"
               className="w-full px-4 py-2 rounded border"
+            />
+            <input
+              type="password"
+              name="passwordConfirm"
+              value={form.passwordConfirm || ""}
+              onChange={handleChange}
+              placeholder="Confirma tu contraseña para guardar cambios"
+              className="w-full px-4 py-2 rounded border"
+              required
             />
           </>
         )}

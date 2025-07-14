@@ -17,6 +17,7 @@ import ReporteRiesgo from './components/SubcompoeneteRiesgoExport/ReporteRiesgo'
 import Cuenta from './components/SubcomponenteCuenta/Cuenta'
 import MiCuenta from './components/SubcomponenteCuenta/miCuenta'
 import FormularioMaquinaria from './components/SubcomponenteMaquinaria/FormularioMaquinaria'
+import FormularioCasoComplex from './components/SubcomponenteCompex/FormularioCasoComplex'
 
 import { CasosRiesgoProvider } from './context/CasosRiesgoContext'
 import RequireAuth from './components/RequireAuth'
@@ -59,6 +60,7 @@ export default function App() {
           }
         >
           <Route path="inicio" element={<Inicio />} />
+          <Route path="complex/formulario" element={<FormularioCasoComplex />} />
           <Route path="formularioinspeccion" element={<FormularioInspeccion />} />
           <Route path="complex/agregar" element={<AgregarCaso />} />
           <Route path="complex/excel" element={<ReporteComplex />} />

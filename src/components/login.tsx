@@ -28,14 +28,16 @@ export default function Login() {
         }
         localStorage.setItem('token', jwt);
         localStorage.setItem('tipoUsuario', 'normal');
+        localStorage.setItem('rol', res.data.user.rol); // <-- Guarda el rol del usuario normal
       } else {
         const data = await loginSecurUser({ login, pswd });
         if (!data.token) {
           setError('Credenciales incorrectas');
           return;
-        }
+        }   
         localStorage.setItem('token', data.token);
         localStorage.setItem('tipoUsuario', 'secur');
+        localStorage.setItem('rol', data.user.role); // <-- Guarda el rol del usuario secundario
       }
       navigate('/inicio');
     } catch (err) {

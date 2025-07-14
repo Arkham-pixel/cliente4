@@ -2,6 +2,16 @@ import React, { useState } from "react";
 import axios from "axios";
 
 export default function AgregarCuenta() {
+  const rol = localStorage.getItem("rol");
+
+  if (rol !== "admin" && rol !== "soporte") {
+    return (
+      <div className="text-red-600 font-bold">
+        No tienes permisos para agregar cuentas.
+      </div>
+    );
+  }
+
   const [formData, setFormData] = useState({
     nombre: "",
     correo: "",

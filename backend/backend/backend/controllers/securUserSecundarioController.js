@@ -1,5 +1,6 @@
 import SecurUserSecundario from "../models/SecurUserSecundario.js";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs"; // Si usas bcrypt
 
 export const obtenerSecurUsers = async (req, res) => {
   try {
@@ -68,12 +69,26 @@ export const obtenerPerfilSecurUser = async (req, res) => {
 export const actualizarPerfilSecurUser = async (req, res) => {
   try {
     const userId = req.usuario.id;
-    const update = req.body;
-    const user = await SecurUserSecundario.findByIdAndUpdate(userId, update, { new: true, runValidators: true });
+    const { passwordConfirm, ...update } = req.body;
+
+    const user = await SecurUserSecundario.findById(userId);
     if (!user) {
       return res.status(404).json({ mensaje: "Usuario no encontrado" });
     }
-    res.json(user);
+
+    // Verifica la contraseña
+    // Si la contraseña está hasheada:
+    const isMatch = await bcrypt.compare(passwordConfirm, user.pswd);
+    // Si la contraseña está en texto plano (no recomendado):
+    // const isMatch = passwordConfirm === user.pswd;
+
+    if (!isMatch) {
+      return res.status(401).json({ mensaje: "Contraseña incorrecta. No se guardaron los cambios." });
+    }
+
+    // Actualiza los datos
+    const updatedUser = await SecurUserSecundario.findByIdAndUpdate(userId, update, { new: true, runValidators: true });
+    res.json(updatedUser);
   } catch (error) {
     res.status(500).json({ mensaje: "Error al actualizar perfil", error: error.message });
   }
