@@ -26,8 +26,6 @@ if (!SECONDARY_DB_URI) {
     dbName: "GrupoProser",
     serverSelectionTimeoutMS: 5000, // 5 segundos
     socketTimeoutMS: 45000, // 45 segundos
-    bufferMaxEntries: 0,
-    bufferCommands: false,
     maxPoolSize: 10,
     minPoolSize: 1,
     maxIdleTimeMS: 30000,

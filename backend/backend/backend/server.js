@@ -7,23 +7,17 @@ if (!MONGO_URI) {
   process.exit(1);
 }
 
-// Configuración mejorada de MongoDB
+// Configuración mejorada de MongoDB (solo opciones soportadas)
 const mongoOptions = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   serverSelectionTimeoutMS: 10000, // 10 segundos
   socketTimeoutMS: 45000, // 45 segundos
-  bufferMaxEntries: 0,
-  bufferCommands: false,
   maxPoolSize: 10,
   minPoolSize: 1,
   maxIdleTimeMS: 30000,
   retryWrites: true,
-  w: "majority",
-  // Opciones adicionales para MongoDB Atlas
-  ssl: true,
-  sslValidate: false,
-  directConnection: false
+  w: "majority"
 };
 
 mongoose
