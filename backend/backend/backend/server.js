@@ -1,6 +1,5 @@
 import express from "express";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 import cors from "cors";
 import fs from "fs";
 import path from "path";
@@ -9,8 +8,7 @@ import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/user.routes.js";
 import securUserSecundarioRoutes from "./routes/securUserSecundario.routes.js";
 
-dotenv.config();
-console.log("DEBUG - TODAS LAS VARIABLES:", process.env);
+
 
 const app = express();
 
