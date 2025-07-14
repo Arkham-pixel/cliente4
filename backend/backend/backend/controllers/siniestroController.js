@@ -82,7 +82,7 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
       {
         $lookup: {
           from: 'gsk3cAppresponsable',
-          localField: 'codiResponsble',
+          localField: 'codi_respnsble', // Corregido: era 'codiResponsble'
           foreignField: 'codiRespnsble',
           as: 'responsableInfo'
         }
@@ -131,6 +131,10 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
 
     const total = totalResult.length > 0 ? totalResult[0].total : 0;
 
+    // Debug: Log para verificar los datos
+    console.log('🔍 Debug - Primer siniestro:', siniestros[0]);
+    console.log('🔍 Debug - Campos disponibles:', Object.keys(siniestros[0] || {}));
+
     res.json({ 
       total, 
       page: Number(page), 
@@ -140,5 +144,70 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
   } catch (error) {
     console.error('Error en obtenerSiniestrosConResponsables:', error);
     res.status(500).json({ mensaje: 'Error al obtener siniestros con responsables', error: error.message });
+  }
+};
+
+// Endpoint de prueba para verificar el JOIN
+export const probarJoin = async (req, res) => {
+  try {
+    // Obtener algunos siniestros sin JOIN
+    const siniestrosSinJoin = await Siniestro.find().limit(3);
+    console.log('🔍 Siniestros sin JOIN:', siniestrosSinJoin.map(s => ({
+      _id: s._id,
+      codi_respnsble: s.codi_respnsble,
+      nmro_sinstro: s.nmro_sinstro
+    })));
+
+    // Obtener algunos responsables
+    const responsables = await Responsable.find().limit(3);
+    console.log('🔍 Responsables disponibles:', responsables.map(r => ({
+      _id: r._id,
+      codiRespnsble: r.codiRespnsble,
+      nmbrRespnsble: r.nmbrRespnsble
+    })));
+
+    // Probar el JOIN con un solo documento
+    const pipeline = [
+      { $limit: 1 },
+      {
+        $lookup: {
+          from: 'gsk3cAppresponsable',
+          localField: 'codi_respnsble',
+          foreignField: 'codiRespnsble',
+          as: 'responsableInfo'
+        }
+      },
+      {
+        $unwind: {
+          path: '$responsableInfo',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $addFields: {
+          nombreResponsable: '$responsableInfo.nmbrRespnsble'
+        }
+      }
+    ];
+
+    const resultadoJoin = await Siniestro.aggregate(pipeline);
+    console.log('🔍 Resultado del JOIN:', resultadoJoin);
+
+    res.json({
+      siniestrosSinJoin: siniestrosSinJoin.map(s => ({
+        _id: s._id,
+        codi_respnsble: s.codi_respnsble,
+        nmro_sinstro: s.nmro_sinstro
+      })),
+      responsables: responsables.map(r => ({
+        _id: r._id,
+        codiRespnsble: r.codiRespnsble,
+        nmbrRespnsble: r.nmbrRespnsble
+      })),
+      resultadoJoin
+    });
+  } catch (error) {
+    console.error('Error en probarJoin:', error);
+    res.status(500).json({ mensaje: 'Error al probar JOIN', error: error.message });
   }
 };

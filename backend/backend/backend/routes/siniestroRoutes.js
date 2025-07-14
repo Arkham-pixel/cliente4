@@ -5,7 +5,8 @@ import {
   obtenerSiniestroPorId,
   actualizarSiniestro,
   eliminarSiniestro,
-  obtenerSiniestrosConResponsables
+  obtenerSiniestrosConResponsables,
+  probarJoin
 } from '../controllers/siniestroController.js';
 
 const router = express.Router();
@@ -13,6 +14,7 @@ const router = express.Router();
 router.post('/', crearSiniestro);
 router.get('/', obtenerSiniestros);
 router.get('/con-responsables', obtenerSiniestrosConResponsables);
+router.get('/probar-join', probarJoin);
 router.get('/:id', obtenerSiniestroPorId);
 router.put('/:id', actualizarSiniestro);
 router.delete('/:id', eliminarSiniestro);
