@@ -304,6 +304,33 @@ export const verificarFuncionarios = async (req, res) => {
   }
 };
 
+// Endpoint básico sin JOIN para verificar datos
+export const obtenerSiniestrosBasicos = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+    
+    const siniestros = await Siniestro.find()
+      .skip(skip)
+      .limit(Number(limit));
+    
+    const total = await Siniestro.countDocuments();
+    
+    console.log('🔍 Siniestros básicos encontrados:', siniestros.length);
+    console.log('🔍 Total en BD:', total);
+    
+    res.json({
+      total,
+      page: Number(page),
+      limit: Number(limit),
+      siniestros
+    });
+  } catch (error) {
+    console.error('Error en obtenerSiniestrosBasicos:', error);
+    res.status(500).json({ mensaje: 'Error al obtener siniestros básicos', error: error.message });
+  }
+};
+
 // Endpoint de prueba simple para verificar si hay datos
 export const probarDatosSimples = async (req, res) => {
   try {
@@ -338,8 +365,8 @@ export const probarDatosSimples = async (req, res) => {
     const resultadoSoloResponsables = await Siniestro.aggregate(pipelineSoloResponsables);
     console.log('🔍 Resultado solo responsables:', resultadoSoloResponsables.length);
     
-    // Probar JOIN completo paso a paso
-    const pipelineCompleto = [
+    // Probar el endpoint actual
+    const pipelineActual = [
       { $limit: 3 },
       {
         $lookup: {
@@ -350,49 +377,34 @@ export const probarDatosSimples = async (req, res) => {
         }
       },
       {
-        $lookup: {
-          from: 'gsk3cAppcontactoscli',
-          let: { funcId: { $toString: '$funcAsgrdra' } },
-          pipeline: [
-            {
-              $match: {
-                $expr: { $eq: ['$id', '$$funcId'] }
-              }
-            }
-          ],
-          as: 'funcionarioInfo'
-        }
-      },
-      {
         $unwind: {
           path: '$responsableInfo',
           preserveNullAndEmptyArrays: true
         }
       },
       {
-        $unwind: {
-          path: '$funcionarioInfo',
-          preserveNullAndEmptyArrays: true
+        $addFields: {
+          nombreResponsable: '$responsableInfo.nmbrRespnsble',
+          nombreFuncionario: 'Sin asignar'
         }
       },
       {
-        $addFields: {
-          nombreResponsable: '$responsableInfo.nmbrRespnsble',
-          nombreFuncionario: '$funcionarioInfo.nmbrContcto'
+        $project: {
+          responsableInfo: 0
         }
       }
     ];
     
-    const resultadoCompleto = await Siniestro.aggregate(pipelineCompleto);
-    console.log('🔍 Resultado completo:', resultadoCompleto.length);
+    const resultadoActual = await Siniestro.aggregate(pipelineActual);
+    console.log('🔍 Resultado actual:', resultadoActual.length);
     
     res.json({
       siniestrosSinJoin: siniestrosSinJoin.length,
       resultadoSoloResponsables: resultadoSoloResponsables.length,
-      resultadoCompleto: resultadoCompleto.length,
+      resultadoActual: resultadoActual.length,
       primerSiniestro: siniestrosSinJoin[0],
       primerConResponsable: resultadoSoloResponsables[0],
-      primerCompleto: resultadoCompleto[0]
+      primerActual: resultadoActual[0]
     });
   } catch (error) {
     console.error('Error en probarDatosSimples:', error);

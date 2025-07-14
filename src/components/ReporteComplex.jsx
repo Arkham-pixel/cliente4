@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getSiniestrosConResponsables, deleteSiniestro, updateSiniestro } from '../services/siniestrosApi';
+import { getSiniestrosConResponsables, getSiniestrosBasicos, deleteSiniestro, updateSiniestro } from '../services/siniestrosApi';
 import FormularioCasoComplex from './SubcomponenteCompex/FormularioCasoComplex';
 import * as XLSX from 'xlsx';
 
@@ -47,11 +47,19 @@ const ReporteComplex = () => {
   const obtenerSiniestros = async () => {
     setLoading(true);
     try {
-      const data = await getSiniestrosConResponsables({ page: 1, limit: 1000 });
-      console.log('🔍 Frontend - Datos recibidos:', data);
-      console.log('🔍 Frontend - Primer siniestro:', data.siniestros?.[0]);
-      console.log('🔍 Frontend - nombreFuncionario del primer siniestro:', data.siniestros?.[0]?.nombreFuncionario);
-      setSiniestros(data.siniestros || []);
+      // Probar primero con endpoint básico
+      const dataBasicos = await getSiniestrosBasicos({ page: 1, limit: 1000 });
+      console.log('🔍 Frontend - Datos básicos recibidos:', dataBasicos);
+      
+      // Si hay datos básicos, probar con JOIN
+      if (dataBasicos.siniestros && dataBasicos.siniestros.length > 0) {
+        const data = await getSiniestrosConResponsables({ page: 1, limit: 1000 });
+        console.log('🔍 Frontend - Datos con JOIN recibidos:', data);
+        setSiniestros(data.siniestros || []);
+      } else {
+        console.log('🔍 Frontend - No hay datos básicos, usando datos básicos');
+        setSiniestros(dataBasicos.siniestros || []);
+      }
     } catch (error) {
       console.error('Error al cargar siniestros:', error);
     }

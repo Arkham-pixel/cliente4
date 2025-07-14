@@ -16,6 +16,15 @@ export const getSiniestrosConResponsables = async (params = {}) => {
   return res.json();
 };
 
+export const getSiniestrosBasicos = async (params = {}) => {
+  // Agregar timestamp para evitar cache
+  const paramsWithTimestamp = { ...params, _t: Date.now() };
+  const query = new URLSearchParams(paramsWithTimestamp).toString();
+  const res = await fetch(`${API_URL}/basicos?${query}`);
+  if (!res.ok) throw new Error("Error al obtener siniestros básicos");
+  return res.json();
+};
+
 export const getSiniestroById = async (id) => {
   const res = await fetch(`${API_URL}/${id}`);
   if (!res.ok) throw new Error("No encontrado");

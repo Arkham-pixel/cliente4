@@ -8,7 +8,8 @@ import {
   obtenerSiniestrosConResponsables,
   probarJoin,
   verificarFuncionarios,
-  probarDatosSimples
+  probarDatosSimples,
+  obtenerSiniestrosBasicos
 } from '../controllers/siniestroController.js';
 
 const router = express.Router();
@@ -19,6 +20,7 @@ router.get('/con-responsables', obtenerSiniestrosConResponsables);
 router.get('/probar-join', probarJoin);
 router.get('/verificar-funcionarios', verificarFuncionarios);
 router.get('/probar-datos-simples', probarDatosSimples);
+router.get('/basicos', obtenerSiniestrosBasicos);
 router.get('/:id', obtenerSiniestroPorId);
 router.put('/:id', actualizarSiniestro);
 router.delete('/:id', eliminarSiniestro);
