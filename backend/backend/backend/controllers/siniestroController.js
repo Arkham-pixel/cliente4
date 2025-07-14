@@ -1,4 +1,5 @@
 import Siniestro from '../models/CasoComplex.js';
+import Responsable from '../models/Responsable.js';
 
 export const crearSiniestro = async (req, res) => {
   try {
@@ -59,5 +60,85 @@ export const eliminarSiniestro = async (req, res) => {
     res.json({ mensaje: 'Siniestro eliminado' });
   } catch (error) {
     res.status(500).json({ mensaje: 'Error al eliminar siniestro', error });
+  }
+};
+
+// Obtener siniestros con información de responsables (JOIN)
+export const obtenerSiniestrosConResponsables = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, ...filters } = req.query;
+    
+    // Construir filtros dinámicamente
+    const matchStage = {};
+    Object.keys(filters).forEach((key) => {
+      if (filters[key]) matchStage[key] = { $regex: filters[key], $options: 'i' };
+    });
+
+    const pipeline = [
+      // Match stage para filtros
+      ...(Object.keys(matchStage).length > 0 ? [{ $match: matchStage }] : []),
+      
+      // Lookup para unir con la colección de responsables
+      {
+        $lookup: {
+          from: 'gsk3cAppresponsable',
+          localField: 'codiResponsble',
+          foreignField: 'codiRespnsble',
+          as: 'responsableInfo'
+        }
+      },
+      
+      // Unwind para aplanar el array de responsableInfo
+      {
+        $unwind: {
+          path: '$responsableInfo',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      
+      // Agregar campo con nombre del responsable
+      {
+        $addFields: {
+          nombreResponsable: '$responsableInfo.nmbrRespnsble'
+        }
+      },
+      
+      // Proyectar solo los campos que necesitamos
+      {
+        $project: {
+          responsableInfo: 0
+        }
+      }
+    ];
+
+    // Agregar paginación
+    const skip = (page - 1) * limit;
+    pipeline.push(
+      { $skip: skip },
+      { $limit: Number(limit) }
+    );
+
+    // Obtener total para paginación
+    const totalPipeline = [
+      ...(Object.keys(matchStage).length > 0 ? [{ $match: matchStage }] : []),
+      { $count: 'total' }
+    ];
+
+    const [siniestros, totalResult] = await Promise.all([
+      Siniestro.aggregate(pipeline),
+      Siniestro.aggregate(totalPipeline)
+    ]);
+
+    const total = totalResult.length > 0 ? totalResult[0].total : 0;
+
+    res.json({ 
+      total, 
+      page: Number(page), 
+      limit: Number(limit), 
+      siniestros 
+    });
+  } catch (error) {
+    console.error('Error en obtenerSiniestrosConResponsables:', error);
+    res.status(500).json({ mensaje: 'Error al obtener siniestros con responsables', error: error.message });
   }
 };

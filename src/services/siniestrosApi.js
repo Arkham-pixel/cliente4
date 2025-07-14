@@ -7,6 +7,13 @@ export const getSiniestros = async (params = {}) => {
   return res.json();
 };
 
+export const getSiniestrosConResponsables = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const res = await fetch(`${API_URL}/con-responsables?${query}`);
+  if (!res.ok) throw new Error("Error al obtener siniestros con responsables");
+  return res.json();
+};
+
 export const getSiniestroById = async (id) => {
   const res = await fetch(`${API_URL}/${id}`);
   if (!res.ok) throw new Error("No encontrado");

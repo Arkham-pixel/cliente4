@@ -1,27 +1,29 @@
 // src/components/DashboardComplex.jsx
 import React, { useEffect, useState } from 'react';
-import { obtenerCasosComplex } from '../services/complexService';
+import { getSiniestrosConResponsables } from '../services/siniestrosApi';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, ResponsiveContainer, Legend } from 'recharts';
-import { Circles } from 'react-loader-spinner';
-import Loader from "./Loader"; // Ajusta la ruta si es necesario
+import Loader from "./Loader";
+import { 
+  obtenerNombreEstado, 
+  obtenerNombreAseguradora
+} from '../data/mapeos';
 
 const DashboardComplex = () => {
-  const [casos, setCasos] = useState([]);
+  const [siniestros, setSiniestros] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchCasos = async () => {
+    const fetchSiniestros = async () => {
       try {
-        const data = await obtenerCasosComplex();
-        setCasos(data);
+        const data = await getSiniestrosConResponsables({ page: 1, limit: 1000 });
+        setSiniestros(data.siniestros || []);
       } catch (error) {
-        console.error('Error al cargar casos:', error);
+        console.error('Error al cargar siniestros:', error);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchCasos();
+    fetchSiniestros();
   }, []);
 
   if (loading) {
@@ -29,92 +31,154 @@ const DashboardComplex = () => {
   }
 
   // Métricas
-  const totalCasos = casos.length;
+  const totalSiniestros = siniestros.length;
 
-  const estadosPendientes = [
-    'PENDIENTE DOCUMENTOS',
-    'PENDIENTE ACEPTACION CLIENTE',
-    'PENDIENTE ACEPTACION CIFRAS'
-  ];
+  // Contar cada tipo de pendiente por separado
+  const pendienteDocumentos = siniestros.filter(s => 
+    obtenerNombreEstado(s.codiEstdo) === 'PENDIENTE DOCUMENTOS'
+  ).length;
 
-  const casosPendientes = casos.filter(c => estadosPendientes.includes(c.estado)).length;
+  const pendienteAceptacionCliente = siniestros.filter(s => 
+    obtenerNombreEstado(s.codiEstdo) === 'PENDIENTE ACEPTACION CLIENTE'
+  ).length;
 
-  const ultimosCasos = [...casos]
-    .sort((a, b) => new Date(b.fecha_asignacion) - new Date(a.fecha_asignacion))
+  const pendienteAceptacionCifras = siniestros.filter(s => 
+    obtenerNombreEstado(s.codiEstdo) === 'PENDIENTE ACEPTACION CIFRAS'
+  ).length;
+
+  const enProceso = siniestros.filter(s => 
+    obtenerNombreEstado(s.codiEstdo) === 'EN PROCESO'
+  ).length;
+
+  const cerrado = siniestros.filter(s => 
+    obtenerNombreEstado(s.codiEstdo) === 'CERRADO'
+  ).length;
+
+  const suspendido = siniestros.filter(s => 
+    obtenerNombreEstado(s.codiEstdo) === 'SUSPENDIDO'
+  ).length;
+
+  const revision = siniestros.filter(s => 
+    obtenerNombreEstado(s.codiEstdo) === 'REVISION'
+  ).length;
+
+  const finalizado = siniestros.filter(s => 
+    obtenerNombreEstado(s.codiEstdo) === 'FINALIZADO'
+  ).length;
+
+  const cancelado = siniestros.filter(s => 
+    obtenerNombreEstado(s.codiEstdo) === 'CANCELADO'
+  ).length;
+
+  const ultimosSiniestros = [...siniestros]
+    .sort((a, b) => new Date(b.fchaAsgncion) - new Date(a.fchaAsgncion))
     .slice(0, 5);
 
-  // Gráfico de barras → Casos por estado
-  const casosPorEstado = Object.entries(
-    casos.reduce((acc, caso) => {
-      acc[caso.estado] = (acc[caso.estado] || 0) + 1;
+  // Gráfico de barras → Siniestros por estado
+  const siniestrosPorEstado = Object.entries(
+    siniestros.reduce((acc, s) => {
+      const nombreEstado = obtenerNombreEstado(s.codiEstdo);
+      acc[nombreEstado] = (acc[nombreEstado] || 0) + 1;
       return acc;
     }, {})
   ).map(([estado, cantidad]) => ({ estado, cantidad }));
 
-  // Gráfico circular → Casos por aseguradora
-  const casosPorAseguradora = Object.entries(
-    casos.reduce((acc, caso) => {
-      acc[caso.aseguradora] = (acc[caso.aseguradora] || 0) + 1;
+  // Gráfico circular → Siniestros por aseguradora
+  const siniestrosPorAseguradora = Object.entries(
+    siniestros.reduce((acc, s) => {
+      const nombreAseguradora = obtenerNombreAseguradora(s.codiAsgrdra);
+      acc[nombreAseguradora] = (acc[nombreAseguradora] || 0) + 1;
       return acc;
     }, {})
   ).map(([aseguradora, cantidad]) => ({ aseguradora, cantidad }));
 
-  // Gráfico de barras → Días promedio (fecha informe final - fecha ultimo documento) por responsable
-  const diasPorResponsable = {};
-
-  casos.forEach(caso => {
-    const fechaFinal = caso.fecha_informe_final ? new Date(caso.fecha_informe_final) : null;
-    const fechaUltimoDoc = caso.fecha_ultimo_documento ? new Date(caso.fecha_ultimo_documento) : null;
-
-    if (fechaFinal && fechaUltimoDoc) {
-      const diffDias = Math.abs((fechaUltimoDoc - fechaFinal) / (1000 * 60 * 60 * 24));
-      if (!diasPorResponsable[caso.responsable]) {
-        diasPorResponsable[caso.responsable] = [];
-      }
-      diasPorResponsable[caso.responsable].push(diffDias);
-    }
-  });
-
-  const promedioDiasPorResponsable = Object.entries(diasPorResponsable).map(([responsable, dias]) => {
-    const promedio = dias.reduce((sum, d) => sum + d, 0) / dias.length;
-    return { responsable, promedioDias: Math.round(promedio) };
-  });
+  // Gráfico de barras → Siniestros por ajustador/responsable (usando nombres reales)
+  const siniestrosPorResponsable = Object.entries(
+    siniestros.reduce((acc, s) => {
+      const nombreResponsable = s.nombreResponsable || 'Sin asignar';
+      acc[nombreResponsable] = (acc[nombreResponsable] || 0) + 1;
+      return acc;
+    }, {})
+  ).map(([responsable, cantidad]) => ({ responsable, cantidad }));
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A28EFF', '#FF6699', '#33CC33', '#FF6633'];
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <h2 className="text-3xl font-bold mb-6 text-center">📊 Dashboard de Casos Complex</h2>
+      <h2 className="text-3xl font-bold mb-6 text-center">📊 Dashboard de Siniestros</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      {/* Tarjeta de total */}
+      <div className="bg-white shadow rounded-lg p-4 text-center mb-6">
+        <h3 className="text-lg font-semibold mb-2">Total de Siniestros</h3>
+        <p className="text-4xl font-bold text-blue-600">{totalSiniestros}</p>
+      </div>
+
+      {/* Tarjetas de estados por separado */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8">
         <div className="bg-white shadow rounded-lg p-4 text-center">
-          <h3 className="text-lg font-semibold mb-2">Total de Casos</h3>
-          <p className="text-4xl font-bold text-blue-600">{totalCasos}</p>
+          <h3 className="text-sm font-semibold mb-2">Pendiente Documentos</h3>
+          <p className="text-2xl font-bold text-orange-500">{pendienteDocumentos}</p>
         </div>
 
         <div className="bg-white shadow rounded-lg p-4 text-center">
-          <h3 className="text-lg font-semibold mb-2">Casos Pendientes</h3>
-          <p className="text-4xl font-bold text-red-500">{casosPendientes}</p>
+          <h3 className="text-sm font-semibold mb-2">Pendiente Aceptación Cliente</h3>
+          <p className="text-2xl font-bold text-yellow-500">{pendienteAceptacionCliente}</p>
         </div>
 
-        <div className="bg-white shadow rounded-lg p-4">
-          <h3 className="text-lg font-semibold mb-2 text-center">Últimos Casos Registrados</h3>
-          <ul className="text-sm space-y-1">
-            {ultimosCasos.map(caso => (
-              <li key={caso.id_complex} className="flex justify-between">
-                <span>{caso.numero_siniestro}</span>
-                <span className="text-gray-500">{caso.fecha_asignacion?.substring(0, 10)}</span>
-              </li>
-            ))}
-          </ul>
+        <div className="bg-white shadow rounded-lg p-4 text-center">
+          <h3 className="text-sm font-semibold mb-2">Pendiente Aceptación Cifras</h3>
+          <p className="text-2xl font-bold text-red-500">{pendienteAceptacionCifras}</p>
         </div>
+
+        <div className="bg-white shadow rounded-lg p-4 text-center">
+          <h3 className="text-sm font-semibold mb-2">En Proceso</h3>
+          <p className="text-2xl font-bold text-blue-500">{enProceso}</p>
+        </div>
+
+        <div className="bg-white shadow rounded-lg p-4 text-center">
+          <h3 className="text-sm font-semibold mb-2">Cerrado</h3>
+          <p className="text-2xl font-bold text-green-500">{cerrado}</p>
+        </div>
+
+        <div className="bg-white shadow rounded-lg p-4 text-center">
+          <h3 className="text-sm font-semibold mb-2">Suspendido</h3>
+          <p className="text-2xl font-bold text-gray-500">{suspendido}</p>
+        </div>
+
+        <div className="bg-white shadow rounded-lg p-4 text-center">
+          <h3 className="text-sm font-semibold mb-2">Revisión</h3>
+          <p className="text-2xl font-bold text-purple-500">{revision}</p>
+        </div>
+
+        <div className="bg-white shadow rounded-lg p-4 text-center">
+          <h3 className="text-sm font-semibold mb-2">Finalizado</h3>
+          <p className="text-2xl font-bold text-teal-500">{finalizado}</p>
+        </div>
+
+        <div className="bg-white shadow rounded-lg p-4 text-center">
+          <h3 className="text-sm font-semibold mb-2">Cancelado</h3>
+          <p className="text-2xl font-bold text-red-600">{cancelado}</p>
+        </div>
+      </div>
+
+      {/* Últimos siniestros */}
+      <div className="bg-white shadow rounded-lg p-4 mb-8">
+        <h3 className="text-lg font-semibold mb-2 text-center">Últimos Siniestros Registrados</h3>
+        <ul className="text-sm space-y-1">
+          {ultimosSiniestros.map(s => (
+            <li key={s._id} className="flex justify-between">
+              <span>{s.nmroSinstro}</span>
+              <span className="text-gray-500">{s.fchaAsgncion?.substring(0, 10)}</span>
+            </li>
+          ))}
+        </ul>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="bg-white shadow rounded-lg p-4">
-          <h3 className="text-lg font-semibold mb-4 text-center">📊 Casos por Estado</h3>
+          <h3 className="text-lg font-semibold mb-4 text-center">📊 Siniestros por Estado</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={casosPorEstado}>
+            <BarChart data={siniestrosPorEstado}>
               <XAxis dataKey="estado" />
               <YAxis />
               <Tooltip />
@@ -124,11 +188,11 @@ const DashboardComplex = () => {
         </div>
 
         <div className="bg-white shadow rounded-lg p-4">
-          <h3 className="text-lg font-semibold mb-4 text-center">🥧 Casos por Aseguradora</h3>
+          <h3 className="text-lg font-semibold mb-4 text-center">🥧 Siniestros por Aseguradora</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={casosPorAseguradora}
+                data={siniestrosPorAseguradora}
                 dataKey="cantidad"
                 nameKey="aseguradora"
                 cx="50%"
@@ -136,7 +200,7 @@ const DashboardComplex = () => {
                 outerRadius={100}
                 label
               >
-                {casosPorAseguradora.map((entry, index) => (
+                {siniestrosPorAseguradora.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
@@ -148,13 +212,13 @@ const DashboardComplex = () => {
       </div>
 
       <div className="bg-white shadow rounded-lg p-4">
-        <h3 className="text-lg font-semibold mb-4 text-center">📅 Días promedio (Informe Final → Último Documento) por Responsable</h3>
+        <h3 className="text-lg font-semibold mb-4 text-center">👥 Siniestros por Ajustador/Responsable</h3>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={promedioDiasPorResponsable}>
+          <BarChart data={siniestrosPorResponsable}>
             <XAxis dataKey="responsable" />
             <YAxis />
             <Tooltip />
-            <Bar dataKey="promedioDias" fill="#82ca9d" />
+            <Bar dataKey="cantidad" fill="#82ca9d" />
           </BarChart>
         </ResponsiveContainer>
       </div>
