@@ -1,8 +1,8 @@
 const express = require('express');
-const router = express.Router();
 const { crearSiniestro } = require('../controllers/siniestroController');
 
-// POST /api/siniestros
+const router = express.Router();
+
 router.post('/', crearSiniestro);
 
 module.exports = router;
