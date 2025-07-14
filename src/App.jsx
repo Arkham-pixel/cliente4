@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import Register from './components/Register';
 import ResetPassword from './components/ResetPassword';
@@ -15,35 +15,30 @@ import ReporteRiesgo from './components/SubcompoeneteRiesgoExport/ReporteRiesgo'
 import Cuenta from './components/SubcomponenteCuenta/Cuenta';
 import MiCuenta from './components/SubcomponenteCuenta/miCuenta';
 import FormularioMaquinaria from './components/SubcomponenteMaquinaria/FormularioMaquinaria';
-import RutaPrivada from './components/RutaPrivada';
 import { CasosRiesgoProvider } from './context/CasosRiesgoContext';
 
-/**
- * App.jsx: un único BrowserRouter en el entry-point envuelve esta App.
- * Aquí definimos rutas públicas primero, redirigiendo "/" a "/login".
- * Luego envolvemos rutas protegidas (sin path) con RutaPrivada + Layout.
- */
+// Helper para saber si está autenticado (puedes cambiar la lógica si usas contexto)
+const isAuthenticated = () => !!localStorage.getItem('token');
+
+// Componente wrapper para login que redirige si ya está autenticado
+function LoginRedirect() {
+  return isAuthenticated() ? <Navigate to="/inicio" replace /> : <Login />;
+}
+
 export default function App() {
   return (
     <CasosRiesgoProvider>
       <Routes>
-        {/* Redirige raíz a login */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        {/* Redirige raíz a /inicio */}
+        <Route path="/" element={<Navigate to="/inicio" replace />} />
 
         {/* Rutas públicas */}
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<LoginRedirect />} />
         <Route path="/register" element={<Register />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* Rutas protegidas: cualquier ruta aquí requiere autenticación */}
-        <Route
-          element={
-            <RutaPrivada>
-              <Layout />
-            </RutaPrivada>
-          }
-        >
-          {/* Ahora todas estas rutas se renderizan dentro de Layout */}
+        {/* Rutas principales con Layout (menú siempre visible) */}
+        <Route element={<Layout />}>
           <Route path="inicio" element={<Inicio />} />
           <Route path="formularioinspeccion" element={<FormularioInspeccion />} />
           <Route path="complex/agregar" element={<AgregarCaso />} />
@@ -59,8 +54,8 @@ export default function App() {
           <Route path="formulario-maquinaria" element={<FormularioMaquinaria />} />
         </Route>
 
-        {/* Ruta catch-all: si no coincide, vuelve a login */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        {/* Ruta catch-all: si no coincide, vuelve a /inicio */}
+        <Route path="*" element={<Navigate to="/inicio" replace />} />
       </Routes>
     </CasosRiesgoProvider>
   );

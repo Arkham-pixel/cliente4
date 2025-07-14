@@ -7,6 +7,7 @@ import path from "path";
 
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/user.routes.js";
+import securUserSecundarioRoutes from "./routes/securUserSecundario.routes.js";
 
 dotenv.config();
 
@@ -48,6 +49,7 @@ mongoose
     // 5️⃣ Monta aquí tus rutas (después de que la DB esté arriba)
     app.use("/api/auth", authRoutes);
     app.use("/api/usuarios", userRoutes);
+    app.use("/api", securUserSecundarioRoutes);
 
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () =>
