@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const SiniestroSchema = new mongoose.Schema({
   nmro_ajste: String,
@@ -68,4 +68,5 @@ const SiniestroSchema = new mongoose.Schema({
   porc_reteica: Number
 }, { collection: 'gsk3c_appsiniestro' });
 
-module.exports = mongoose.model('Siniestro', SiniestroSchema);
+const Siniestro = mongoose.model('Siniestro', SiniestroSchema);
+export default Siniestro;

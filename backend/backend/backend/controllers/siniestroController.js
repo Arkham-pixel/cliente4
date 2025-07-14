@@ -1,6 +1,6 @@
-const Siniestro = require('../models/CasoComplex');
+import Siniestro from '../models/CasoComplex.js';
 
-exports.crearSiniestro = async (req, res) => {
+export const crearSiniestro = async (req, res) => {
   try {
     const nuevoSiniestro = new Siniestro(req.body);
     await nuevoSiniestro.save();

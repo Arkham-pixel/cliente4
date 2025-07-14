@@ -6,7 +6,7 @@ import path from "path";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/user.routes.js";
 import securUserSecundarioRoutes from "./routes/securUserSecundario.routes.js";
-const siniestroRoutes = require("./routes/siniestroRoutes");
+import siniestroRoutes from "./routes/siniestroRoutes.js";
 
 const app = express();
 
