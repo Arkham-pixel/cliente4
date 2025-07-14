@@ -5,7 +5,7 @@ import * as XLSX from 'xlsx';
 
 const camposVisibles = [
   { clave: 'nmroAjste', label: 'Nro Ajuste' },
-  { clave: 'codi_respnsble', label: 'Código Responsable' }, // Corregido: era 'codiResponsble'
+  { clave: 'codiRespnsble', label: 'Código Responsable' }, // Corregido: era 'codi_respnsble', ahora es 'codiRespnsble'
   { clave: 'nombreResponsable', label: 'Nombre Responsable' },
   { clave: 'codiAsgrdra', label: 'Aseguradora' },
   { clave: 'nmroSinstro', label: 'Nro Siniestro' },

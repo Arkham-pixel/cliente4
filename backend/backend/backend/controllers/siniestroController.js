@@ -82,7 +82,7 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
       {
         $lookup: {
           from: 'gsk3cAppresponsable',
-          localField: 'codi_respnsble', // Corregido: era 'codiResponsble'
+          localField: 'codiRespnsble', // Corregido: era 'codi_respnsble', ahora es 'codiRespnsble'
           foreignField: 'codiRespnsble',
           as: 'responsableInfo'
         }
