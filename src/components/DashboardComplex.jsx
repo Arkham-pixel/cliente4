@@ -16,6 +16,9 @@ const DashboardComplex = () => {
     const fetchSiniestros = async () => {
       try {
         const data = await getSiniestrosConResponsables({ page: 1, limit: 1000 });
+        console.log('🔍 Dashboard - Datos recibidos:', data);
+        console.log('🔍 Dashboard - Primer siniestro:', data.siniestros?.[0]);
+        console.log('🔍 Dashboard - nombreFuncionario del primer siniestro:', data.siniestros?.[0]?.nombreFuncionario);
         setSiniestros(data.siniestros || []);
       } catch (error) {
         console.error('Error al cargar siniestros:', error);

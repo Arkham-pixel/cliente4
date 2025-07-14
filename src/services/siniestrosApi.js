@@ -8,7 +8,9 @@ export const getSiniestros = async (params = {}) => {
 };
 
 export const getSiniestrosConResponsables = async (params = {}) => {
-  const query = new URLSearchParams(params).toString();
+  // Agregar timestamp para evitar cache
+  const paramsWithTimestamp = { ...params, _t: Date.now() };
+  const query = new URLSearchParams(paramsWithTimestamp).toString();
   const res = await fetch(`${API_URL}/con-responsables?${query}`);
   if (!res.ok) throw new Error("Error al obtener siniestros con responsables");
   return res.json();
