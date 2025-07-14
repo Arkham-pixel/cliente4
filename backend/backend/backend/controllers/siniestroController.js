@@ -114,19 +114,17 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
         }
       },
       
-      // Unwind para aplanar el array de funcionarioInfo
-      {
-        $unwind: {
-          path: '$funcionarioInfo',
-          preserveNullAndEmptyArrays: true
-        }
-      },
-      
       // Agregar campos con nombres
       {
         $addFields: {
           nombreResponsable: '$responsableInfo.nmbrRespnsble',
-          nombreFuncionario: '$funcionarioInfo.nmbrContcto'
+          nombreFuncionario: {
+            $cond: {
+              if: { $gt: [{ $size: '$funcionarioInfo' }, 0] },
+              then: { $arrayElemAt: ['$funcionarioInfo.nmbrContcto', 0] },
+              else: null
+            }
+          }
         }
       },
       
@@ -160,6 +158,7 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
     const total = totalResult.length > 0 ? totalResult[0].total : 0;
 
     // Debug: Log para verificar los datos
+    console.log('🔍 Debug - Total siniestros encontrados:', siniestros.length);
     console.log('🔍 Debug - Primer siniestro:', siniestros[0]);
     console.log('🔍 Debug - Campos disponibles:', Object.keys(siniestros[0] || {}));
     
@@ -300,14 +299,20 @@ export const verificarFuncionarios = async (req, res) => {
     const siniestros = await Siniestro.find().limit(5);
     console.log('🔍 IDs de funcionarios en siniestros:', siniestros.map(s => s.funcAsgrdra));
     
-    // Probar JOIN manual
+    // Probar JOIN manual con el nuevo enfoque
     const pipeline = [
       { $limit: 1 },
       {
         $lookup: {
           from: 'gsk3cAppcontactoscli',
-          localField: 'codiAsgrdra',
-          foreignField: 'codiAsgrdra',
+          let: { funcId: { $toString: '$funcAsgrdra' } },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$id', '$$funcId'] }
+              }
+            }
+          ],
           as: 'funcionarioInfo'
         }
       }
@@ -330,5 +335,101 @@ export const verificarFuncionarios = async (req, res) => {
   } catch (error) {
     console.error('Error en verificarFuncionarios:', error);
     res.status(500).json({ mensaje: 'Error al verificar funcionarios', error: error.message });
+  }
+};
+
+// Endpoint de prueba simple para verificar si hay datos
+export const probarDatosSimples = async (req, res) => {
+  try {
+    // Obtener siniestros sin JOIN
+    const siniestrosSinJoin = await Siniestro.find().limit(3);
+    console.log('🔍 Siniestros sin JOIN:', siniestrosSinJoin.length);
+    
+    // Probar JOIN solo con responsables (sin funcionarios)
+    const pipelineSoloResponsables = [
+      { $limit: 3 },
+      {
+        $lookup: {
+          from: 'gsk3cAppresponsable',
+          localField: 'codiRespnsble',
+          foreignField: 'codiRespnsble',
+          as: 'responsableInfo'
+        }
+      },
+      {
+        $unwind: {
+          path: '$responsableInfo',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $addFields: {
+          nombreResponsable: '$responsableInfo.nmbrRespnsble'
+        }
+      }
+    ];
+    
+    const resultadoSoloResponsables = await Siniestro.aggregate(pipelineSoloResponsables);
+    console.log('🔍 Resultado solo responsables:', resultadoSoloResponsables.length);
+    
+    // Probar JOIN completo paso a paso
+    const pipelineCompleto = [
+      { $limit: 3 },
+      {
+        $lookup: {
+          from: 'gsk3cAppresponsable',
+          localField: 'codiRespnsble',
+          foreignField: 'codiRespnsble',
+          as: 'responsableInfo'
+        }
+      },
+      {
+        $lookup: {
+          from: 'gsk3cAppcontactoscli',
+          let: { funcId: { $toString: '$funcAsgrdra' } },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$id', '$$funcId'] }
+              }
+            }
+          ],
+          as: 'funcionarioInfo'
+        }
+      },
+      {
+        $unwind: {
+          path: '$responsableInfo',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $unwind: {
+          path: '$funcionarioInfo',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $addFields: {
+          nombreResponsable: '$responsableInfo.nmbrRespnsble',
+          nombreFuncionario: '$funcionarioInfo.nmbrContcto'
+        }
+      }
+    ];
+    
+    const resultadoCompleto = await Siniestro.aggregate(pipelineCompleto);
+    console.log('🔍 Resultado completo:', resultadoCompleto.length);
+    
+    res.json({
+      siniestrosSinJoin: siniestrosSinJoin.length,
+      resultadoSoloResponsables: resultadoSoloResponsables.length,
+      resultadoCompleto: resultadoCompleto.length,
+      primerSiniestro: siniestrosSinJoin[0],
+      primerConResponsable: resultadoSoloResponsables[0],
+      primerCompleto: resultadoCompleto[0]
+    });
+  } catch (error) {
+    console.error('Error en probarDatosSimples:', error);
+    res.status(500).json({ mensaje: 'Error al probar datos', error: error.message });
   }
 };
