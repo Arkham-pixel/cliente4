@@ -1,5 +1,10 @@
 import express from "express";
-import { obtenerSecurUsers, loginSecurUser, obtenerPerfilSecurUser } from "../controllers/securUserSecundarioController.js";
+import {
+  obtenerSecurUsers,
+  loginSecurUser,
+  obtenerPerfilSecurUser,
+  actualizarPerfilSecurUser
+} from "../controllers/securUserSecundarioController.js";
 import { verificarToken } from "../middleware/auth.js"; // O el middleware que uses
 
 
