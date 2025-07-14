@@ -101,6 +101,15 @@ const DashboardComplex = () => {
     }, {})
   ).map(([responsable, cantidad]) => ({ responsable, cantidad }));
 
+  // Gráfico de barras → Siniestros por funcionario de aseguradora (usando nombres reales)
+  const siniestrosPorFuncionario = Object.entries(
+    siniestros.reduce((acc, s) => {
+      const nombreFuncionario = s.nombreFuncionario || 'Sin asignar';
+      acc[nombreFuncionario] = (acc[nombreFuncionario] || 0) + 1;
+      return acc;
+    }, {})
+  ).map(([funcionario, cantidad]) => ({ funcionario, cantidad }));
+
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A28EFF', '#FF6699', '#33CC33', '#FF6633'];
 
   return (
@@ -219,6 +228,18 @@ const DashboardComplex = () => {
             <YAxis />
             <Tooltip />
             <Bar dataKey="cantidad" fill="#82ca9d" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="bg-white shadow rounded-lg p-4 mt-8">
+        <h3 className="text-lg font-semibold mb-4 text-center">👨‍💼 Siniestros por Funcionario de Aseguradora</h3>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={siniestrosPorFuncionario}>
+            <XAxis dataKey="funcionario" />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="cantidad" fill="#ffc658" />
           </BarChart>
         </ResponsiveContainer>
       </div>

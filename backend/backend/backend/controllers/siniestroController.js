@@ -1,5 +1,6 @@
 import Siniestro from '../models/CasoComplex.js';
 import Responsable from '../models/Responsable.js';
+import FuncionarioAseguradora from '../models/FuncionarioAseguradora.js';
 
 export const crearSiniestro = async (req, res) => {
   try {
@@ -63,7 +64,7 @@ export const eliminarSiniestro = async (req, res) => {
   }
 };
 
-// Obtener siniestros con información de responsables (JOIN)
+// Obtener siniestros con información de responsables y funcionarios (JOIN)
 export const obtenerSiniestrosConResponsables = async (req, res) => {
   try {
     const { page = 1, limit = 10, ...filters } = req.query;
@@ -82,9 +83,19 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
       {
         $lookup: {
           from: 'gsk3cAppresponsable',
-          localField: 'codiRespnsble', // Corregido: era 'codi_respnsble', ahora es 'codiRespnsble'
+          localField: 'codiRespnsble',
           foreignField: 'codiRespnsble',
           as: 'responsableInfo'
+        }
+      },
+      
+      // Lookup para unir con la colección de funcionarios de aseguradora
+      {
+        $lookup: {
+          from: 'gsk3cAppcontactoscli',
+          localField: 'funcAsgrdra',
+          foreignField: 'id',
+          as: 'funcionarioInfo'
         }
       },
       
@@ -96,17 +107,27 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
         }
       },
       
-      // Agregar campo con nombre del responsable
+      // Unwind para aplanar el array de funcionarioInfo
+      {
+        $unwind: {
+          path: '$funcionarioInfo',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      
+      // Agregar campos con nombres
       {
         $addFields: {
-          nombreResponsable: '$responsableInfo.nmbrRespnsble'
+          nombreResponsable: '$responsableInfo.nmbrRespnsble',
+          nombreFuncionario: '$funcionarioInfo.nmbrContcto'
         }
       },
       
       // Proyectar solo los campos que necesitamos
       {
         $project: {
-          responsableInfo: 0
+          responsableInfo: 0,
+          funcionarioInfo: 0
         }
       }
     ];
@@ -154,7 +175,8 @@ export const probarJoin = async (req, res) => {
     const siniestrosSinJoin = await Siniestro.find().limit(3);
     console.log('🔍 Siniestros sin JOIN:', siniestrosSinJoin.map(s => ({
       _id: s._id,
-      codi_respnsble: s.codi_respnsble,
+      codiRespnsble: s.codiRespnsble,
+      funcAsgrdra: s.funcAsgrdra,
       nmro_sinstro: s.nmro_sinstro
     })));
 
@@ -166,15 +188,32 @@ export const probarJoin = async (req, res) => {
       nmbrRespnsble: r.nmbrRespnsble
     })));
 
+    // Obtener algunos funcionarios
+    const funcionarios = await FuncionarioAseguradora.find().limit(3);
+    console.log('🔍 Funcionarios disponibles:', funcionarios.map(f => ({
+      _id: f._id,
+      id: f.id,
+      nmbrContcto: f.nmbrContcto,
+      codiAsgrdra: f.codiAsgrdra
+    })));
+
     // Probar el JOIN con un solo documento
     const pipeline = [
       { $limit: 1 },
       {
         $lookup: {
           from: 'gsk3cAppresponsable',
-          localField: 'codi_respnsble',
+          localField: 'codiRespnsble',
           foreignField: 'codiRespnsble',
           as: 'responsableInfo'
+        }
+      },
+      {
+        $lookup: {
+          from: 'gsk3cAppcontactoscli',
+          localField: 'funcAsgrdra',
+          foreignField: 'id',
+          as: 'funcionarioInfo'
         }
       },
       {
@@ -184,8 +223,15 @@ export const probarJoin = async (req, res) => {
         }
       },
       {
+        $unwind: {
+          path: '$funcionarioInfo',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
         $addFields: {
-          nombreResponsable: '$responsableInfo.nmbrRespnsble'
+          nombreResponsable: '$responsableInfo.nmbrRespnsble',
+          nombreFuncionario: '$funcionarioInfo.nmbrContcto'
         }
       }
     ];
@@ -196,13 +242,20 @@ export const probarJoin = async (req, res) => {
     res.json({
       siniestrosSinJoin: siniestrosSinJoin.map(s => ({
         _id: s._id,
-        codi_respnsble: s.codi_respnsble,
+        codiRespnsble: s.codiRespnsble,
+        funcAsgrdra: s.funcAsgrdra,
         nmro_sinstro: s.nmro_sinstro
       })),
       responsables: responsables.map(r => ({
         _id: r._id,
         codiRespnsble: r.codiRespnsble,
         nmbrRespnsble: r.nmbrRespnsble
+      })),
+      funcionarios: funcionarios.map(f => ({
+        _id: f._id,
+        id: f.id,
+        nmbrContcto: f.nmbrContcto,
+        codiAsgrdra: f.codiAsgrdra
       })),
       resultadoJoin
     });

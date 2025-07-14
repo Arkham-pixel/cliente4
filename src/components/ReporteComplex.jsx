@@ -5,12 +5,13 @@ import * as XLSX from 'xlsx';
 
 const camposVisibles = [
   { clave: 'nmroAjste', label: 'Nro Ajuste' },
-  { clave: 'codiRespnsble', label: 'Código Responsable' }, // Corregido: era 'codi_respnsble', ahora es 'codiRespnsble'
+  { clave: 'codiRespnsble', label: 'Código Responsable' },
   { clave: 'nombreResponsable', label: 'Nombre Responsable' },
   { clave: 'codiAsgrdra', label: 'Aseguradora' },
+  { clave: 'funcAsgrdra', label: 'Código Funcionario' },
+  { clave: 'nombreFuncionario', label: 'Nombre Funcionario' },
   { clave: 'nmroSinstro', label: 'Nro Siniestro' },
   { clave: 'codWorkflow', label: 'Cod Workflow' },
-  { clave: 'funcAsgrdra', label: 'Func. Aseguradora' },
   { clave: 'fchaAsgncion', label: 'Fecha Asignación' },
   { clave: 'asgrBenfcro', label: 'Beneficiario' },
   { clave: 'tipoDucumento', label: 'Tipo Documento' },
@@ -196,6 +197,8 @@ const ReporteComplex = () => {
                   {camposVisibles.map(({ clave }) => (
                     <td key={clave} className="p-2 whitespace-nowrap">
                       {clave === 'nombreResponsable' 
+                        ? (siniestro[clave] || 'Sin asignar')
+                        : clave === 'nombreFuncionario'
                         ? (siniestro[clave] || 'Sin asignar')
                         : (siniestro[clave] || '')
                       }
