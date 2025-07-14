@@ -7,7 +7,6 @@ import path from "path";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/user.routes.js";
 import securUserSecundarioRoutes from "./routes/securUserSecundario.routes.js";
-import securUserAuthRoutes from "./routes/securUserAuth.routes.js";
 
 
 const app = express();
@@ -49,7 +48,6 @@ mongoose
     app.use("/api/auth", authRoutes);
     app.use("/api/usuarios", userRoutes);
     app.use("/api", securUserSecundarioRoutes);
-    app.use("/api", securUserAuthRoutes);
 
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () =>
