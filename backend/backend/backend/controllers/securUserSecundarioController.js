@@ -5,6 +5,7 @@ export const obtenerSecurUsers = async (req, res) => {
     const users = await SecurUserSecundario.find();
     res.json(users);
   } catch (error) {
-    res.status(500).json({ mensaje: "Error al obtener usuarios secundarios" });
+    console.error("Error detallado:", error);
+    res.status(500).json({ mensaje: "Error al obtener usuarios secundarios", error: error.message });
   }
 };
