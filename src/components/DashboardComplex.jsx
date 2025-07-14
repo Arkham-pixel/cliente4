@@ -1,6 +1,6 @@
 // src/components/DashboardComplex.jsx
 import React, { useEffect, useState } from 'react';
-import { getSiniestrosConResponsables } from '../services/siniestrosApi';
+import { getSiniestrosConResponsables, getSiniestrosBasicos } from '../services/siniestrosApi';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, ResponsiveContainer, Legend } from 'recharts';
 import Loader from "./Loader";
 import { 
@@ -15,11 +15,25 @@ const DashboardComplex = () => {
   useEffect(() => {
     const fetchSiniestros = async () => {
       try {
+        // Usar el endpoint con JOIN corregido
         const data = await getSiniestrosConResponsables({ page: 1, limit: 1000 });
-        console.log('🔍 Dashboard - Datos recibidos:', data);
-        console.log('🔍 Dashboard - Primer siniestro:', data.siniestros?.[0]);
-        console.log('🔍 Dashboard - nombreFuncionario del primer siniestro:', data.siniestros?.[0]?.nombreFuncionario);
-        setSiniestros(data.siniestros || []);
+        console.log('🔍 Dashboard - Datos con JOIN:', data);
+        
+        if (data.siniestros && data.siniestros.length > 0) {
+          setSiniestros(data.siniestros);
+        } else {
+          // Fallback a datos básicos si el JOIN falla
+          const dataBasicos = await getSiniestrosBasicos({ page: 1, limit: 1000 });
+          console.log('🔍 Dashboard - Fallback a datos básicos:', dataBasicos);
+          
+          const siniestrosConCampos = dataBasicos.siniestros.map(siniestro => ({
+            ...siniestro,
+            nombreResponsable: 'Sin asignar',
+            nombreFuncionario: 'Sin asignar'
+          }));
+          
+          setSiniestros(siniestrosConCampos);
+        }
       } catch (error) {
         console.error('Error al cargar siniestros:', error);
       } finally {

@@ -75,7 +75,7 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
       if (filters[key]) matchStage[key] = { $regex: filters[key], $options: 'i' };
     });
 
-    // Pipeline simplificado - solo con responsables por ahora
+    // Pipeline con JOIN de responsables y funcionarios
     const pipeline = [
       // Match stage para filtros
       ...(Object.keys(matchStage).length > 0 ? [{ $match: matchStage }] : []),
@@ -90,6 +90,22 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
         }
       },
       
+      // Lookup para unir con la colección de funcionarios
+      {
+        $lookup: {
+          from: 'gsk3cAppcontactoscli',
+          let: { funcId: { $toString: '$funcAsgrdra' } },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$id', '$$funcId'] }
+              }
+            }
+          ],
+          as: 'funcionarioInfo'
+        }
+      },
+      
       // Unwind para aplanar el array de responsableInfo
       {
         $unwind: {
@@ -101,15 +117,28 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
       // Agregar campos con nombres
       {
         $addFields: {
-          nombreResponsable: '$responsableInfo.nmbrRespnsble',
-          nombreFuncionario: 'Sin asignar' // Temporalmente fijo
+          nombreResponsable: {
+            $cond: {
+              if: { $ne: ['$responsableInfo', null] },
+              then: '$responsableInfo.nmbrRespnsble',
+              else: 'Sin asignar'
+            }
+          },
+          nombreFuncionario: {
+            $cond: {
+              if: { $gt: [{ $size: '$funcionarioInfo' }, 0] },
+              then: { $arrayElemAt: ['$funcionarioInfo.nmbrContcto', 0] },
+              else: 'Sin asignar'
+            }
+          }
         }
       },
       
       // Proyectar solo los campos que necesitamos
       {
         $project: {
-          responsableInfo: 0
+          responsableInfo: 0,
+          funcionarioInfo: 0
         }
       }
     ];
@@ -136,7 +165,15 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
 
     // Debug: Log para verificar los datos
     console.log('🔍 Debug - Total siniestros encontrados:', siniestros.length);
-    console.log('🔍 Debug - Primer siniestro:', siniestros[0]);
+    if (siniestros.length > 0) {
+      console.log('🔍 Debug - Primer siniestro:', {
+        _id: siniestros[0]._id,
+        codiRespnsble: siniestros[0].codiRespnsble,
+        funcAsgrdra: siniestros[0].funcAsgrdra,
+        nombreResponsable: siniestros[0].nombreResponsable,
+        nombreFuncionario: siniestros[0].nombreFuncionario
+      });
+    }
 
     res.json({ 
       total, 

@@ -47,18 +47,24 @@ const ReporteComplex = () => {
   const obtenerSiniestros = async () => {
     setLoading(true);
     try {
-      // Probar primero con endpoint básico
-      const dataBasicos = await getSiniestrosBasicos({ page: 1, limit: 1000 });
-      console.log('🔍 Frontend - Datos básicos recibidos:', dataBasicos);
+      // Usar el endpoint con JOIN corregido
+      const data = await getSiniestrosConResponsables({ page: 1, limit: 1000 });
+      console.log('🔍 Frontend - Datos con JOIN:', data);
       
-      // Si hay datos básicos, probar con JOIN
-      if (dataBasicos.siniestros && dataBasicos.siniestros.length > 0) {
-        const data = await getSiniestrosConResponsables({ page: 1, limit: 1000 });
-        console.log('🔍 Frontend - Datos con JOIN recibidos:', data);
-        setSiniestros(data.siniestros || []);
+      if (data.siniestros && data.siniestros.length > 0) {
+        setSiniestros(data.siniestros);
       } else {
-        console.log('🔍 Frontend - No hay datos básicos, usando datos básicos');
-        setSiniestros(dataBasicos.siniestros || []);
+        // Fallback a datos básicos si el JOIN falla
+        const dataBasicos = await getSiniestrosBasicos({ page: 1, limit: 1000 });
+        console.log('🔍 Frontend - Fallback a datos básicos:', dataBasicos);
+        
+        const siniestrosConCampos = dataBasicos.siniestros.map(siniestro => ({
+          ...siniestro,
+          nombreResponsable: 'Sin asignar',
+          nombreFuncionario: 'Sin asignar'
+        }));
+        
+        setSiniestros(siniestrosConCampos);
       }
     } catch (error) {
       console.error('Error al cargar siniestros:', error);
