@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DatosGenerales from './DatosGenerales';
 import ValoresPrestaciones from './ValoresPrestaciones';
 import Trazabilidad from './Trazabilidad';
@@ -9,7 +9,7 @@ import ObservacionesCliente from './ObservacionesCliente';
 import { useDropzone } from 'react-dropzone';
 // Importa aquí los demás subcomponentes cuando los crees
 
-export default function FormularioCasoComplex() {
+export default function FormularioCasoComplex({ initialData, onSave, onCancel }) {
   const [tabActiva, setTabActiva] = useState('datosGenerales');
   const [formData, setFormData] = useState({
     responsable: '',
@@ -31,6 +31,12 @@ export default function FormularioCasoComplex() {
     descripcion_siniestro: '',
     // ...agrega aquí los demás campos que uses
   });
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData(prev => ({ ...prev, ...initialData }));
+    }
+  }, [initialData]);
 
   // Handler de cambios
   const handleChange = (e) => {
@@ -122,6 +128,11 @@ export default function FormularioCasoComplex() {
   const nuevoIntermediario = '';
   const setNuevoIntermediario = () => {};
   const agregarIntermediario = () => {};
+
+  const handleSubmit = (e) => {
+    e && e.preventDefault();
+    if (onSave) onSave(formData);
+  };
 
   return (
     <div>
@@ -283,6 +294,16 @@ export default function FormularioCasoComplex() {
         )}
         {/* Agrega aquí el renderizado de los otros subcomponentes */}
       </div>
+      {(onSave || onCancel) && (
+        <div className="flex justify-end gap-2 mt-6">
+          {onCancel && (
+            <button type="button" className="px-4 py-2 bg-gray-300 rounded" onClick={onCancel}>Cancelar</button>
+          )}
+          {onSave && (
+            <button type="button" className="px-4 py-2 bg-blue-600 text-white rounded" onClick={handleSubmit}>Guardar</button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

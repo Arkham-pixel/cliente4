@@ -18,6 +18,7 @@ import Cuenta from './components/SubcomponenteCuenta/Cuenta'
 import MiCuenta from './components/SubcomponenteCuenta/miCuenta'
 import FormularioMaquinaria from './components/SubcomponenteMaquinaria/FormularioMaquinaria'
 import FormularioCasoComplex from './components/SubcomponenteCompex/FormularioCasoComplex'
+import SiniestrosList from "./components/SiniestrosList";
 
 import { CasosRiesgoProvider } from './context/CasosRiesgoContext'
 import RequireAuth from './components/RequireAuth'
@@ -73,6 +74,7 @@ export default function App() {
           <Route path="cuenta" element={<Cuenta />} />
           <Route path="micuenta" element={<MiCuenta />} />
           <Route path="formulario-maquinaria" element={<FormularioMaquinaria />} />
+          <Route path="siniestros" element={<SiniestrosList />} />
         </Route>
 
         {/* Cualquier otra ruta redirige a la raíz */}

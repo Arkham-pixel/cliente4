@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import secondaryConnection from '../db/secondaryConnection.js';
 
 const SiniestroSchema = new mongoose.Schema({
   nmro_ajste: String,
@@ -66,7 +67,7 @@ const SiniestroSchema = new mongoose.Schema({
   porc_reteiva: Number,
   porc_retefuente: Number,
   porc_reteica: Number
-}, { collection: 'gsk3c_appsiniestro' });
+}, { collection: 'gsk3cAppsiniestro' });
 
-const Siniestro = mongoose.model('Siniestro', SiniestroSchema);
+const Siniestro = secondaryConnection.model('Siniestro', SiniestroSchema);
 export default Siniestro;
