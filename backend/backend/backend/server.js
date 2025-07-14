@@ -10,6 +10,7 @@ import userRoutes from "./routes/user.routes.js";
 import securUserSecundarioRoutes from "./routes/securUserSecundario.routes.js";
 
 dotenv.config();
+console.log("DEBUG - TODAS LAS VARIABLES:", process.env);
 
 const app = express();
 
