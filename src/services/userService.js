@@ -39,3 +39,13 @@ export const actualizarFoto = (formData, token) =>
       }
     }
   );
+
+export const actualizarPerfil = async (data, token, tipo = "normal") => {
+  const url =
+    tipo === "secur"
+      ? "http://13.59.106.174:3000/api/secur-users/perfil"
+      : "http://13.59.106.174:3000/api/usuarios/perfil";
+  return axios.put(url, data, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+};

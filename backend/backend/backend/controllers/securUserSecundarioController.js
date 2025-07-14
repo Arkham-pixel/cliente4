@@ -64,3 +64,17 @@ export const obtenerPerfilSecurUser = async (req, res) => {
     res.status(500).json({ mensaje: "Error al obtener perfil", error: error.message });
   }
 };
+
+export const actualizarPerfilSecurUser = async (req, res) => {
+  try {
+    const userId = req.usuario.id;
+    const update = req.body;
+    const user = await SecurUserSecundario.findByIdAndUpdate(userId, update, { new: true, runValidators: true });
+    if (!user) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado" });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error al actualizar perfil", error: error.message });
+  }
+};

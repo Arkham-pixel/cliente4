@@ -127,18 +127,48 @@ export default function MiCuenta() {
       </div>
 
       <div className="space-y-2 text-gray-700">
-        <div>
-          <span className="font-semibold">Fecha de nacimiento: </span>
-          {usuario.fechaNacimiento}
-        </div>
-        <div>
-          <span className="font-semibold">Cédula: </span>
-          {usuario.cedula}
-        </div>
-        <div>
-          <span className="font-semibold">Celular: </span>
-          {usuario.celular}
-        </div>
+        {usuario.nombre || usuario.name ? (
+          <div>
+            <span className="font-semibold">Nombre: </span>
+            {usuario.nombre || usuario.name}
+          </div>
+        ) : null}
+        {usuario.apellido ? (
+          <div>
+            <span className="font-semibold">Apellido: </span>
+            {usuario.apellido}
+          </div>
+        ) : null}
+        {usuario.fechaNacimiento ? (
+          <div>
+            <span className="font-semibold">Fecha de nacimiento: </span>
+            {usuario.fechaNacimiento}
+          </div>
+        ) : null}
+        {usuario.cedula ? (
+          <div>
+            <span className="font-semibold">Cédula: </span>
+            {usuario.cedula}
+          </div>
+        ) : null}
+        {usuario.phone ? (
+          <div>
+            <span className="font-semibold">Celular: </span>
+            {usuario.phone}
+          </div>
+        ) : null}
+        {usuario.role ? (
+          <div>
+            <span className="font-semibold">Rol: </span>
+            {usuario.role}
+          </div>
+        ) : null}
+        {usuario.email ? (
+          <div>
+            <span className="font-semibold">Email: </span>
+            {usuario.email}
+          </div>
+        ) : null}
       </div>
     </div>
   );

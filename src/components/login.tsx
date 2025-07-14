@@ -27,6 +27,7 @@ export default function Login() {
           return;
         }
         localStorage.setItem('token', jwt);
+        localStorage.setItem('tipoUsuario', 'normal');
       } else {
         const data = await loginSecurUser({ login, pswd });
         if (!data.token) {
@@ -34,6 +35,7 @@ export default function Login() {
           return;
         }
         localStorage.setItem('token', data.token);
+        localStorage.setItem('tipoUsuario', 'secur');
       }
       navigate('/inicio');
     } catch (err) {
