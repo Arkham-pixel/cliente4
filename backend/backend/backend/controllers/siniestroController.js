@@ -75,6 +75,7 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
       if (filters[key]) matchStage[key] = { $regex: filters[key], $options: 'i' };
     });
 
+    // Pipeline simplificado - solo con responsables por ahora
     const pipeline = [
       // Match stage para filtros
       ...(Object.keys(matchStage).length > 0 ? [{ $match: matchStage }] : []),
@@ -86,23 +87,6 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
           localField: 'codiRespnsble',
           foreignField: 'codiRespnsble',
           as: 'responsableInfo'
-        }
-      },
-      
-      // Lookup para unir con la colección de funcionarios de aseguradora
-      // Usamos funcAsgrdra (ID del funcionario) con el campo id de la tabla funcionarios
-      {
-        $lookup: {
-          from: 'gsk3cAppcontactoscli',
-          let: { funcId: { $toString: '$funcAsgrdra' } },
-          pipeline: [
-            {
-              $match: {
-                $expr: { $eq: ['$id', '$$funcId'] }
-              }
-            }
-          ],
-          as: 'funcionarioInfo'
         }
       },
       
@@ -118,21 +102,14 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
       {
         $addFields: {
           nombreResponsable: '$responsableInfo.nmbrRespnsble',
-          nombreFuncionario: {
-            $cond: {
-              if: { $gt: [{ $size: '$funcionarioInfo' }, 0] },
-              then: { $arrayElemAt: ['$funcionarioInfo.nmbrContcto', 0] },
-              else: null
-            }
-          }
+          nombreFuncionario: 'Sin asignar' // Temporalmente fijo
         }
       },
       
       // Proyectar solo los campos que necesitamos
       {
         $project: {
-          responsableInfo: 0,
-          funcionarioInfo: 0
+          responsableInfo: 0
         }
       }
     ];
@@ -160,17 +137,6 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
     // Debug: Log para verificar los datos
     console.log('🔍 Debug - Total siniestros encontrados:', siniestros.length);
     console.log('🔍 Debug - Primer siniestro:', siniestros[0]);
-    console.log('🔍 Debug - Campos disponibles:', Object.keys(siniestros[0] || {}));
-    
-    // Debug específico para funcionarios
-    if (siniestros.length > 0) {
-      console.log('🔍 Debug - funcAsgrdra del primer siniestro:', siniestros[0].funcAsgrdra);
-      console.log('🔍 Debug - nombreFuncionario del primer siniestro:', siniestros[0].nombreFuncionario);
-      
-      // Verificar si hay funcionarios en la base de datos
-      const funcionarios = await FuncionarioAseguradora.find({ id: siniestros[0].funcAsgrdra });
-      console.log('🔍 Debug - Funcionarios encontrados con ID', siniestros[0].funcAsgrdra, ':', funcionarios);
-    }
 
     res.json({ 
       total, 
