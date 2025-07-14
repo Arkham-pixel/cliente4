@@ -90,12 +90,18 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
       },
       
       // Lookup para unir con la colección de funcionarios de aseguradora
-      // Cambiamos para usar codiAsgrdra en lugar de id
+      // Usamos funcAsgrdra (ID del funcionario) con el campo id de la tabla funcionarios
       {
         $lookup: {
           from: 'gsk3cAppcontactoscli',
-          localField: 'codiAsgrdra',
-          foreignField: 'codiAsgrdra',
+          let: { funcId: { $toString: '$funcAsgrdra' } },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$id', '$$funcId'] }
+              }
+            }
+          ],
           as: 'funcionarioInfo'
         }
       },
@@ -120,7 +126,7 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
       {
         $addFields: {
           nombreResponsable: '$responsableInfo.nmbrRespnsble',
-          nombreFuncionario: '$funcionarioInfo.nmbrFuncionario'
+          nombreFuncionario: '$funcionarioInfo.nmbrContcto'
         }
       },
       
@@ -159,12 +165,12 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
     
     // Debug específico para funcionarios
     if (siniestros.length > 0) {
-      console.log('🔍 Debug - codiAsgrdra del primer siniestro:', siniestros[0].codiAsgrdra);
+      console.log('🔍 Debug - funcAsgrdra del primer siniestro:', siniestros[0].funcAsgrdra);
       console.log('🔍 Debug - nombreFuncionario del primer siniestro:', siniestros[0].nombreFuncionario);
       
       // Verificar si hay funcionarios en la base de datos
-      const funcionarios = await FuncionarioAseguradora.find({ codiAsgrdra: siniestros[0].codiAsgrdra });
-      console.log('🔍 Debug - Funcionarios encontrados con codiAsgrdra', siniestros[0].codiAsgrdra, ':', funcionarios);
+      const funcionarios = await FuncionarioAseguradora.find({ id: siniestros[0].funcAsgrdra });
+      console.log('🔍 Debug - Funcionarios encontrados con ID', siniestros[0].funcAsgrdra, ':', funcionarios);
     }
 
     res.json({ 
@@ -222,8 +228,14 @@ export const probarJoin = async (req, res) => {
       {
         $lookup: {
           from: 'gsk3cAppcontactoscli',
-          localField: 'codiAsgrdra',
-          foreignField: 'codiAsgrdra',
+          let: { funcId: { $toString: '$funcAsgrdra' } },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$id', '$$funcId'] }
+              }
+            }
+          ],
           as: 'funcionarioInfo'
         }
       },
@@ -242,7 +254,7 @@ export const probarJoin = async (req, res) => {
       {
         $addFields: {
           nombreResponsable: '$responsableInfo.nmbrRespnsble',
-          nombreFuncionario: '$funcionarioInfo.nmbrFuncionario'
+          nombreFuncionario: '$funcionarioInfo.nmbrContcto'
         }
       }
     ];
@@ -264,8 +276,9 @@ export const probarJoin = async (req, res) => {
       })),
       funcionarios: funcionarios.map(f => ({
         _id: f._id,
+        id: f.id,
         codiAsgrdra: f.codiAsgrdra,
-        nmbrFuncionario: f.nmbrFuncionario,
+        nmbrContcto: f.nmbrContcto,
         email: f.email
       })),
       resultadoJoin
@@ -306,11 +319,12 @@ export const verificarFuncionarios = async (req, res) => {
     res.json({
       funcionarios: funcionarios.map(f => ({
         _id: f._id,
+        id: f.id,
         codiAsgrdra: f.codiAsgrdra,
-        nmbrFuncionario: f.nmbrFuncionario,
+        nmbrContcto: f.nmbrContcto,
         email: f.email
       })),
-      codiAsgrdraEnSiniestros: siniestros.map(s => s.codiAsgrdra),
+      funcAsgrdraEnSiniestros: siniestros.map(s => s.funcAsgrdra),
       resultadoJoin: resultado
     });
   } catch (error) {
