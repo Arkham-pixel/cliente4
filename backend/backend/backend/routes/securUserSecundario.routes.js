@@ -8,5 +8,6 @@ const router = express.Router();
 router.get("/secur-users-secundarios", obtenerSecurUsers);
 router.post("/secur-users/login", loginSecurUser);
 router.get("/secur-users/perfil", verificarToken, obtenerPerfilSecurUser);
+router.put("/secur-users/perfil", verificarToken, actualizarPerfilSecurUser);
 
 export default router;
