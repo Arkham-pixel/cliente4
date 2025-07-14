@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { getSiniestros, deleteSiniestro, updateSiniestro } from '../services/siniestrosApi';
+import { getSiniestrosConResponsables, deleteSiniestro, updateSiniestro } from '../services/siniestrosApi';
 import FormularioCasoComplex from './SubcomponenteCompex/FormularioCasoComplex';
 import * as XLSX from 'xlsx';
 
 const camposVisibles = [
   { clave: 'nmroAjste', label: 'Nro Ajuste' },
-  { clave: 'codiResponsble', label: 'Responsable' },
+  { clave: 'codiResponsble', label: 'Código Responsable' },
+  { clave: 'nombreResponsable', label: 'Nombre Responsable' },
   { clave: 'codiAsgrdra', label: 'Aseguradora' },
   { clave: 'nmroSinstro', label: 'Nro Siniestro' },
   { clave: 'codWorkflow', label: 'Cod Workflow' },
@@ -28,7 +29,7 @@ const camposVisibles = [
 
 const ReporteComplex = () => {
   const [siniestros, setSiniestros] = useState([]);
-  const [campoBusqueda, setCampoBusqueda] = useState('nmro_sinstro');
+  const [campoBusqueda, setCampoBusqueda] = useState('nmroSinstro');
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
   const [orden, setOrden] = useState({ campo: '', asc: true });
   const [paginaActual, setPaginaActual] = useState(1);
@@ -45,7 +46,7 @@ const ReporteComplex = () => {
   const obtenerSiniestros = async () => {
     setLoading(true);
     try {
-      const data = await getSiniestros({ page: 1, limit: 1000 });
+      const data = await getSiniestrosConResponsables({ page: 1, limit: 1000 });
       setSiniestros(data.siniestros || []);
     } catch (error) {
       console.error('Error al cargar siniestros:', error);
@@ -193,7 +194,12 @@ const ReporteComplex = () => {
               siniestrosPaginados.map((siniestro, index) => (
                 <tr key={siniestro._id || index} className="border-b hover:bg-gray-50">
                   {camposVisibles.map(({ clave }) => (
-                    <td key={clave} className="p-2 whitespace-nowrap">{siniestro[clave] || ''}</td>
+                    <td key={clave} className="p-2 whitespace-nowrap">
+                      {clave === 'nombreResponsable' 
+                        ? (siniestro[clave] || 'Sin asignar')
+                        : (siniestro[clave] || '')
+                      }
+                    </td>
                   ))}
                   <td className="p-2 whitespace-nowrap space-x-2">
                     <button
