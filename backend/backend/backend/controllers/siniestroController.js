@@ -307,8 +307,31 @@ export const verificarFuncionarios = async (req, res) => {
 // Endpoint básico sin JOIN para verificar datos
 export const obtenerSiniestrosBasicos = async (req, res) => {
   try {
+    console.log('🔍 Iniciando endpoint básico...');
+    
+    // Verificar que el modelo existe
+    console.log('🔍 Modelo Siniestro:', typeof Siniestro);
+    console.log('🔍 Modelo Siniestro.find:', typeof Siniestro.find);
+    
     const { page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
+    
+    console.log('🔍 Intentando obtener siniestros básicos...');
+    console.log('🔍 Parámetros - page:', page, 'limit:', limit, 'skip:', skip);
+    
+    // Intentar obtener solo 1 documento primero
+    const primerSiniestro = await Siniestro.findOne();
+    console.log('🔍 Primer siniestro encontrado:', primerSiniestro ? 'SÍ' : 'NO');
+    
+    if (!primerSiniestro) {
+      console.log('🔍 No se encontraron siniestros en la base de datos');
+      return res.json({
+        total: 0,
+        page: Number(page),
+        limit: Number(limit),
+        siniestros: []
+      });
+    }
     
     const siniestros = await Siniestro.find()
       .skip(skip)
@@ -327,7 +350,12 @@ export const obtenerSiniestrosBasicos = async (req, res) => {
     });
   } catch (error) {
     console.error('Error en obtenerSiniestrosBasicos:', error);
-    res.status(500).json({ mensaje: 'Error al obtener siniestros básicos', error: error.message });
+    console.error('Error completo:', error.stack);
+    res.status(500).json({ 
+      mensaje: 'Error al obtener siniestros básicos', 
+      error: error.message,
+      stack: error.stack 
+    });
   }
 };
 
