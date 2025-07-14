@@ -93,8 +93,14 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
       {
         $lookup: {
           from: 'gsk3cAppcontactoscli',
-          localField: 'funcAsgrdra',
-          foreignField: 'id',
+          let: { funcId: { $toString: '$funcAsgrdra' } },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$id', '$$funcId'] }
+              }
+            }
+          ],
           as: 'funcionarioInfo'
         }
       },
@@ -155,6 +161,16 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
     // Debug: Log para verificar los datos
     console.log('🔍 Debug - Primer siniestro:', siniestros[0]);
     console.log('🔍 Debug - Campos disponibles:', Object.keys(siniestros[0] || {}));
+    
+    // Debug específico para funcionarios
+    if (siniestros.length > 0) {
+      console.log('🔍 Debug - funcAsgrdra del primer siniestro:', siniestros[0].funcAsgrdra);
+      console.log('🔍 Debug - nombreFuncionario del primer siniestro:', siniestros[0].nombreFuncionario);
+      
+      // Verificar si hay funcionarios en la base de datos
+      const funcionarios = await FuncionarioAseguradora.find({ id: siniestros[0].funcAsgrdra });
+      console.log('🔍 Debug - Funcionarios encontrados con ID', siniestros[0].funcAsgrdra, ':', funcionarios);
+    }
 
     res.json({ 
       total, 
@@ -211,8 +227,14 @@ export const probarJoin = async (req, res) => {
       {
         $lookup: {
           from: 'gsk3cAppcontactoscli',
-          localField: 'funcAsgrdra',
-          foreignField: 'id',
+          let: { funcId: { $toString: '$funcAsgrdra' } },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$id', '$$funcId'] }
+              }
+            }
+          ],
           as: 'funcionarioInfo'
         }
       },
@@ -262,5 +284,54 @@ export const probarJoin = async (req, res) => {
   } catch (error) {
     console.error('Error en probarJoin:', error);
     res.status(500).json({ mensaje: 'Error al probar JOIN', error: error.message });
+  }
+};
+
+// Endpoint específico para verificar funcionarios
+export const verificarFuncionarios = async (req, res) => {
+  try {
+    // Obtener algunos funcionarios para ver la estructura
+    const funcionarios = await FuncionarioAseguradora.find().limit(5);
+    console.log('🔍 Estructura de funcionarios:', funcionarios);
+    
+    // Obtener algunos siniestros para ver los IDs de funcionarios
+    const siniestros = await Siniestro.find().limit(5);
+    console.log('🔍 IDs de funcionarios en siniestros:', siniestros.map(s => s.funcAsgrdra));
+    
+    // Probar JOIN manual
+    const pipeline = [
+      { $limit: 1 },
+      {
+        $lookup: {
+          from: 'gsk3cAppcontactoscli',
+          let: { funcId: { $toString: '$funcAsgrdra' } },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$id', '$$funcId'] }
+              }
+            }
+          ],
+          as: 'funcionarioInfo'
+        }
+      }
+    ];
+    
+    const resultado = await Siniestro.aggregate(pipeline);
+    console.log('🔍 Resultado del JOIN manual:', resultado);
+    
+    res.json({
+      funcionarios: funcionarios.map(f => ({
+        _id: f._id,
+        id: f.id,
+        nmbrContcto: f.nmbrContcto,
+        codiAsgrdra: f.codiAsgrdra
+      })),
+      idsFuncionariosEnSiniestros: siniestros.map(s => s.funcAsgrdra),
+      resultadoJoin: resultado
+    });
+  } catch (error) {
+    console.error('Error en verificarFuncionarios:', error);
+    res.status(500).json({ mensaje: 'Error al verificar funcionarios', error: error.message });
   }
 };
