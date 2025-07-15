@@ -102,18 +102,30 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
         }
       },
       { $unwind: { path: '$funcionarioInfo', preserveNullAndEmptyArrays: true } },
-      // 3) Añadimos los campos finales
+      // 3) Lookup de ciudad
+      {
+        $lookup: {
+          from: 'gsk3cAppciudades',
+          localField: 'ciudadSiniestro',
+          foreignField: 'codiMunicipio',
+          as: 'ciudadInfo'
+        }
+      },
+      { $unwind: { path: '$ciudadInfo', preserveNullAndEmptyArrays: true } },
+      // 4) Añadimos los campos finales
       {
         $addFields: {
           nombreResponsable: '$responsableInfo.nmbrRespnsble',
-          nombreFuncionario: '$funcionarioInfo.nmbrContcto'
+          nombreFuncionario: '$funcionarioInfo.nmbrContcto',
+          nombreCiudad: '$ciudadInfo.descMunicipio'
         }
       },
-      // 4) Opcional: eliminar subdocumentos intermedios
+      // 5) Opcional: eliminar subdocumentos intermedios
       {
         $project: {
           responsableInfo: 0,
-          funcionarioInfo: 0
+          funcionarioInfo: 0,
+          ciudadInfo: 0
         }
       }
     ].filter(Boolean);

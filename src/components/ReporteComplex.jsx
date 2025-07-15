@@ -2,33 +2,161 @@ import React, { useEffect, useState } from 'react';
 import { getSiniestrosConResponsables, getSiniestrosBasicos, deleteSiniestro, updateSiniestro } from '../services/siniestrosApi';
 import FormularioCasoComplex from './SubcomponenteCompex/FormularioCasoComplex';
 import * as XLSX from 'xlsx';
+// Elimina la importación de antd
 
-const camposVisibles = [
-  { clave: 'nmroAjste', label: 'Nro Ajuste' },
-  { clave: 'codiRespnsble', label: 'Código Responsable' },
-  { clave: 'nombreResponsable', label: 'Nombre Responsable' },
-  { clave: 'codiAsgrdra', label: 'Aseguradora' },
-  { clave: 'funcAsgrdra', label: 'Código Funcionario' },
-  { clave: 'nombreFuncionario', label: 'Nombre Funcionario' },
-  { clave: 'nmroSinstro', label: 'Nro Siniestro' },
+const todosLosCampos = [
+  { clave: 'nmroAjste', label: 'No. Ajuste' },
+  { clave: 'nmroSinstro', label: 'No. de Siniestro' },
+  { clave: 'intermediario', label: 'Intermediario' },
   { clave: 'codWorkflow', label: 'Cod Workflow' },
-  { clave: 'fchaAsgncion', label: 'Fecha Asignación' },
-  { clave: 'asgrBenfcro', label: 'Beneficiario' },
-  { clave: 'tipoDucumento', label: 'Tipo Documento' },
-  { clave: 'numDocumento', label: 'Nro Documento' },
-  { clave: 'tipoPoliza', label: 'Tipo Póliza' },
-  { clave: 'nmroPolza', label: 'Nro Póliza' },
-  { clave: 'amprAfctdo', label: 'Amparo Afectado' },
-  { clave: 'fchaSinstro', label: 'Fecha Siniestro' },
-  { clave: 'descSinstro', label: 'Descripción Siniestro' },
-  { clave: 'ciudadSiniestro', label: 'Ciudad Siniestro' },
-  { clave: 'codiEstdo', label: 'Estado' },
-  { clave: 'vlorResrva', label: 'Valor Reserva' },
-  { clave: 'vlorReclmo', label: 'Valor Reclamo' },
-  { clave: 'montoIndmzar', label: 'Monto Indemnizar' },
+  { clave: 'nmroPolza', label: 'No. de Poliza' },
+  { clave: 'nombreResponsable', label: 'Responsable' },
+  { clave: 'codiAsgrdra', label: 'Aseguradora' },
+  { clave: 'asgrBenfcro', label: 'Asegurado o Beneficiario' },
+  { clave: 'fchaAsgncion', label: 'Fecha Asignacion' },
+  { clave: 'fchaInspccion', label: 'Fecha de Inspeccion' },
+  { clave: 'fchaUltDoc', label: 'Fecha Ultimo Documento' },
+  { clave: 'fchaInfoFnal', label: 'Fecha del Informme Final' },
+  { clave: 'codiEstdo', label: 'Estado del Siniestro' },
+  { clave: 'nombreFuncionario', label: 'Funcionario Aseguradora' },
+  { clave: 'diasUltRev', label: 'Dias Ultima Revisión' },
+  { clave: 'obseSegmnto', label: 'Observaciones de Seguimiento' },
+  // Campos adicionales de FormularioCasoComplex, con claves únicas
+  { clave: 'responsable_form', label: 'Responsable (formulario)' },
+  { clave: 'aseguradora_form', label: 'Aseguradora (formulario)' },
+  { clave: 'funcionario_aseguradora_form', label: 'Funcionario Aseguradora (formulario)' },
+  { clave: 'numero_siniestro_form', label: 'Número de Siniestro (formulario)' },
+  { clave: 'codigo_workflow_form', label: 'Código Workflow (formulario)' },
+  { clave: 'intermediario_form', label: 'Intermediario (formulario)' },
+  { clave: 'numero_poliza_form', label: 'Número de Póliza (formulario)' },
+  { clave: 'asegurado_form', label: 'Asegurado (formulario)' },
+  { clave: 'tipo_documento_form', label: 'Tipo de Documento (formulario)' },
+  { clave: 'numero_documento_form', label: 'Número de Documento (formulario)' },
+  { clave: 'fecha_asignacion_form', label: 'Fecha Asignación (formulario)' },
+  { clave: 'fecha_siniestro_form', label: 'Fecha Siniestro (formulario)' },
+  { clave: 'ciudad_siniestro_form', label: 'Ciudad Siniestro (formulario)' },
+  { clave: 'tipo_poliza_form', label: 'Tipo de Póliza (formulario)' },
+  { clave: 'causa_siniestro_form', label: 'Causa Siniestro (formulario)' },
+  { clave: 'estado_form', label: 'Estado (formulario)' },
+  { clave: 'descripcion_siniestro_form', label: 'Descripción Siniestro (formulario)' },
+  // Puedes agregar aquí más campos del formulario según los vayas necesitando, siempre con clave única
 ];
 
+const columnasIniciales = [
+  'nmroAjste',
+  'nmroSinstro',
+  'intermediario',
+  'codWorkflow',
+  'nmroPolza',
+  'nombreResponsable',
+  'codiAsgrdra',
+  'asgrBenfcro',
+  'fchaAsgncion',
+  'fchaInspccion',
+  'fchaUltDoc',
+  'fchaInfoFnal',
+  'codiEstdo',
+  'nombreFuncionario',
+  'diasUltRev',
+  'obseSegmnto'
+];
+
+// Función para convertir fechas ISO a yyyy-MM-dd para inputs tipo date
+function toDateInputValue(dateString) {
+  if (!dateString) return '';
+  const d = new Date(dateString);
+  const off = d.getTimezoneOffset();
+  d.setMinutes(d.getMinutes() - off);
+  return d.toISOString().slice(0, 10);
+}
+
+// Función para mapear TODOS los campos del siniestro al formulario
+const mapSiniestroToForm = (siniestro) => ({
+  responsable: siniestro.nombreResponsable || '',
+  aseguradora: siniestro.codiAsgrdra || '',
+  funcionario_aseguradora: siniestro.nombreFuncionario || '',
+  numero_siniestro: siniestro.nmroSinstro || '',
+  codigo_workflow: siniestro.codWorkflow || '',
+  intermediario: siniestro.intermediario || '',
+  numero_poliza: siniestro.nmroPolza || '',
+  asegurado: siniestro.asgrBenfcro || '',
+  tipo_documento: siniestro.tipoDucumento || '',
+  numero_documento: siniestro.numDocumento || '',
+  fecha_asignacion: toDateInputValue(siniestro.fchaAsgncion),
+  fecha_siniestro: toDateInputValue(siniestro.fchaSinstro),
+  ciudad_siniestro: siniestro.ciudadSiniestro || '',
+  tipo_poliza: siniestro.tipoPoliza || '',
+  causa_siniestro: siniestro.causa_siniestro || '',
+  estado: siniestro.codiEstdo || '',
+  descripcion_siniestro: siniestro.descSinstro || '',
+  fcha_inspccion: toDateInputValue(siniestro.fchaInspccion),
+  fcha_soli_docu: toDateInputValue(siniestro.fcha_soli_docu),
+  fcha_info_prelm: toDateInputValue(siniestro.fcha_info_prelm),
+  fcha_info_fnal: toDateInputValue(siniestro.fcha_info_fnal),
+  fcha_repo_acti: toDateInputValue(siniestro.fcha_repo_acti),
+  fcha_ult_segui: toDateInputValue(siniestro.fcha_ult_segui),
+  fcha_act_segui: toDateInputValue(siniestro.fcha_act_segui),
+  fcha_finqto_indem: toDateInputValue(siniestro.fcha_finqto_indem),
+  fcha_factra: toDateInputValue(siniestro.fcha_factra),
+  fcha_ult_revi: toDateInputValue(siniestro.fcha_ult_revi),
+  // Números y montos
+  dias_transcrrdo: siniestro.dias_transcrrdo || '',
+  vlor_resrva: siniestro.vlor_resrva || '',
+  vlor_reclmo: siniestro.vlor_reclmo || '',
+  monto_indmzar: siniestro.monto_indmzar || '',
+  vlor_servcios: siniestro.vlor_servcios || '',
+  vlor_gastos: siniestro.vlor_gastos || '',
+  total: siniestro.total || '',
+  total_general: siniestro.total_general || '',
+  total_pagado: siniestro.total_pagado || '',
+  iva: siniestro.iva || '',
+  reteiva: siniestro.reteiva || '',
+  retefuente: siniestro.retefuente || '',
+  reteica: siniestro.reteica || '',
+  porc_iva: siniestro.porc_iva || '',
+  porc_reteiva: siniestro.porc_reteiva || '',
+  porc_retefuente: siniestro.porc_retefuente || '',
+  porc_reteica: siniestro.porc_reteica || '',
+  // Adjuntos y observaciones
+  obse_cont_ini: siniestro.obse_cont_ini || '',
+  anex_cont_ini: siniestro.anex_cont_ini || '',
+  obse_inspccion: siniestro.obse_inspccion || '',
+  anex_acta_inspccion: siniestro.anex_acta_inspccion || '',
+  anex_sol_doc: siniestro.anex_sol_doc || '',
+  obse_soli_docu: siniestro.obse_soli_docu || '',
+  anxo_inf_prelim: siniestro.anxo_inf_prelim || '',
+  obse_info_prelm: siniestro.obse_info_prelm || '',
+  anxo_info_fnal: siniestro.anxo_info_fnal || '',
+  obse_info_fnal: siniestro.obse_info_fnal || '',
+  anxo_repo_acti: siniestro.anxo_repo_acti || '',
+  obse_repo_acti: siniestro.obse_repo_acti || '',
+  anxo_factra: siniestro.anxo_factra || '',
+  anxo_honorarios: siniestro.anxo_honorarios || '',
+  anxo_honorariosdefinit: siniestro.anxo_honorariosdefinit || '',
+  anxo_autorizacion: siniestro.anxo_autorizacion || '',
+  obse_comprmsi: siniestro.obse_comprmsi || '',
+  obse_segmnto: siniestro.obse_segmnto || '',
+  // ...agrega aquí cualquier otro campo que uses en el formulario
+});
+
 const ReporteComplex = () => {
+  // Mover todos los hooks aquí dentro
+  const [camposVisibles, setCamposVisibles] = useState(
+    todosLosCampos.filter(c => columnasIniciales.includes(c.clave))
+  );
+  const [modalColumnasOpen, setModalColumnasOpen] = useState(false);
+  const [seleccionTemporal, setSeleccionTemporal] = useState(camposVisibles.map(c => c.clave));
+
+  const abrirPersonalizarColumnas = () => {
+    setSeleccionTemporal(camposVisibles.map(c => c.clave));
+    setModalColumnasOpen(true);
+  };
+  const guardarColumnasPersonalizadas = () => {
+    const nuevasColumnas = todosLosCampos.filter(c => seleccionTemporal.includes(c.clave));
+    setCamposVisibles(nuevasColumnas);
+    setModalColumnasOpen(false);
+  };
+
   const [siniestros, setSiniestros] = useState([]);
   const [campoBusqueda, setCampoBusqueda] = useState('nmroSinstro');
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
@@ -94,7 +222,7 @@ const ReporteComplex = () => {
   };
 
   const handleEdit = (siniestro) => {
-    setEditSiniestro(siniestro);
+    setEditSiniestro(mapSiniestroToForm(siniestro));
     setModalOpen(true);
   };
 
@@ -202,7 +330,53 @@ const ReporteComplex = () => {
         >
           ⬇ Exportar Excel
         </button>
+        <button
+          className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
+          onClick={abrirPersonalizarColumnas}
+        >
+          Personalizar columnas
+        </button>
       </div>
+
+      {modalColumnasOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 min-w-[300px] max-w-[90vw]">
+            <h2 className="text-lg font-bold mb-4">Personalizar columnas</h2>
+            <div className="flex flex-col gap-2 max-h-60 overflow-y-auto mb-4">
+              {todosLosCampos.map(campo => (
+                <label key={campo.clave} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={seleccionTemporal.includes(campo.clave)}
+                    onChange={e => {
+                      if (e.target.checked) {
+                        setSeleccionTemporal([...seleccionTemporal, campo.clave]);
+                      } else {
+                        setSeleccionTemporal(seleccionTemporal.filter(cl => cl !== campo.clave));
+                      }
+                    }}
+                  />
+                  {campo.label}
+                </label>
+              ))}
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+                onClick={() => setModalColumnasOpen(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                onClick={guardarColumnasPersonalizadas}
+              >
+                Guardar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="overflow-auto">
         <table className="w-full text-sm border">
