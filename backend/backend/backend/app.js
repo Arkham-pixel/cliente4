@@ -38,6 +38,6 @@ app.use("/api/usuarios", userRoutes);
 app.use("/api", securUserSecundarioRoutes);
 app.use("/api/siniestros", siniestroRoutes);
 app.use('/api', ciudadRoutes);
-app.use('/api', clientesRoutes);
+app.use('/api/clientes', clientesRoutes);
 
 export default app; 
