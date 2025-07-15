@@ -67,147 +67,60 @@ export const eliminarSiniestro = async (req, res) => {
 // Obtener siniestros con información de responsables y funcionarios (JOIN)
 export const obtenerSiniestrosConResponsables = async (req, res) => {
   try {
-    console.log('🔍 Iniciando obtenerSiniestrosConResponsables...');
+    console.log('🔍 Iniciando obtenerSiniestrosConResponsables (JS join)...');
     const { page = 1, limit = 10, ...filters } = req.query;
-    
+    const skip = (page - 1) * limit;
+
     // Construir filtros dinámicamente
-    const matchStage = {};
+    const query = {};
     Object.keys(filters).forEach((key) => {
-      if (filters[key]) matchStage[key] = { $regex: filters[key], $options: 'i' };
+      if (filters[key]) query[key] = { $regex: filters[key], $options: 'i' };
     });
 
-    console.log('🔍 Filtros aplicados:', matchStage);
+    // Obtener siniestros paginados
+    const siniestros = await Siniestro.find(query).skip(skip).limit(Number(limit));
+    const total = await Siniestro.countDocuments(query);
 
-    // Pipeline SOLO con responsables (funcionaba antes)
-    const pipeline = [
-      // Match stage para filtros
-      ...(Object.keys(matchStage).length > 0 ? [{ $match: matchStage }] : []),
-      
-      // Lookup para unir con la colección de responsables
-      {
-        $lookup: {
-          from: 'gsk3cAppresponsable',
-          let: { codiResp: { $toString: '$codiRespnsble' } },
-          pipeline: [
-            {
-              $match: {
-                $expr: { $eq: [{ $toString: '$codiRespnsble' }, '$$codiResp'] }
-              }
-            }
-          ],
-          as: 'responsableInfo'
-        }
-      },
-      // Lookup para unir con la colección de funcionarios
-      {
-        $lookup: {
-          from: 'gsk3cAppcontactoscli',
-          let: { funcId: { $toString: '$funcAsgrdra' } },
-          pipeline: [
-            {
-              $match: {
-                $expr: { $eq: [{ $toString: '$id' }, '$$funcId'] }
-              }
-            }
-          ],
-          as: 'funcionarioInfo'
-        }
-      },
-      // Unwind para aplanar el array de responsableInfo
-      {
-        $unwind: {
-          path: '$responsableInfo',
-          preserveNullAndEmptyArrays: true
-        }
-      },
-      // Unwind para aplanar el array de funcionarioInfo
-      {
-        $unwind: {
-          path: '$funcionarioInfo',
-          preserveNullAndEmptyArrays: true
-        }
-      },
-      // Agregar campos con nombres
-      {
-        $addFields: {
-          nombreResponsable: {
-            $cond: {
-              if: { $ne: ['$responsableInfo.nmbrRespnsble', null] },
-              then: '$responsableInfo.nmbrRespnsble',
-              else: 'Sin asignar'
-            }
-          },
-          nombreFuncionario: {
-            $cond: {
-              if: { $ne: ['$funcionarioInfo.nmbrContcto', null] },
-              then: '$funcionarioInfo.nmbrContcto',
-              else: 'Sin asignar'
-            }
-          }
-        }
-      },
-      // Proyectar solo los campos que necesitamos
-      {
-        $project: {
-          responsableInfo: 0,
-          funcionarioInfo: 0
-        }
-      }
-    ];
-
-    console.log('🔍 Pipeline creado:', JSON.stringify(pipeline, null, 2));
-
-    // Agregar paginación
-    const skip = (page - 1) * limit;
-    pipeline.push(
-      { $skip: skip },
-      { $limit: Number(limit) }
-    );
-
-    // Obtener total para paginación
-    const totalPipeline = [
-      ...(Object.keys(matchStage).length > 0 ? [{ $match: matchStage }] : []),
-      { $count: 'total' }
-    ];
-
-    console.log('🔍 Ejecutando agregación...');
-    const [siniestros, totalResult] = await Promise.all([
-      Siniestro.aggregate(pipeline),
-      Siniestro.aggregate(totalPipeline)
+    // Obtener todos los responsables y funcionarios
+    const [responsables, funcionarios] = await Promise.all([
+      Responsable.find(),
+      FuncionarioAseguradora.find()
     ]);
 
-    const total = totalResult.length > 0 ? totalResult[0].total : 0;
+    // Crear mapas para acceso rápido
+    const mapaResponsables = {};
+    responsables.forEach(r => {
+      // Convertir ambos a string para evitar problemas de tipo
+      mapaResponsables[String(r.codiRespnsble)] = r.nmbrRespnsble;
+    });
+    const mapaFuncionarios = {};
+    funcionarios.forEach(f => {
+      // Convertir ambos a string para evitar problemas de tipo
+      mapaFuncionarios[String(f.id)] = f.nmbrContcto || f.nmbrFuncionario || f.nombre || '';
+    });
 
-    // Debug: Log para verificar los datos
-    console.log('🔍 Debug - Total siniestros encontrados:', siniestros.length);
-    console.log('🔍 Debug - Total para paginación:', total);
-    
-    if (siniestros.length > 0) {
-      console.log('🔍 Debug - Primer siniestro:', {
-        _id: siniestros[0]._id,
-        codiRespnsble: siniestros[0].codiRespnsble,
-        nombreResponsable: siniestros[0].nombreResponsable,
-        nmroSinstro: siniestros[0].nmroSinstro
-      });
-      
-      // Verificar algunos más
-      siniestros.slice(1, 3).forEach((s, i) => {
-        console.log(`🔍 Debug - Siniestro ${i + 2}:`, {
-          codiRespnsble: s.codiRespnsble,
-          nombreResponsable: s.nombreResponsable
-        });
-      });
-    }
+    // Armar el resultado cruzando los datos
+    const siniestrosConNombres = siniestros.map(s => {
+      const nombreResponsable = mapaResponsables[String(s.codiRespnsble)] || 'Sin asignar';
+      const nombreFuncionario = mapaFuncionarios[String(s.funcAsgrdra)] || 'Sin asignar';
+      return {
+        ...s.toObject(),
+        nombreResponsable,
+        nombreFuncionario
+      };
+    });
 
-    console.log('🔍 Enviando respuesta al frontend...');
-    res.json({ 
-      total, 
-      page: Number(page), 
-      limit: Number(limit), 
-      siniestros 
+    // Debug: muestra los primeros
+    console.log('🔍 Primeros siniestros con nombres:', siniestrosConNombres.slice(0, 2));
+
+    res.json({
+      total,
+      page: Number(page),
+      limit: Number(limit),
+      siniestros: siniestrosConNombres
     });
   } catch (error) {
-    console.error('Error en obtenerSiniestrosConResponsables:', error);
+    console.error('Error en obtenerSiniestrosConResponsables (JS join):', error);
     res.status(500).json({ mensaje: 'Error al obtener siniestros con responsables', error: error.message });
   }
 };
@@ -259,7 +172,7 @@ export const probarJoin = async (req, res) => {
           pipeline: [
             {
               $match: {
-                $expr: { $eq: ['$id', '$$funcId'] }
+                $expr: { $eq: [{ $toString: '$id' }, '$$funcId'] }
               }
             }
           ],
