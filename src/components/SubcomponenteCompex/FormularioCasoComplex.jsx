@@ -121,7 +121,14 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
   });
 
   // Ejemplo de props para selects
-  const municipios = []; // tu array real de municipios
+  const [ciudades, setCiudades] = useState([]);
+
+  useEffect(() => {
+    fetch('/api/ciudades')
+      .then(res => res.json())
+      .then(data => setCiudades(data));
+  }, []);
+
   const aseguradoraOptions = []; // tu array real de aseguradoras
   const funcionarios = []; // tu array real de funcionarios
   const intermediarios = []; // tu array real de intermediarios
@@ -219,7 +226,7 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
             handleChange={handleChange}
             handleAseguradoraChange={handleAseguradoraChange}
             handleCiudadChange={handleCiudadChange}
-            municipios={municipios}
+            municipios={ciudades}
             aseguradoraOptions={aseguradoraOptions}
             funcionarios={funcionarios}
             intermediarios={intermediarios}

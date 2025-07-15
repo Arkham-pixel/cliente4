@@ -7,6 +7,7 @@ import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/user.routes.js";
 import securUserSecundarioRoutes from "./routes/securUserSecundario.routes.js";
 import siniestroRoutes from "./routes/siniestroRoutes.js";
+import ciudadRoutes from './routes/ciudadRoutes.js';
 
 const app = express();
 
@@ -35,5 +36,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/usuarios", userRoutes);
 app.use("/api", securUserSecundarioRoutes);
 app.use("/api/siniestros", siniestroRoutes);
+app.use('/api', ciudadRoutes);
 
 export default app; 
