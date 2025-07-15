@@ -1,7 +1,7 @@
 // routes/clientes.js
-const express = require('express');
+import express from 'express';
+import Cliente from '../models/Cliente.js';
 const router = express.Router();
-const Cliente = require('../models/Cliente'); // Ajusta la ruta según tu estructura
 
 // GET /api/clientes
 router.get('/', async (req, res) => {
