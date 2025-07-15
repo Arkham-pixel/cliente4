@@ -18,8 +18,8 @@ const ClienteSchema = new mongoose.Schema({
   reteFuente: Number,
   reteIca: Number,
   // ...agrega aquí los campos que realmente tiene tu colección
-}, { collection: 'gsk3cAppcliente' }); // Asegúrate de poner el nombre real de la colección
+}, { collection: 'gsk3cAppcliente' }); // Exactamente igual que en Atlas
 
-const Cliente = mongoose.model('Cliente', ClienteSchema);
+const Cliente = mongoose.model('Cliente', ClienteSchema, 'gsk3cAppcliente'); // Forzar nombre de colección
 
 export default Cliente;
