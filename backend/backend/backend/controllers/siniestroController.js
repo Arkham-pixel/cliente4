@@ -91,14 +91,28 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
           pipeline: [
             {
               $match: {
-                $expr: { $eq: ['$codiRespnsble', '$$codiResp'] }
+                $expr: { $eq: [{ $toString: '$codiRespnsble' }, '$$codiResp'] }
               }
             }
           ],
           as: 'responsableInfo'
         }
       },
-      
+      // Lookup para unir con la colección de funcionarios
+      {
+        $lookup: {
+          from: 'gsk3cAppcontactoscli',
+          let: { funcId: { $toString: '$funcAsgrdra' } },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: [{ $toString: '$id' }, '$$funcId'] }
+              }
+            }
+          ],
+          as: 'funcionarioInfo'
+        }
+      },
       // Unwind para aplanar el array de responsableInfo
       {
         $unwind: {
@@ -106,7 +120,13 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
           preserveNullAndEmptyArrays: true
         }
       },
-      
+      // Unwind para aplanar el array de funcionarioInfo
+      {
+        $unwind: {
+          path: '$funcionarioInfo',
+          preserveNullAndEmptyArrays: true
+        }
+      },
       // Agregar campos con nombres
       {
         $addFields: {
@@ -117,14 +137,20 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
               else: 'Sin asignar'
             }
           },
-          nombreFuncionario: 'Sin asignar' // Temporalmente fijo
+          nombreFuncionario: {
+            $cond: {
+              if: { $ne: ['$funcionarioInfo.nmbrContcto', null] },
+              then: '$funcionarioInfo.nmbrContcto',
+              else: 'Sin asignar'
+            }
+          }
         }
       },
-      
       // Proyectar solo los campos que necesitamos
       {
         $project: {
-          responsableInfo: 0
+          responsableInfo: 0,
+          funcionarioInfo: 0
         }
       }
     ];
