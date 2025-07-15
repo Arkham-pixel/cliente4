@@ -51,9 +51,17 @@ const ReporteComplex = () => {
       const data = await getSiniestrosConResponsables({ page: 1, limit: 1000 });
       console.log('🔍 Frontend - Datos con JOIN:', data);
       
-      if (data.siniestros && data.siniestros.length > 0) {
-        setSiniestros(data.siniestros);
+      if (data && data.siniestros && data.siniestros.length > 0) {
+        // Verificar que los datos tengan los campos necesarios
+        const siniestrosConNombres = data.siniestros.map(siniestro => ({
+          ...siniestro,
+          nombreResponsable: siniestro.nombreResponsable || 'Sin asignar',
+          nombreFuncionario: siniestro.nombreFuncionario || 'Sin asignar'
+        }));
+        setSiniestros(siniestrosConNombres);
+        console.log('🔍 Frontend - Siniestros con nombres:', siniestrosConNombres.slice(0, 2));
       } else {
+        console.log('🔍 Frontend - No hay datos con JOIN, usando fallback');
         // Fallback a datos básicos si el JOIN falla
         const dataBasicos = await getSiniestrosBasicos({ page: 1, limit: 1000 });
         console.log('🔍 Frontend - Fallback a datos básicos:', dataBasicos);
@@ -68,6 +76,19 @@ const ReporteComplex = () => {
       }
     } catch (error) {
       console.error('Error al cargar siniestros:', error);
+      // En caso de error, intentar con datos básicos
+      try {
+        const dataBasicos = await getSiniestrosBasicos({ page: 1, limit: 1000 });
+        const siniestrosConCampos = dataBasicos.siniestros.map(siniestro => ({
+          ...siniestro,
+          nombreResponsable: 'Sin asignar',
+          nombreFuncionario: 'Sin asignar'
+        }));
+        setSiniestros(siniestrosConCampos);
+      } catch (fallbackError) {
+        console.error('Error en fallback:', fallbackError);
+        setSiniestros([]);
+      }
     }
     setLoading(false);
   };
