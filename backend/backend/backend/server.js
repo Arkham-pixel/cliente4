@@ -1,5 +1,7 @@
+import 'dotenv/config' 
 import mongoose from "mongoose";
 import app from "./app.js";
+
 
 const MONGO_URI = process.env.MONGO_URI;
 if (!MONGO_URI) {
