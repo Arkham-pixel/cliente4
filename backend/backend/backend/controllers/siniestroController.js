@@ -67,40 +67,76 @@ export const eliminarSiniestro = async (req, res) => {
 // Obtener siniestros con información de responsables y funcionarios (JOIN)
 export const obtenerSiniestrosConResponsables = async (req, res) => {
   try {
-    console.log('🔍 Iniciando obtenerSiniestrosConResponsables (populate)...');
+    console.log('🔍 Iniciando obtenerSiniestrosConResponsables (aggregation pipeline)...');
     const { page = 1, limit = 10, ...filters } = req.query;
     const skip = (page - 1) * limit;
 
     // Construir filtros dinámicamente
-    const query = {};
+    const matchStage = {};
     Object.keys(filters).forEach((key) => {
-      if (filters[key]) query[key] = { $regex: filters[key], $options: 'i' };
+      if (filters[key]) matchStage[key] = { $regex: filters[key], $options: 'i' };
     });
 
-    // Usar populate para traer los nombres
-    const siniestros = await Siniestro.find(query)
-      .skip(skip)
-      .limit(Number(limit))
-      .populate('codiRespnsble', 'nmbrRespnsble')
-      .populate('funcAsgrdra', 'nmbrContcto');
+    // Pipeline de agregación usando los nombres exactos
+    const pipeline = [
+      Object.keys(matchStage).length > 0 ? { $match: matchStage } : null,
+      { $skip: skip },
+      { $limit: Number(limit) },
+      // 1) Lookup de responsables
+      {
+        $lookup: {
+          from: 'gsk3cAppresponsable',
+          localField: 'codiRespnsble',
+          foreignField: 'codiRespnsble',
+          as: 'responsableInfo'
+        }
+      },
+      { $unwind: { path: '$responsableInfo', preserveNullAndEmptyArrays: true } },
+      // 2) Lookup de funcionarios
+      {
+        $lookup: {
+          from: 'gsk3cAppcontactoscli',
+          localField: 'funcAsgrdra',
+          foreignField: 'codiAsgrdra',
+          as: 'funcionarioInfo'
+        }
+      },
+      { $unwind: { path: '$funcionarioInfo', preserveNullAndEmptyArrays: true } },
+      // 3) Añadimos los campos finales
+      {
+        $addFields: {
+          nombreResponsable: '$responsableInfo.nmbrRespnsble',
+          nombreFuncionario: '$funcionarioInfo.nmbrContcto'
+        }
+      },
+      // 4) Opcional: eliminar subdocumentos intermedios
+      {
+        $project: {
+          responsableInfo: 0,
+          funcionarioInfo: 0
+        }
+      }
+    ].filter(Boolean);
 
-    const total = await Siniestro.countDocuments(query);
+    // Obtener los siniestros con el pipeline
+    const siniestros = await Siniestro.aggregate(pipeline);
 
-    // Mapear los resultados para enviar los nombres planos
-    const resultado = siniestros.map(s => ({
-      ...s.toObject(),
-      nombreResponsable: s.codiRespnsble?.nmbrRespnsble || 'Sin asignar',
-      nombreFuncionario: s.funcAsgrdra?.nmbrContcto || 'Sin asignar'
-    }));
+    // Obtener el total para paginación
+    const totalPipeline = [
+      Object.keys(matchStage).length > 0 ? { $match: matchStage } : null,
+      { $count: 'total' }
+    ].filter(Boolean);
+    const totalResult = await Siniestro.aggregate(totalPipeline);
+    const total = totalResult.length > 0 ? totalResult[0].total : 0;
 
     res.json({
       total,
       page: Number(page),
       limit: Number(limit),
-      siniestros: resultado
+      siniestros
     });
   } catch (error) {
-    console.error('Error en obtenerSiniestrosConResponsables (populate):', error);
+    console.error('Error en obtenerSiniestrosConResponsables (aggregation pipeline):', error);
     res.status(500).json({ mensaje: 'Error al obtener siniestros con responsables', error: error.message });
   }
 };
