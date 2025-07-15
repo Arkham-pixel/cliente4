@@ -3,11 +3,11 @@ import secondaryConnection from '../db/secondaryConnection.js';
 
 const SiniestroSchema = new mongoose.Schema({
   nmro_ajste: String,
-  codiRespnsble: String, // Corregido: era 'codi_respnsble', ahora es 'codiRespnsble'
+  codiRespnsble: { type: String, ref: 'Responsable' },
   codi_asgrdra: String,
   nmro_sinstro: String,
   cod_workflow: String,
-  func_asgrdra: String,
+  func_asgrdra: { type: String, ref: 'FuncionarioAseguradora' },
   fcha_asgncion: Date,
   asgr_benfcro: String,
   tipo_ducumento: String,

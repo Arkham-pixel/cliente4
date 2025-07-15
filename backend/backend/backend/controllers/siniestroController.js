@@ -67,7 +67,7 @@ export const eliminarSiniestro = async (req, res) => {
 // Obtener siniestros con información de responsables y funcionarios (JOIN)
 export const obtenerSiniestrosConResponsables = async (req, res) => {
   try {
-    console.log('🔍 Iniciando obtenerSiniestrosConResponsables (JS join)...');
+    console.log('🔍 Iniciando obtenerSiniestrosConResponsables (populate)...');
     const { page = 1, limit = 10, ...filters } = req.query;
     const skip = (page - 1) * limit;
 
@@ -77,50 +77,30 @@ export const obtenerSiniestrosConResponsables = async (req, res) => {
       if (filters[key]) query[key] = { $regex: filters[key], $options: 'i' };
     });
 
-    // Obtener siniestros paginados
-    const siniestros = await Siniestro.find(query).skip(skip).limit(Number(limit));
+    // Usar populate para traer los nombres
+    const siniestros = await Siniestro.find(query)
+      .skip(skip)
+      .limit(Number(limit))
+      .populate('codiRespnsble', 'nmbrRespnsble')
+      .populate('funcAsgrdra', 'nmbrContcto');
+
     const total = await Siniestro.countDocuments(query);
 
-    // Obtener todos los responsables y funcionarios
-    const [responsables, funcionarios] = await Promise.all([
-      Responsable.find(),
-      FuncionarioAseguradora.find()
-    ]);
-
-    // Crear mapas para acceso rápido
-    const mapaResponsables = {};
-    responsables.forEach(r => {
-      // Convertir ambos a string para evitar problemas de tipo
-      mapaResponsables[String(r.codiRespnsble)] = r.nmbrRespnsble;
-    });
-    const mapaFuncionarios = {};
-    funcionarios.forEach(f => {
-      // Convertir ambos a string para evitar problemas de tipo
-      mapaFuncionarios[String(f.id)] = f.nmbrContcto || f.nmbrFuncionario || f.nombre || '';
-    });
-
-    // Armar el resultado cruzando los datos
-    const siniestrosConNombres = siniestros.map(s => {
-      const nombreResponsable = mapaResponsables[String(s.codiRespnsble)] || 'Sin asignar';
-      const nombreFuncionario = mapaFuncionarios[String(s.funcAsgrdra)] || 'Sin asignar';
-      return {
-        ...s.toObject(),
-        nombreResponsable,
-        nombreFuncionario
-      };
-    });
-
-    // Debug: muestra los primeros
-    console.log('🔍 Primeros siniestros con nombres:', siniestrosConNombres.slice(0, 2));
+    // Mapear los resultados para enviar los nombres planos
+    const resultado = siniestros.map(s => ({
+      ...s.toObject(),
+      nombreResponsable: s.codiRespnsble?.nmbrRespnsble || 'Sin asignar',
+      nombreFuncionario: s.funcAsgrdra?.nmbrContcto || 'Sin asignar'
+    }));
 
     res.json({
       total,
       page: Number(page),
       limit: Number(limit),
-      siniestros: siniestrosConNombres
+      siniestros: resultado
     });
   } catch (error) {
-    console.error('Error en obtenerSiniestrosConResponsables (JS join):', error);
+    console.error('Error en obtenerSiniestrosConResponsables (populate):', error);
     res.status(500).json({ mensaje: 'Error al obtener siniestros con responsables', error: error.message });
   }
 };
