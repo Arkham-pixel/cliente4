@@ -122,14 +122,27 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
 
   // Ejemplo de props para selects
   const [ciudades, setCiudades] = useState([]);
+  const [aseguradoraOptions, setAseguradoraOptions] = useState([]);
 
   useEffect(() => {
-    fetch('/api/ciudades')
+    fetch('http://13.59.106.174:3000/api/ciudades')
       .then(res => res.json())
-      .then(data => setCiudades(data));
+      .then(data => {
+        // Transformar para react-select: { value, label }
+        setCiudades(data.map(c => ({
+          value: c.descMunicipio,
+          label: c.descMunicipio
+        })));
+        // console.log('Ciudades:', data);
+      });
+    // Fetch aseguradoras/clientes
+    fetch('http://13.59.106.174:3000/api/clientes')
+      .then(res => res.json())
+      .then(data => {
+        setAseguradoraOptions(data.map(c => c.rzonSocial));
+      });
   }, []);
 
-  const aseguradoraOptions = []; // tu array real de aseguradoras
   const funcionarios = []; // tu array real de funcionarios
   const intermediarios = []; // tu array real de intermediarios
   const nuevoIntermediario = '';

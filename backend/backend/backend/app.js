@@ -8,6 +8,7 @@ import userRoutes from "./routes/user.routes.js";
 import securUserSecundarioRoutes from "./routes/securUserSecundario.routes.js";
 import siniestroRoutes from "./routes/siniestroRoutes.js";
 import ciudadRoutes from './routes/ciudadRoutes.js';
+import clientesRoutes from './routes/clientes.js';
 
 const app = express();
 
@@ -37,5 +38,6 @@ app.use("/api/usuarios", userRoutes);
 app.use("/api", securUserSecundarioRoutes);
 app.use("/api/siniestros", siniestroRoutes);
 app.use('/api', ciudadRoutes);
+app.use('/api', clientesRoutes);
 
 export default app; 
