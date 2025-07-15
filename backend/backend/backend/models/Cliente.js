@@ -17,8 +17,7 @@ const ClienteSchema = new mongoose.Schema({
   reteIva: Number,
   reteFuente: Number,
   reteIca: Number,
-  // ...agrega aquí los campos que realmente tiene tu colección
-}, { collection: 'gsk3cAppcliente' }); // Exactamente igual que en Atlas
+}, { collection: 'gsk3cAppcliente' });
 
 const Cliente = mongoose.model('Cliente', ClienteSchema, 'gsk3cAppcliente'); // Forzar nombre de colección
 

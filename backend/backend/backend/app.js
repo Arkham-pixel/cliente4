@@ -10,6 +10,7 @@ import siniestroRoutes from "./routes/siniestroRoutes.js";
 import ciudadRoutes from './routes/ciudadRoutes.js';
 import clientesRoutes from './routes/clientes.js';
 
+
 const app = express();
 
 // 1️⃣ Middlewares globales
