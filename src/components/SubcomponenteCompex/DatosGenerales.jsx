@@ -10,6 +10,7 @@ export default function DatosGenerales({
   aseguradoraOptions,
   funcionarios,
   responsables,
+  hayResponsables,
   intermediarios,
   nuevoIntermediario,
   setNuevoIntermediario,
@@ -28,12 +29,16 @@ export default function DatosGenerales({
             onChange={handleChange}
             className="border px-2 py-2 w-full rounded"
             required
+            disabled={!hayResponsables}
           >
             <option value="">Seleccionar...</option>
             {(responsables || []).map((responsable, idx) => (
               <option key={idx} value={responsable}>{responsable}</option>
             ))}
           </select>
+          {!hayResponsables && (
+            <p className="text-sm text-red-500 mt-1">No hay responsables disponibles.</p>
+          )}
         </div>
 
         <div>

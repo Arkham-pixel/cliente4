@@ -469,7 +469,7 @@ const ReporteComplex = () => {
               onCancel={() => { setModalOpen(false); setEditSiniestro(null); }}
             />
           </div>
-        </div>
+      </div>
       )}
     </div>
   );

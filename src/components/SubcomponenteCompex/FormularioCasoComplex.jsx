@@ -143,6 +143,7 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
   const [funcionarios, setFuncionarios] = useState([]);
   const [aseguradoraOptionsRaw, setAseguradoraOptionsRaw] = useState([]);
   const [responsables, setResponsables] = useState([]);
+  const [estados, setEstados] = useState([]);
 
   // Fetch funcionarios cuando cambia la aseguradora
   useEffect(() => {
@@ -191,6 +192,14 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
       .then(res => res.json())
       .then(data => {
         setResponsables(data.map(r => r.nmbrRespnsble));
+      });
+  }, []);
+
+  useEffect(() => {
+    fetch('http://13.59.106.174:3000/api/estados')
+      .then(res => res.json())
+      .then(data => {
+        setEstados(data.map(e => ({ value: e.codiEstado, label: e.descEstado })));
       });
   }, []);
 
@@ -279,20 +288,22 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
       {/* Panel del tab activo */}
       <div className="mt-4">
         {tabActiva === 'datosGenerales' && (
-          <DatosGenerales
-            formData={formData}
-            handleChange={handleChange}
+      <DatosGenerales
+        formData={formData}
+        handleChange={handleChange}
             handleAseguradoraChange={handleAseguradoraChange}
             handleCiudadChange={handleCiudadChange}
             municipios={ciudades}
-            aseguradoraOptions={aseguradoraOptions}
-            funcionarios={funcionarios}
+        aseguradoraOptions={aseguradoraOptions}
+        funcionarios={funcionarios}
             responsables={responsables}
-            intermediarios={intermediarios}
-            nuevoIntermediario={nuevoIntermediario}
-            setNuevoIntermediario={setNuevoIntermediario}
-            agregarIntermediario={agregarIntermediario}
-          />
+        estados={estados}
+        hayResponsables={responsables && responsables.length > 0}
+        intermediarios={intermediarios}
+        nuevoIntermediario={nuevoIntermediario}
+        setNuevoIntermediario={setNuevoIntermediario}
+        agregarIntermediario={agregarIntermediario}
+      />
         )}
         {tabActiva === 'valores' && (
           <ValoresPrestaciones
