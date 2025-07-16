@@ -1,5 +1,6 @@
 //backend/backend/backend/models/Cliente.js
 import mongoose from 'mongoose';
+import secondaryConnection from '../db/secondaryConnection.js';
 
 const ClienteSchema = new mongoose.Schema({
   correo: String,
