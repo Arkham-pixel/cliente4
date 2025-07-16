@@ -65,7 +65,7 @@ export default function DatosGenerales({
             required
           >
             <option value="">Seleccione una aseguradora</option>
-            {aseguradoraOptions.map((aseg) => (
+            {(aseguradoraOptions || []).map((aseg) => (
               <option key={aseg} value={aseg}>{aseg}</option>
             ))}
           </select>
