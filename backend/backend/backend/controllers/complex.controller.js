@@ -1,5 +1,6 @@
 // backend/controllers/complex.controller.js
 import Complex from '../models/Complex.js';
+import Siniestro from '../models/CasoComplex.js';
 
 // Crear un nuevo caso
 export const crearComplex = async (req, res) => {
@@ -12,11 +13,16 @@ export const crearComplex = async (req, res) => {
   }
 };
 
-// Obtener todos los casos
+// Obtener todos los casos (unificados de ambas bases)
 export const obtenerTodos = async (req, res) => {
   try {
-    const casos = await Complex.find().sort({ creado_en: -1 });
-    res.json(casos);
+    const [casos, siniestros] = await Promise.all([
+      Complex.find().sort({ creado_en: -1 }),
+      Siniestro.find()
+    ]);
+    // Normalizar los campos de siniestros para que coincidan con Complex si es necesario
+    // Aquí puedes mapear los campos si quieres un formato uniforme
+    res.json([...casos, ...siniestros]);
   } catch (error) {
     console.error('Error al obtener los casos:', error);
     res.status(500).json({ error: 'Error al obtener los casos' });
