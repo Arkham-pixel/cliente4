@@ -9,6 +9,7 @@ export default function DatosGenerales({
   municipios,
   aseguradoraOptions,
   funcionarios,
+  responsables,
   intermediarios,
   nuevoIntermediario,
   setNuevoIntermediario,
@@ -29,27 +30,7 @@ export default function DatosGenerales({
             required
           >
             <option value="">Seleccionar...</option>
-            {[
-              "Alexander Escalante",
-              "Alfonso Marquez",
-              "Andrés Mejía",
-              "Armando Fontalvo",
-              "Arnaldo Andrés Tapia Gutierrez",
-              "Bernardo Sojo Guzmán",
-              "Byron Leon",
-              "Dario Mayo",
-              "Elkin Gabriel Tapia Gutierrez",
-              "Gabriel Moreno",
-              "Guillermo Segundo Mangonez Arcia",
-              "Iskharly José Tapia Gutierrez",
-              "Ladys Andrea Escalante Bossio",
-              "Luis Enrique Truyol",
-              "María Fernanda Sanín",
-              "Maria Garcias",
-              "Mario Alberto Pinilla de la Torre",
-              "Milagro Navarro",
-              "Orlando Quijano"
-            ].map((responsable, idx) => (
+            {(responsables || []).map((responsable, idx) => (
               <option key={idx} value={responsable}>{responsable}</option>
             ))}
           </select>

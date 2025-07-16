@@ -140,6 +140,38 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
   // Ejemplo de props para selects
   const [ciudades, setCiudades] = useState([]);
   const [aseguradoraOptions, setAseguradoraOptions] = useState([]);
+  const [funcionarios, setFuncionarios] = useState([]);
+  const [aseguradoraOptionsRaw, setAseguradoraOptionsRaw] = useState([]);
+  const [responsables, setResponsables] = useState([]);
+
+  // Fetch funcionarios cuando cambia la aseguradora
+  useEffect(() => {
+    if (formData.aseguradora) {
+      // Buscar el cliente seleccionado para obtener su código
+      const cliente = aseguradoraOptionsRaw.find(c => c.rzonSocial === formData.aseguradora);
+      if (cliente && cliente.codiAsgrdra) {
+        fetch(`http://13.59.106.174:3000/api/funcionarios-aseguradora?codiAsgrdra=${cliente.codiAsgrdra}`)
+          .then(res => res.json())
+          .then(data => {
+            setFuncionarios(data.map(f => f.nmbrContcto));
+          });
+      } else {
+        setFuncionarios([]);
+      }
+    } else {
+      setFuncionarios([]);
+    }
+  }, [formData.aseguradora, aseguradoraOptionsRaw]);
+
+  // Guardar los datos crudos de clientes para obtener el código
+  useEffect(() => {
+    fetch('http://13.59.106.174:3000/api/clientes')
+      .then(res => res.json())
+      .then(data => {
+        setAseguradoraOptionsRaw(data);
+        setAseguradoraOptions(data.map(c => c.rzonSocial));
+      });
+  }, []);
 
   useEffect(() => {
     fetch('http://13.59.106.174:3000/api/ciudades')
@@ -152,11 +184,13 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
         })));
         // console.log('Ciudades:', data);
       });
-    // Fetch aseguradoras/clientes
-    fetch('http://13.59.106.174:3000/api/clientes')
+  }, []);
+
+  useEffect(() => {
+    fetch('http://13.59.106.174:3000/api/responsables')
       .then(res => res.json())
       .then(data => {
-        setAseguradoraOptions(data.map(c => c.rzonSocial));
+        setResponsables(data.map(r => r.nmbrRespnsble));
       });
   }, []);
 
@@ -252,6 +286,8 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
             handleCiudadChange={handleCiudadChange}
             municipios={ciudades}
             aseguradoraOptions={aseguradoraOptions}
+            funcionarios={funcionarios}
+            responsables={responsables}
             intermediarios={intermediarios}
             nuevoIntermediario={nuevoIntermediario}
             setNuevoIntermediario={setNuevoIntermediario}
