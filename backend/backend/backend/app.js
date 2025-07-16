@@ -14,6 +14,7 @@ import clientesRoutes from './routes/clientes.js';
 import funcionarioAseguradoraRoutes from './routes/funcionarioAseguradora.routes.js';
 import responsableRoutes from './routes/responsable.routes.js';
 import estadoRoutes from './routes/estado.routes.js';
+import complexRoutes from './routes/complex.routes.js';
 
 const app = express();
 
@@ -47,4 +48,6 @@ app.use('/api/clientes', clientesRoutes);
 app.use('/api/funcionarios-aseguradora', funcionarioAseguradoraRoutes);
 app.use('/api/responsables', responsableRoutes);
 app.use('/api/estados', estadoRoutes);
+app.use('/api/complex', complexRoutes);
+
 export default app; 

@@ -33,6 +33,24 @@ function LoginRedirect() {
     : <Login />
 }
 
+// Función para guardar el caso complex
+const guardarCasoComplex = async (formData) => {
+  try {
+    const response = await fetch('http://13.59.106.174:3000/api/complex', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+    if (response.ok) {
+      alert('¡Guardado exitoso!');
+    } else {
+      alert('Error al guardar');
+    }
+  } catch (error) {
+    alert('Error de red');
+  }
+};
+
 export default function App() {
   return (
     <CasosRiesgoProvider>
@@ -61,7 +79,10 @@ export default function App() {
           }
         >
           <Route path="inicio" element={<Inicio />} />
-          <Route path="complex/formulario" element={<FormularioCasoComplex />} />
+          <Route
+            path="complex/formulario"
+            element={<FormularioCasoComplex onSave={guardarCasoComplex} />}
+          />
           <Route path="formularioinspeccion" element={<FormularioInspeccion />} />
           <Route path="complex/agregar" element={<AgregarCaso />} />
           <Route path="complex/excel" element={<ReporteComplex />} />

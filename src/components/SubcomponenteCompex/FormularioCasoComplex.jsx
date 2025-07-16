@@ -41,7 +41,10 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
   // Handler de cambios
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'estado' ? String(value) : value
+    }));
   };
 
   // Handler para selects especiales (ejemplo: ciudad)
@@ -199,7 +202,13 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
     fetch('http://13.59.106.174:3000/api/estados')
       .then(res => res.json())
       .then(data => {
-        setEstados(data.map(e => ({ value: e.codiEstado, label: e.descEstado })));
+        const mapped = (data || [])
+          .filter(e => typeof e.codiEstdo !== 'undefined' && e.codiEstdo !== null && typeof e.descEstdo !== 'undefined' && e.descEstdo !== null)
+          .map(e => ({ value: String(e.codiEstdo), label: e.descEstdo }));
+        setEstados(mapped);
+      })
+      .catch(err => {
+        setEstados([]);
       });
   }, []);
 
@@ -209,7 +218,7 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
   };
 
   return (
-    <div>
+    <div className="max-w-5xl mx-auto bg-white shadow-lg rounded-lg p-8 space-y-8">
       {/* Menú de tabs */}
       <div className="flex border-b mb-4 bg-white rounded-t-lg shadow-sm">
         <button
@@ -284,26 +293,42 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
         </button>
         {/* Agrega aquí más tabs según tus secciones */}
       </div>
-
+      {/* Botones de acción SIEMPRE visibles, alineados a la derecha */}
+      <div className="flex justify-end gap-2 mb-4">
+        <button
+          type="button"
+          className="px-4 py-2 bg-gray-300 rounded"
+          onClick={onCancel ? onCancel : () => alert('Cancelar (sin acción definida)')}
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          className="px-4 py-2 bg-blue-600 text-white rounded"
+          onClick={onSave ? () => onSave(formData) : () => alert('Guardar (sin acción definida)')}
+        >
+          Guardar
+        </button>
+      </div>
       {/* Panel del tab activo */}
       <div className="mt-4">
         {tabActiva === 'datosGenerales' && (
-      <DatosGenerales
-        formData={formData}
-        handleChange={handleChange}
+          <DatosGenerales
+            formData={formData}
+            handleChange={handleChange}
             handleAseguradoraChange={handleAseguradoraChange}
             handleCiudadChange={handleCiudadChange}
             municipios={ciudades}
-        aseguradoraOptions={aseguradoraOptions}
-        funcionarios={funcionarios}
+            aseguradoraOptions={aseguradoraOptions}
+            funcionarios={funcionarios}
             responsables={responsables}
-        estados={estados}
-        hayResponsables={responsables && responsables.length > 0}
-        intermediarios={intermediarios}
-        nuevoIntermediario={nuevoIntermediario}
-        setNuevoIntermediario={setNuevoIntermediario}
-        agregarIntermediario={agregarIntermediario}
-      />
+            estados={estados}
+            hayResponsables={responsables && responsables.length > 0}
+            intermediarios={intermediarios}
+            nuevoIntermediario={nuevoIntermediario}
+            setNuevoIntermediario={setNuevoIntermediario}
+            agregarIntermediario={agregarIntermediario}
+          />
         )}
         {tabActiva === 'valores' && (
           <ValoresPrestaciones
@@ -371,16 +396,6 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
         )}
         {/* Agrega aquí el renderizado de los otros subcomponentes */}
       </div>
-      {(onSave || onCancel) && (
-        <div className="flex justify-end gap-2 mt-6">
-          {onCancel && (
-            <button type="button" className="px-4 py-2 bg-gray-300 rounded" onClick={onCancel}>Cancelar</button>
-          )}
-          {onSave && (
-            <button type="button" className="px-4 py-2 bg-blue-600 text-white rounded" onClick={handleSubmit}>Guardar</button>
-          )}
-        </div>
-      )}
     </div>
   );
 }
