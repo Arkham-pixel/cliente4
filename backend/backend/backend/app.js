@@ -41,4 +41,5 @@ app.use("/api", securUserSecundarioRoutes);
 app.use("/api/siniestros", siniestroRoutes);
 app.use('/api', ciudadRoutes);
 app.use('/api/clientes', clientesRoutes);
+app.use('/api/responsable', responsableRoutes);
 export default app; 

@@ -21,6 +21,7 @@ const ClienteSchema = new mongoose.Schema({
   reteIca: Number,
 }, { collection: 'gsk3cAppcliente' });
 
-const Cliente = mongoose.model('Cliente', ClienteSchema, 'gsk3cAppcliente'); // Forzar nombre de colección
+//const Cliente = mongoose.model('Cliente', ClienteSchema, 'gsk3cAppcliente');m // Forzar nombre de colección
+const Cliente = secondaryConnection.model('Cliente', ClienteSchema);
 
 export default Cliente;
