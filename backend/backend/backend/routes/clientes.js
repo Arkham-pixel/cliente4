@@ -1,4 +1,4 @@
-// routes/clientes.js
+//backend/backend/backend/routes/clientes.js
 import express from 'express';
 import Cliente from '../models/Cliente.js';
 import mongoose from 'mongoose';
@@ -9,7 +9,7 @@ console.log('RUTA CLIENTES CARGADA');
 // GET /api/clientes
 router.get('/', async (req, res) => {
   try {
-    const clientes = await Cliente.find();
+    const docs = await mongoose.connection.db.collection('gsk3cAppcliente').find({}).toArray();
     res.json(clientes);
   } catch (err) {
     res.status(500).json({ error: 'Error al obtener clientes' });

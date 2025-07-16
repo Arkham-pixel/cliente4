@@ -58,6 +58,23 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
     }));
   };
 
+  // Estado para intermediarios
+  const [intermediarios, setIntermediarios] = useState([
+    "Intermediario A",
+    "Intermediario B",
+    "Intermediario C",
+  ]);
+  const [nuevoIntermediario, setNuevoIntermediario] = useState("");
+  const agregarIntermediario = () => {
+    if (
+      nuevoIntermediario.trim() !== "" &&
+      !intermediarios.includes(nuevoIntermediario)
+    ) {
+      setIntermediarios([...intermediarios, nuevoIntermediario]);
+      setNuevoIntermediario("");
+    }
+  };
+
   // Dropzones para Trazabilidad
   const dropzonePropsContacto = useDropzone({
     onDrop: (acceptedFiles) => {
@@ -142,12 +159,6 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
         setAseguradoraOptions(data.map(c => c.rzonSocial));
       });
   }, []);
-
-  const funcionarios = []; // tu array real de funcionarios
-  const intermediarios = []; // tu array real de intermediarios
-  const nuevoIntermediario = '';
-  const setNuevoIntermediario = () => {};
-  const agregarIntermediario = () => {};
 
   const handleSubmit = (e) => {
     e && e.preventDefault();
@@ -241,7 +252,6 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
             handleCiudadChange={handleCiudadChange}
             municipios={ciudades}
             aseguradoraOptions={aseguradoraOptions}
-            funcionarios={funcionarios}
             intermediarios={intermediarios}
             nuevoIntermediario={nuevoIntermediario}
             setNuevoIntermediario={setNuevoIntermediario}
