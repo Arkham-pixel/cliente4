@@ -9,9 +9,9 @@ console.log('RUTA CLIENTES CARGADA');
 // GET /api/clientes
 router.get('/', async (req, res) => {
   try {
-    const docs = await mongoose.connection.db.collection('gsk3cAppcliente').find({}).toArray();
-    console.log('Clientes encontrados:', docs);
-    res.json(docs);
+    const clientes = await Cliente.find({});
+    console.log('Clientes encontrados:', clientes);
+    res.json(clientes);
   } catch (err) {
     res.status(500).json({ error: 'Error al obtener clientes' });
   }
