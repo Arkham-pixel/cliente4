@@ -566,11 +566,20 @@ export const obtenerSiniestrosEnriquecidos = async (req, res) => {
           nombreFuncionario = funcionario.nmbrContcto;
         }
       }
-      // Estado
-      const codEstado = s.codiEstdo != null ? String(s.codiEstdo) : '';
+      // Estado (busca en todos los posibles nombres)
+      const codEstado = s.codiEstdo != null ? String(s.codiEstdo)
+                      : s.codi_estado != null ? String(s.codi_estado)
+                      : s.codiEstado != null ? String(s.codiEstado)
+                      : s.codi_estdo != null ? String(s.codi_estdo)
+                      : s.estado != null ? String(s.estado)
+                      : '';
       const nombreEstado = mapaEstados[codEstado] || 'Sin asignar';
       console.log({
         codiEstdo: s.codiEstdo,
+        codi_estado: s.codi_estado,
+        codiEstado: s.codiEstado,
+        codi_estdo: s.codi_estdo,
+        estado: s.estado,
         codEstado,
         nombreEstado,
         mapaEstados
