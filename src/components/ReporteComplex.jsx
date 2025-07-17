@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getSiniestrosEnriquecidos, deleteSiniestro, updateSiniestro } from '../services/siniestrosApi';
+import { getEstados } from '../services/estadosService';
 import FormularioCasoComplex from './SubcomponenteCompex/FormularioCasoComplex';
 import * as XLSX from 'xlsx';
 // Elimina la importación de antd
@@ -17,8 +18,7 @@ const todosLosCampos = [
   { clave: 'fchaInspccion', label: 'Fecha de Inspeccion' },
   { clave: 'fchaUltDoc', label: 'Fecha Ultimo Documento' },
   { clave: 'fchaInfoFnal', label: 'Fecha del Informme Final' },
-  { clave: 'codiEstdo', label: 'Estado del Siniestro' },
-  { clave: 'nombreEstado', label: 'Nombre del Estado' },
+  { clave: 'codi_estdo', label: 'Estado del Siniestro' },
   { clave: 'nombreFuncionario', label: 'Funcionario Aseguradora' },
   { clave: 'diasUltRev', label: 'Dias Ultima Revisión' },
   { clave: 'obseSegmnto', label: 'Observaciones de Seguimiento' },
@@ -56,7 +56,7 @@ const columnasIniciales = [
   'fchaInspccion',
   'fchaUltDoc',
   'fchaInfoFnal',
-  'nombreEstado',
+  'codi_estdo',
   'nombreFuncionario',
   'diasUltRev',
   'obseSegmnto'
@@ -167,11 +167,25 @@ const ReporteComplex = () => {
   const [editSiniestro, setEditSiniestro] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [estados, setEstados] = useState([]);
 
   useEffect(() => {
     obtenerSiniestros();
+    getEstados().then(setEstados).catch(() => setEstados([]));
     // eslint-disable-next-line
   }, []);
+
+  // Logs de depuración para ver los datos reales
+  useEffect(() => {
+    if (siniestros.length > 0) {
+      console.log('Ejemplo de siniestro:', siniestros[0]);
+    }
+  }, [siniestros]);
+  useEffect(() => {
+    if (estados.length > 0) {
+      console.log('Estados:', estados);
+    }
+  }, [estados]);
 
   const obtenerSiniestros = async () => {
     setLoading(true);
@@ -218,6 +232,8 @@ const ReporteComplex = () => {
   };
 
   const siniestrosFiltrados = siniestros.filter(s => {
+    // Si el campo no existe en el objeto, no filtra nada (muestra todo)
+    if (!(campoBusqueda in s)) return true;
     const valor = s[campoBusqueda]?.toString().toLowerCase() || '';
     return valor.includes(terminoBusqueda.toLowerCase());
   });
@@ -254,6 +270,18 @@ const ReporteComplex = () => {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Siniestros');
     XLSX.writeFile(workbook, 'reporte_siniestros.xlsx');
+  };
+
+  // Función para obtener el nombre del estado, priorizando codiEstdo
+  const getNombreEstado = (siniestro) => {
+    // Busca el valor del código de estado en el objeto
+    const valor = siniestro.codiEstdo ?? siniestro.codi_estdo ?? siniestro.codiEstado;
+    // Busca el estado en la lista de estados
+    const estado = estados.find(e =>
+      String(e.codiEstado) === String(valor)
+    );
+    // Si no lo encuentra, muestra el valor numérico
+    return estado ? estado.descEstado : valor ?? '';
   };
 
   return (
@@ -372,14 +400,13 @@ const ReporteComplex = () => {
                 <tr key={siniestro._id || index} className="border-b hover:bg-gray-50">
                   {camposVisibles.map(({ clave }) => (
                     <td key={clave} className="p-2 whitespace-nowrap">
-                      {clave === 'nombreResponsable' 
-                        ? (siniestro[clave] || 'Sin asignar')
-                        : clave === 'nombreFuncionario'
-                        ? (siniestro[clave] || 'Sin asignar')
-                        : clave === 'nombreEstado' // Mostrar nombreEstado en vez del código
-                        ? (siniestro['nombreEstado'] || siniestro[clave] || '')
-                        : (siniestro[clave] || '')
-                      }
+                      {clave.toLowerCase().includes('estado')
+                        ? (() => {
+                            const valor = siniestro[clave];
+                            const nombre = getNombreEstado(siniestro);
+                            return nombre && nombre !== valor ? `${valor} (${nombre})` : valor;
+                          })()
+                        : siniestro[clave] || ''}
                     </td>
                   ))}
                   <td className="p-2 whitespace-nowrap space-x-2">
