@@ -2,6 +2,7 @@ import Siniestro from '../models/CasoComplex.js';
 import Responsable from '../models/Responsable.js';
 import FuncionarioAseguradora from '../models/FuncionarioAseguradora.js';
 import Cliente from '../models/Cliente.js';
+import Estado from '../controllers/estadoController.js';
 
 export const crearSiniestro = async (req, res) => {
   try {
@@ -517,6 +518,15 @@ export const obtenerSiniestrosEnriquecidos = async (req, res) => {
     const responsables = await Responsable.find();
     const funcionarios = await FuncionarioAseguradora.find();
     const clientes = await Cliente.find();
+    // Obtener todos los estados
+    const mongoose = (await import('mongoose')).default;
+    const secondaryConnection = (await import('../db/secondaryConnection.js')).default;
+    const EstadoSchema = new mongoose.Schema({
+      codiEstado: Number,
+      descEstado: String
+    }, { collection: 'gsk3cAppestados' });
+    const EstadoModel = secondaryConnection.model('Estado', EstadoSchema);
+    const estados = await EstadoModel.find();
 
     // Crear mapa normalizado para responsables
     const mapaResponsables = {};
@@ -534,7 +544,15 @@ export const obtenerSiniestrosEnriquecidos = async (req, res) => {
       }
     });
 
-    // Enriquecer los siniestros con el nombre del responsable y funcionario
+    // Crear mapa de código de estado a descripción
+    const mapaEstados = {};
+    estados.forEach(e => {
+      if (e.codiEstado != null && e.descEstado) {
+        mapaEstados[String(e.codiEstado)] = e.descEstado;
+      }
+    });
+
+    // Enriquecer los siniestros con el nombre del responsable, funcionario y estado
     const siniestrosEnriquecidos = siniestros.map(s => {
       // Responsable
       const codResp = (s.codiRespnsble || '').trim().toUpperCase();
@@ -542,7 +560,6 @@ export const obtenerSiniestrosEnriquecidos = async (req, res) => {
       // Lógica aseguradora: puede ser nombre o código
       let codAseg = (s.codi_asgrdra || '').trim();
       if (!codAseg && s.aseguradora) {
-        // Si no hay código pero sí nombre, buscar el código
         codAseg = mapaNombreAseguradora[(s.aseguradora || '').trim()] || '';
       }
       // Funcionario de aseguradora
@@ -555,10 +572,14 @@ export const obtenerSiniestrosEnriquecidos = async (req, res) => {
           nombreFuncionario = funcionario.nmbrContcto;
         }
       }
+      // Estado
+      const codEstado = s.codi_estdo != null ? String(s.codi_estdo) : '';
+      const nombreEstado = mapaEstados[codEstado] || 'Sin asignar';
       return {
         ...s.toObject(),
         nombreResponsable,
         nombreFuncionario,
+        nombreEstado,
         codiAseguradora: codAseg // para mostrar el código en el frontend si se requiere
       };
     });
