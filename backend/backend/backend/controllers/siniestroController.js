@@ -537,8 +537,8 @@ export const obtenerSiniestrosEnriquecidos = async (req, res) => {
       // Responsable
       const codResp = (s.codiRespnsble || '').trim().toUpperCase();
       const nombreResponsable = mapaResponsables[codResp] || 'Sin asignar';
-      // Funcionario de aseguradora
-      const codFunc = (s.funcAsegurdora || '').trim().toUpperCase();
+      // Funcionario de aseguradora (usar func_asgrdra del modelo)
+      const codFunc = (s.func_asgrdra || '').trim().toUpperCase();
       const nombreFuncionario = mapaFuncionarios[codFunc] || 'Sin asignar';
       return {
         ...s.toObject(),
