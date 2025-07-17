@@ -577,7 +577,8 @@ export const obtenerSiniestrosEnriquecidos = async (req, res) => {
                       : s.codi_estdo != null ? String(s.codi_estdo)
                       : s.estado != null ? String(s.estado)
                       : '';
-      const nombreEstado = mapaEstados[codEstado] || 'Sin asignar';
+      // Solo mostrar el nombre descriptivo, nunca el código
+      const nombreEstado = mapaEstados[codEstado] ? mapaEstados[codEstado] : 'Sin asignar';
       console.log({
         codiEstdo: s.codiEstdo,
         codi_estado: s.codi_estado,

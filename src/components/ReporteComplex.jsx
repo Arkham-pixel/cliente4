@@ -18,6 +18,7 @@ const todosLosCampos = [
   { clave: 'fchaUltDoc', label: 'Fecha Ultimo Documento' },
   { clave: 'fchaInfoFnal', label: 'Fecha del Informme Final' },
   { clave: 'codiEstdo', label: 'Estado del Siniestro' },
+  { clave: 'nombreEstado', label: 'Nombre del Estado' },
   { clave: 'nombreFuncionario', label: 'Funcionario Aseguradora' },
   { clave: 'diasUltRev', label: 'Dias Ultima Revisión' },
   { clave: 'obseSegmnto', label: 'Observaciones de Seguimiento' },
@@ -55,7 +56,7 @@ const columnasIniciales = [
   'fchaInspccion',
   'fchaUltDoc',
   'fchaInfoFnal',
-  'codiEstdo',
+  'nombreEstado',
   'nombreFuncionario',
   'diasUltRev',
   'obseSegmnto'
@@ -375,6 +376,8 @@ const ReporteComplex = () => {
                         ? (siniestro[clave] || 'Sin asignar')
                         : clave === 'nombreFuncionario'
                         ? (siniestro[clave] || 'Sin asignar')
+                        : clave === 'nombreEstado' // Mostrar nombreEstado en vez del código
+                        ? (siniestro['nombreEstado'] || siniestro[clave] || '')
                         : (siniestro[clave] || '')
                       }
                     </td>
