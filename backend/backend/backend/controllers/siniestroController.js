@@ -2,7 +2,14 @@ import Siniestro from '../models/CasoComplex.js';
 import Responsable from '../models/Responsable.js';
 import FuncionarioAseguradora from '../models/FuncionarioAseguradora.js';
 import Cliente from '../models/Cliente.js';
-import Estado from '../controllers/estadoController.js';
+import mongoose from 'mongoose';
+import secondaryConnection from '../db/secondaryConnection.js';
+
+const EstadoSchema = new mongoose.Schema({
+  codiEstado: Number,
+  descEstado: String
+}, { collection: 'gsk3cAppestados' });
+const Estado = secondaryConnection.model('Estado', EstadoSchema);
 
 export const crearSiniestro = async (req, res) => {
   try {
@@ -519,14 +526,7 @@ export const obtenerSiniestrosEnriquecidos = async (req, res) => {
     const funcionarios = await FuncionarioAseguradora.find();
     const clientes = await Cliente.find();
     // Obtener todos los estados
-    const mongoose = (await import('mongoose')).default;
-    const secondaryConnection = (await import('../db/secondaryConnection.js')).default;
-    const EstadoSchema = new mongoose.Schema({
-      codiEstado: Number,
-      descEstado: String
-    }, { collection: 'gsk3cAppestados' });
-    const EstadoModel = secondaryConnection.model('Estado', EstadoSchema);
-    const estados = await EstadoModel.find();
+    const estados = await Estado.find();
 
     // Crear mapa normalizado para responsables
     const mapaResponsables = {};
