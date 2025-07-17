@@ -533,13 +533,23 @@ export const obtenerSiniestrosEnriquecidos = async (req, res) => {
       let nombreFuncionario = 'Sin asignar';
       const codAseg = (s.codi_asgrdra || '').trim();
       const idFunc = (s.func_asgrdra != null) ? String(s.func_asgrdra).trim() : '';
+      let funcionariosDeAseg = [];
+      let funcionario = null;
       if (codAseg && idFunc) {
-        const funcionariosDeAseg = funcionarios.filter(f => (f.codiAsgrdra || '').trim() === codAseg);
-        const funcionario = funcionariosDeAseg.find(f => String(f.id).trim() === idFunc);
+        funcionariosDeAseg = funcionarios.filter(f => (f.codiAsgrdra || '').trim() === codAseg);
+        funcionario = funcionariosDeAseg.find(f => String(f.id).trim() === idFunc);
         if (funcionario) {
           nombreFuncionario = funcionario.nmbrContcto;
         }
       }
+      // Log de depuración
+      console.log({
+        nmro_sinstro: s.nmro_sinstro,
+        codAseg,
+        idFunc,
+        funcionariosDeAseg: funcionariosDeAseg.map(f => ({ id: f.id, codiAsgrdra: f.codiAsgrdra, nmbrContcto: f.nmbrContcto })),
+        funcionarioEncontrado: funcionario ? funcionario.nmbrContcto : null
+      });
       return {
         ...s.toObject(),
         nombreResponsable,
