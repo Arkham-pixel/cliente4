@@ -524,24 +524,24 @@ export const obtenerSiniestrosEnriquecidos = async (req, res) => {
       }
     });
 
-    // Crear mapa normalizado para funcionarios
+    // Crear mapa normalizado para funcionarios (clave: codiAsgrdra, valor: nmbrContcto)
     const mapaFuncionarios = {};
     funcionarios.forEach(f => {
-      if (f.codiAsgrdra) {
+      if (f.codiAsgrdra && f.nmbrContcto) {
         mapaFuncionarios[f.codiAsgrdra.trim().toUpperCase()] = f.nmbrContcto;
       }
     });
 
     // Enriquecer los siniestros con el nombre del responsable y funcionario
     const siniestrosEnriquecidos = siniestros.map(s => {
+      // Responsable
       const codResp = (s.codiRespnsble || '').trim().toUpperCase();
       const nombreResponsable = mapaResponsables[codResp] || 'Sin asignar';
+      // Funcionario de aseguradora
       const codFunc = (s.funcAsegurdora || '').trim().toUpperCase();
       const nombreFuncionario = mapaFuncionarios[codFunc] || 'Sin asignar';
-      // Log para depuración
-      console.log(`Siniestro: ${s.nmro_sinstro} | codiRespnsble: "${s.codiRespnsble}" | Nombre Resp: "${nombreResponsable}" | funcAsegurdora: "${s.funcAsegurdora}" | Nombre Func: "${nombreFuncionario}"`);
       return {
-        ...s._doc,
+        ...s.toObject(),
         nombreResponsable,
         nombreFuncionario
       };
@@ -549,6 +549,7 @@ export const obtenerSiniestrosEnriquecidos = async (req, res) => {
 
     res.json(siniestrosEnriquecidos);
   } catch (error) {
+    console.error('Error en obtenerSiniestrosEnriquecidos:', error);
     res.status(500).json({ error: 'Error al obtener siniestros enriquecidos' });
   }
 };
