@@ -524,22 +524,22 @@ export const obtenerSiniestrosEnriquecidos = async (req, res) => {
       }
     });
 
-    // Crear mapa de funcionarios por ID (clave: id como string, valor: nmbrContcto)
-    const mapaFuncionarios = {};
-    funcionarios.forEach(f => {
-      if (f.id != null && f.nmbrContcto) {
-        mapaFuncionarios[String(f.id).trim()] = f.nmbrContcto;
-      }
-    });
-
     // Enriquecer los siniestros con el nombre del responsable y funcionario
     const siniestrosEnriquecidos = siniestros.map(s => {
       // Responsable
       const codResp = (s.codiRespnsble || '').trim().toUpperCase();
       const nombreResponsable = mapaResponsables[codResp] || 'Sin asignar';
-      // Funcionario de aseguradora (usar func_asgrdra como ID)
-      const idFuncionario = (s.func_asgrdra != null) ? String(s.func_asgrdra).trim() : '';
-      const nombreFuncionario = mapaFuncionarios[idFuncionario] || 'Sin asignar';
+      // Funcionario de aseguradora (lógica doble)
+      let nombreFuncionario = 'Sin asignar';
+      const codAseg = (s.codi_asgrdra || '').trim();
+      const idFunc = (s.func_asgrdra != null) ? String(s.func_asgrdra).trim() : '';
+      if (codAseg && idFunc) {
+        const funcionariosDeAseg = funcionarios.filter(f => (f.codiAsgrdra || '').trim() === codAseg);
+        const funcionario = funcionariosDeAseg.find(f => String(f.id).trim() === idFunc);
+        if (funcionario) {
+          nombreFuncionario = funcionario.nmbrContcto;
+        }
+      }
       return {
         ...s.toObject(),
         nombreResponsable,
