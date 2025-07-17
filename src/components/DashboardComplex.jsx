@@ -13,7 +13,10 @@ const DashboardComplex = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getSiniestrosEnriquecidos().then(setSiniestros);
+    setLoading(true);
+    getSiniestrosEnriquecidos()
+      .then(data => setSiniestros(data))
+      .finally(() => setLoading(false));
   }, []);
 
   if (loading) {

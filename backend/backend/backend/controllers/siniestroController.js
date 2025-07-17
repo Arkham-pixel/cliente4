@@ -511,8 +511,8 @@ export const probarResponsables = async (req, res) => {
 // Nuevo endpoint: siniestros enriquecidos solo con nombre del responsable
 export const obtenerSiniestrosEnriquecidos = async (req, res) => {
   try {
-    // Limitar resultados para pruebas (puedes quitar el .limit(100) después)
-    const siniestros = await Siniestro.find().limit(100);
+    // Obtener todos los siniestros sin límite
+    const siniestros = await Siniestro.find();
     const responsables = await Responsable.find();
 
     // Crear mapa normalizado
