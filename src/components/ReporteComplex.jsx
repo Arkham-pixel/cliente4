@@ -272,17 +272,21 @@ const ReporteComplex = () => {
     XLSX.writeFile(workbook, 'reporte_siniestros.xlsx');
   };
 
-  // Función para obtener el nombre del estado, priorizando codiEstdo
+  // Función para obtener el nombre del estado, priorizando codiEstdo y forzando comparación por string
   const getNombreEstado = (siniestro) => {
-    // Busca el valor del código de estado en el objeto
-    const valor = siniestro.codiEstdo ?? siniestro.codi_estdo ?? siniestro.codiEstado;
-    // Busca el estado en la lista de estados
-    const estado = estados.find(e =>
-      String(e.codiEstado) === String(valor)
-    );
-    // Si no lo encuentra, muestra el valor numérico
-    return estado ? estado.descEstado : valor ?? '';
+    const valor = siniestro.codiEstdo;
+    const valorStr = valor !== undefined && valor !== null ? String(valor) : '';
+    const estado = estados.find(e => String(e.codiEstado) === valorStr);
+    if (!estado) {
+      console.warn('No se encontró estado para:', valorStr, 'en', estados.map(e => String(e.codiEstado)));
+    }
+    return estado ? estado.descEstado : valorStr;
   };
+
+  // Mostrar mensaje de carga si los estados no están listos
+  if (estados.length === 0) {
+    return <div className="p-4 text-center text-gray-500">Cargando estados...</div>;
+  }
 
   return (
     <div className="p-4">
@@ -383,15 +387,17 @@ const ReporteComplex = () => {
                   {label} {orden.campo === clave ? (orden.asc ? '↑' : '↓') : ''}
                 </th>
               ))}
+              <th className="p-2 border-b text-left">codiEstdo (número)</th>
+              <th className="p-2 border-b text-left">Estado (nombre)</th>
               <th className="p-2 border-b text-left">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={camposVisibles.length + 1} className="text-center py-6 text-gray-500">Cargando...</td></tr>
+              <tr><td colSpan={camposVisibles.length + 3} className="text-center py-6 text-gray-500">Cargando...</td></tr>
             ) : siniestrosPaginados.length === 0 ? (
               <tr>
-                <td colSpan={camposVisibles.length + 1} className="text-center py-6 text-gray-500">
+                <td colSpan={camposVisibles.length + 3} className="text-center py-6 text-gray-500">
                   No hay registros para mostrar
                 </td>
               </tr>
@@ -402,13 +408,16 @@ const ReporteComplex = () => {
                     <td key={clave} className="p-2 whitespace-nowrap">
                       {clave.toLowerCase().includes('estado')
                         ? (() => {
-                            const valor = siniestro[clave];
+                            const valorCelda = siniestro[clave];
+                            const valorCodiEstdo = siniestro.codiEstdo;
                             const nombre = getNombreEstado(siniestro);
-                            return nombre && nombre !== valor ? `${valor} (${nombre})` : valor;
+                            return `clave: ${clave} | valor: ${valorCelda} | codiEstdo: ${valorCodiEstdo} | nombre: ${nombre}`;
                           })()
                         : siniestro[clave] || ''}
                     </td>
                   ))}
+                  <td className="p-2 whitespace-nowrap">{siniestro.codiEstdo ?? ''}</td>
+                  <td className="p-2 whitespace-nowrap">{getNombreEstado(siniestro)}</td>
                   <td className="p-2 whitespace-nowrap space-x-2">
                     <button
                       className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs"
