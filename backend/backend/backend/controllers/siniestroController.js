@@ -541,10 +541,14 @@ export const obtenerSiniestrosEnriquecidos = async (req, res) => {
     // Crear mapa de código de estado a descripción
     const mapaEstados = {};
     estados.forEach(e => {
-      if (e.codiEstado != null && e.descEstado) {
-        mapaEstados[String(e.codiEstado)] = e.descEstado;
+      // Considera variantes del campo de código de estado
+      const codigo = e.codiEstado ?? e.codiEstdo ?? e.codi_estado ?? e.codi_estdo ?? e.estado;
+      if (codigo != null && e.descEstado) {
+        mapaEstados[String(codigo)] = e.descEstado;
       }
     });
+    console.log('Estados traídos de la BD:', estados);
+    console.log('Mapa de estados generado:', mapaEstados);
 
     // Enriquecer los siniestros con el nombre del responsable, funcionario y estado
     const siniestrosEnriquecidos = siniestros.map(s => {

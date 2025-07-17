@@ -313,22 +313,22 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
       {/* Panel del tab activo */}
       <div className="mt-4">
         {tabActiva === 'datosGenerales' && (
-          <DatosGenerales
-            formData={formData}
-            handleChange={handleChange}
+      <DatosGenerales
+        formData={formData}
+        handleChange={handleChange}
             handleAseguradoraChange={handleAseguradoraChange}
             handleCiudadChange={handleCiudadChange}
             municipios={ciudades}
-            aseguradoraOptions={aseguradoraOptions}
-            funcionarios={funcionarios}
+        aseguradoraOptions={aseguradoraOptions}
+        funcionarios={funcionarios}
             responsables={responsables}
             estados={estados}
             hayResponsables={responsables && responsables.length > 0}
-            intermediarios={intermediarios}
-            nuevoIntermediario={nuevoIntermediario}
-            setNuevoIntermediario={setNuevoIntermediario}
-            agregarIntermediario={agregarIntermediario}
-          />
+        intermediarios={intermediarios}
+        nuevoIntermediario={nuevoIntermediario}
+        setNuevoIntermediario={setNuevoIntermediario}
+        agregarIntermediario={agregarIntermediario}
+      />
         )}
         {tabActiva === 'valores' && (
           <ValoresPrestaciones
