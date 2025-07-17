@@ -507,3 +507,24 @@ export const probarResponsables = async (req, res) => {
     res.status(500).json({ mensaje: 'Error al probar responsables', error: error.message });
   }
 };
+
+// Nuevo endpoint: siniestros enriquecidos solo con nombre del responsable
+export const obtenerSiniestrosEnriquecidos = async (req, res) => {
+  try {
+    const siniestros = await Siniestro.find();
+    const responsables = await Responsable.find();
+    // Crear mapa para acceso rápido
+    const mapaResponsables = {};
+    responsables.forEach(r => {
+      mapaResponsables[r.codiRespnsble] = r.nmbrRespnsble;
+    });
+    // Enriquecer los siniestros con el nombre del responsable
+    const siniestrosEnriquecidos = siniestros.map(s => ({
+      ...s._doc,
+      nombreResponsable: mapaResponsables[s.codiRespnsble] || 'Sin asignar'
+    }));
+    res.json(siniestrosEnriquecidos);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener siniestros enriquecidos' });
+  }
+};
