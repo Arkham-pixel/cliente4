@@ -1,6 +1,6 @@
 // src/components/DashboardComplex.jsx
 import React, { useEffect, useState } from 'react';
-import { getSiniestrosConResponsables, getSiniestrosBasicos } from '../services/siniestrosApi';
+import { getSiniestrosEnriquecidos } from '../services/siniestrosApi';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, ResponsiveContainer, Legend } from 'recharts';
 import Loader from "./Loader";
 import { 
@@ -13,55 +13,7 @@ const DashboardComplex = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchSiniestros = async () => {
-      try {
-        // Usar el endpoint con JOIN corregido
-        const data = await getSiniestrosConResponsables({ page: 1, limit: 1000 });
-        console.log('🔍 Dashboard - Datos con JOIN:', data);
-        
-        if (data && data.siniestros && data.siniestros.length > 0) {
-          // Verificar que los datos tengan los campos necesarios
-          const siniestrosConNombres = data.siniestros.map(siniestro => ({
-            ...siniestro,
-            nombreResponsable: siniestro.nombreResponsable || 'Sin asignar',
-            nombreFuncionario: siniestro.nombreFuncionario || 'Sin asignar'
-          }));
-          setSiniestros(siniestrosConNombres);
-          console.log('🔍 Dashboard - Siniestros con nombres:', siniestrosConNombres.slice(0, 2));
-        } else {
-          console.log('🔍 Dashboard - No hay datos con JOIN, usando fallback');
-          // Fallback a datos básicos si el JOIN falla
-          const dataBasicos = await getSiniestrosBasicos({ page: 1, limit: 1000 });
-          console.log('🔍 Dashboard - Fallback a datos básicos:', dataBasicos);
-          
-          const siniestrosConCampos = dataBasicos.siniestros.map(siniestro => ({
-            ...siniestro,
-            nombreResponsable: 'Sin asignar',
-            nombreFuncionario: 'Sin asignar'
-          }));
-          
-          setSiniestros(siniestrosConCampos);
-        }
-      } catch (error) {
-        console.error('Error al cargar siniestros:', error);
-        // En caso de error, intentar con datos básicos
-        try {
-          const dataBasicos = await getSiniestrosBasicos({ page: 1, limit: 1000 });
-          const siniestrosConCampos = dataBasicos.siniestros.map(siniestro => ({
-            ...siniestro,
-            nombreResponsable: 'Sin asignar',
-            nombreFuncionario: 'Sin asignar'
-          }));
-          setSiniestros(siniestrosConCampos);
-        } catch (fallbackError) {
-          console.error('Error en fallback:', fallbackError);
-          setSiniestros([]);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSiniestros();
+    getSiniestrosEnriquecidos().then(setSiniestros);
   }, []);
 
   if (loading) {

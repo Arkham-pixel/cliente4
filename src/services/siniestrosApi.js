@@ -16,6 +16,12 @@ export const getSiniestrosConResponsables = async (params = {}) => {
   return res.json();
 };
 
+export const getSiniestrosEnriquecidos = async () => {
+  const res = await fetch(`${API_URL}/enriquecidos`);
+  if (!res.ok) throw new Error("Error al obtener siniestros enriquecidos");
+  return res.json();
+};
+
 export const getSiniestrosBasicos = async (params = {}) => {
   // Agregar timestamp para evitar cache
   const paramsWithTimestamp = { ...params, _t: Date.now() };

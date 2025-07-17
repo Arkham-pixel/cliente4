@@ -511,18 +511,30 @@ export const probarResponsables = async (req, res) => {
 // Nuevo endpoint: siniestros enriquecidos solo con nombre del responsable
 export const obtenerSiniestrosEnriquecidos = async (req, res) => {
   try {
-    const siniestros = await Siniestro.find();
+    // Limitar resultados para pruebas (puedes quitar el .limit(100) después)
+    const siniestros = await Siniestro.find().limit(100);
     const responsables = await Responsable.find();
-    // Crear mapa para acceso rápido
+
+    // Crear mapa normalizado
     const mapaResponsables = {};
     responsables.forEach(r => {
-      mapaResponsables[r.codiRespnsble] = r.nmbrRespnsble;
+      if (r.codiRespnsble) {
+        mapaResponsables[r.codiRespnsble.trim().toUpperCase()] = r.nmbrRespnsble;
+      }
     });
+
     // Enriquecer los siniestros con el nombre del responsable
-    const siniestrosEnriquecidos = siniestros.map(s => ({
-      ...s._doc,
-      nombreResponsable: mapaResponsables[s.codiRespnsble] || 'Sin asignar'
-    }));
+    const siniestrosEnriquecidos = siniestros.map(s => {
+      const cod = (s.codiRespnsble || '').trim().toUpperCase();
+      const nombreResponsable = mapaResponsables[cod] || 'Sin asignar';
+      // Log para depuración
+      console.log(`Siniestro: ${s.nmro_sinstro} | codiRespnsble: "${s.codiRespnsble}" | Nombre: "${nombreResponsable}"`);
+      return {
+        ...s._doc,
+        nombreResponsable
+      };
+    });
+
     res.json(siniestrosEnriquecidos);
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener siniestros enriquecidos' });
