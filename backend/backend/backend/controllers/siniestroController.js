@@ -1,6 +1,7 @@
 import Siniestro from '../models/CasoComplex.js';
 import Responsable from '../models/Responsable.js';
 import FuncionarioAseguradora from '../models/FuncionarioAseguradora.js';
+import Cliente from '../models/Cliente.js';
 
 export const crearSiniestro = async (req, res) => {
   try {
@@ -515,6 +516,7 @@ export const obtenerSiniestrosEnriquecidos = async (req, res) => {
     const siniestros = await Siniestro.find();
     const responsables = await Responsable.find();
     const funcionarios = await FuncionarioAseguradora.find();
+    const clientes = await Cliente.find();
 
     // Crear mapa normalizado para responsables
     const mapaResponsables = {};
@@ -524,36 +526,40 @@ export const obtenerSiniestrosEnriquecidos = async (req, res) => {
       }
     });
 
+    // Crear mapa de nombre a código de aseguradora
+    const mapaNombreAseguradora = {};
+    clientes.forEach(c => {
+      if (c.rzonSocial && c.codiAsgrdra) {
+        mapaNombreAseguradora[c.rzonSocial.trim()] = c.codiAsgrdra.trim();
+      }
+    });
+
     // Enriquecer los siniestros con el nombre del responsable y funcionario
     const siniestrosEnriquecidos = siniestros.map(s => {
       // Responsable
       const codResp = (s.codiRespnsble || '').trim().toUpperCase();
       const nombreResponsable = mapaResponsables[codResp] || 'Sin asignar';
-      // Funcionario de aseguradora (lógica doble)
-      let nombreFuncionario = 'Sin asignar';
-      const codAseg = (s.codi_asgrdra || '').trim();
+      // Lógica aseguradora: puede ser nombre o código
+      let codAseg = (s.codi_asgrdra || '').trim();
+      if (!codAseg && s.aseguradora) {
+        // Si no hay código pero sí nombre, buscar el código
+        codAseg = mapaNombreAseguradora[(s.aseguradora || '').trim()] || '';
+      }
+      // Funcionario de aseguradora
       const idFunc = (s.func_asgrdra != null) ? String(s.func_asgrdra).trim() : '';
-      let funcionariosDeAseg = [];
-      let funcionario = null;
+      let nombreFuncionario = 'Sin asignar';
       if (codAseg && idFunc) {
-        funcionariosDeAseg = funcionarios.filter(f => (f.codiAsgrdra || '').trim() === codAseg);
-        funcionario = funcionariosDeAseg.find(f => String(f.id).trim() === idFunc);
+        const funcionariosDeAseg = funcionarios.filter(f => (f.codiAsgrdra || '').trim() === codAseg);
+        const funcionario = funcionariosDeAseg.find(f => String(f.id).trim() === idFunc);
         if (funcionario) {
           nombreFuncionario = funcionario.nmbrContcto;
         }
       }
-      // Log de depuración
-      console.log({
-        nmro_sinstro: s.nmro_sinstro,
-        codAseg,
-        idFunc,
-        funcionariosDeAseg: funcionariosDeAseg.map(f => ({ id: f.id, codiAsgrdra: f.codiAsgrdra, nmbrContcto: f.nmbrContcto })),
-        funcionarioEncontrado: funcionario ? funcionario.nmbrContcto : null
-      });
       return {
         ...s.toObject(),
         nombreResponsable,
-        nombreFuncionario
+        nombreFuncionario,
+        codiAseguradora: codAseg // para mostrar el código en el frontend si se requiere
       };
     });
 
