@@ -570,7 +570,7 @@ export const obtenerSiniestrosEnriquecidos = async (req, res) => {
       const codEstado = s.codiEstdo != null ? String(s.codiEstdo) : '';
       const nombreEstado = mapaEstados[codEstado] || 'Sin asignar';
       console.log({
-        codi_estdo: s.codi_estdo,
+        codiEstdo: s.codiEstdo,
         codEstado,
         nombreEstado,
         mapaEstados
