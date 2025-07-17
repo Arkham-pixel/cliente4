@@ -514,8 +514,9 @@ export const obtenerSiniestrosEnriquecidos = async (req, res) => {
     // Obtener todos los siniestros sin límite
     const siniestros = await Siniestro.find();
     const responsables = await Responsable.find();
+    const funcionarios = await FuncionarioAseguradora.find();
 
-    // Crear mapa normalizado
+    // Crear mapa normalizado para responsables
     const mapaResponsables = {};
     responsables.forEach(r => {
       if (r.codiRespnsble) {
@@ -523,15 +524,26 @@ export const obtenerSiniestrosEnriquecidos = async (req, res) => {
       }
     });
 
-    // Enriquecer los siniestros con el nombre del responsable
+    // Crear mapa normalizado para funcionarios
+    const mapaFuncionarios = {};
+    funcionarios.forEach(f => {
+      if (f.codiAsgrdra) {
+        mapaFuncionarios[f.codiAsgrdra.trim().toUpperCase()] = f.nmbrContcto;
+      }
+    });
+
+    // Enriquecer los siniestros con el nombre del responsable y funcionario
     const siniestrosEnriquecidos = siniestros.map(s => {
-      const cod = (s.codiRespnsble || '').trim().toUpperCase();
-      const nombreResponsable = mapaResponsables[cod] || 'Sin asignar';
+      const codResp = (s.codiRespnsble || '').trim().toUpperCase();
+      const nombreResponsable = mapaResponsables[codResp] || 'Sin asignar';
+      const codFunc = (s.funcAsegurdora || '').trim().toUpperCase();
+      const nombreFuncionario = mapaFuncionarios[codFunc] || 'Sin asignar';
       // Log para depuración
-      console.log(`Siniestro: ${s.nmro_sinstro} | codiRespnsble: "${s.codiRespnsble}" | Nombre: "${nombreResponsable}"`);
+      console.log(`Siniestro: ${s.nmro_sinstro} | codiRespnsble: "${s.codiRespnsble}" | Nombre Resp: "${nombreResponsable}" | funcAsegurdora: "${s.funcAsegurdora}" | Nombre Func: "${nombreFuncionario}"`);
       return {
         ...s._doc,
-        nombreResponsable
+        nombreResponsable,
+        nombreFuncionario
       };
     });
 
