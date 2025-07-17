@@ -567,7 +567,7 @@ export const obtenerSiniestrosEnriquecidos = async (req, res) => {
         }
       }
       // Estado
-      const codEstado = s.codi_estdo != null ? String(s.codi_estdo) : '';
+      const codEstado = s.codiEstdo != null ? String(s.codiEstdo) : '';
       const nombreEstado = mapaEstados[codEstado] || 'Sin asignar';
       console.log({
         codi_estdo: s.codi_estdo,
