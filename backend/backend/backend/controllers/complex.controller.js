@@ -89,8 +89,13 @@ export const obtenerTodos = async (req, res) => {
       porcentaje_reteiva: s.porc_reteiva || '',
       porcentaje_retefuente: s.porc_retefuente || '',
       porcentaje_reteica: s.porc_reteica || '',
+      origen: 'nueva',
     }));
-    res.json([...casos, ...siniestrosNormalizados]);
+    const casosNormalizados = casos.map(c => ({
+      ...c.toObject(),
+      origen: 'historico',
+    }));
+    res.json([...casosNormalizados, ...siniestrosNormalizados]);
   } catch (error) {
     console.error('Error al obtener los casos:', error);
     res.status(500).json({ error: 'Error al obtener los casos' });

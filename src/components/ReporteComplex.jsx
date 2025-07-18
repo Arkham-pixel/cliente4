@@ -285,13 +285,8 @@ const ReporteComplex = () => {
     setLoading(false);
   };
 
-  const siniestrosFiltrados = siniestros.filter(s => {
-    // Si el campo no existe en el objeto, no filtra nada (muestra todo)
-    if (!(campoBusqueda in s)) return true;
-    const valor = s[campoBusqueda]?.toString().toLowerCase() || '';
-    return valor.includes(terminoBusqueda.toLowerCase());
-  });
-
+  // Solo mostrar en la tabla los registros de la base nueva
+  const siniestrosFiltrados = siniestros.filter(s => s.origen === 'nueva');
   const siniestrosOrdenados = [...siniestrosFiltrados].sort((a, b) => {
     const campo = orden.campo;
     if (!campo) return 0;
@@ -299,22 +294,15 @@ const ReporteComplex = () => {
     const valorB = b[campo]?.toString().toLowerCase() || '';
     return orden.asc ? valorA.localeCompare(valorB) : valorB.localeCompare(valorA);
   });
-
   const totalPaginas = Math.ceil(siniestrosOrdenados.length / elementosPorPagina);
   const siniestrosPaginados = siniestrosOrdenados.slice(
     (paginaActual - 1) * elementosPorPagina,
     paginaActual * elementosPorPagina
   );
 
-  const cambiarOrden = campo => {
-    setOrden(prev => ({
-      campo,
-      asc: prev.campo === campo ? !prev.asc : true,
-    }));
-  };
-
+  // Exportar todos los registros (ambos orígenes)
   const exportarExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(siniestrosOrdenados.map(s => {
+    const worksheet = XLSX.utils.json_to_sheet(siniestros.map(s => {
       const fila = {};
       camposVisibles.forEach(({ clave, label }) => {
         fila[label] = s[clave] || '';
