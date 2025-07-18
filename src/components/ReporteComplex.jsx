@@ -73,6 +73,15 @@ const todosLosCampos = [
   { clave: 'anxoAutorizacion', label: 'Anexo Autorización' },
   { clave: 'fchaUltRevi', label: 'Fecha Última Revisión' },
   { clave: 'obseComprmsi', label: 'Obs. Compromiso' },
+  { clave: 'amparo_afectado', label: 'Amparo Afectado' },
+  { clave: 'fecha_fin_quito_indemnizacion', label: 'Fecha Fin Qto Indemnización' },
+  { clave: 'anexo_honorarios', label: 'Anexo Honorarios' },
+  { clave: 'anexo_honorarios_definitivo', label: 'Anexo Honorarios Definitivo' },
+  { clave: 'anexo_autorizacion', label: 'Anexo Autorización' },
+  { clave: 'porcentaje_iva', label: '% IVA' },
+  { clave: 'porcentaje_reteiva', label: '% ReteIVA' },
+  { clave: 'porcentaje_retefuente', label: '% ReteFuente' },
+  { clave: 'porcentaje_reteica', label: '% ReteICA' },
   // ...otros campos del formulario si es necesario
 ];
 
@@ -173,6 +182,15 @@ const mapSiniestroToForm = (siniestro) => ({
   anxoAutorizacion: siniestro.anxoAutorizacion || '',
   fchaUltRevi: toDateInputValue(siniestro.fchaUltRevi),
   obseComprmsi: siniestro.obseComprmsi || '',
+  amparo_afectado: siniestro.amparo_afectado || '',
+  fecha_fin_quito_indemnizacion: toDateInputValue(siniestro.fecha_fin_quito_indemnizacion),
+  anexo_honorarios: siniestro.anexo_honorarios || '',
+  anexo_honorarios_definitivo: siniestro.anexo_honorarios_definitivo || '',
+  anexo_autorizacion: siniestro.anexo_autorizacion || '',
+  porcentaje_iva: siniestro.porcentaje_iva || '',
+  porcentaje_reteiva: siniestro.porcentaje_reteiva || '',
+  porcentaje_retefuente: siniestro.porcentaje_retefuente || '',
+  porcentaje_reteica: siniestro.porcentaje_reteica || '',
 });
 
 const ReporteComplex = () => {

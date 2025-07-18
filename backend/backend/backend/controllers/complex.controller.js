@@ -79,6 +79,16 @@ export const obtenerTodos = async (req, res) => {
       numero_poliza: s.nmro_polza || '',
       fecha_asignacion: s.fcha_asgncion || '',
       creado_en: s.createdAt || '',
+      // Campos adicionales agregados
+      amparo_afectado: s.ampr_afctdo || '',
+      fecha_fin_quito_indemnizacion: s.fcha_finqto_indem || '',
+      anexo_honorarios: s.anxo_honorarios || '',
+      anexo_honorarios_definitivo: s.anxo_honorariosdefinit || '',
+      anexo_autorizacion: s.anxo_autorizacion || '',
+      porcentaje_iva: s.porc_iva || '',
+      porcentaje_reteiva: s.porc_reteiva || '',
+      porcentaje_retefuente: s.porc_retefuente || '',
+      porcentaje_reteica: s.porc_reteica || '',
     }));
     res.json([...casos, ...siniestrosNormalizados]);
   } catch (error) {
