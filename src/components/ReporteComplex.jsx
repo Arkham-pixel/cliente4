@@ -3,86 +3,45 @@ import { getSiniestrosEnriquecidos, deleteSiniestro, updateSiniestro } from '../
 import { getEstados } from '../services/estadosService';
 import FormularioCasoComplex from './SubcomponenteCompex/FormularioCasoComplex';
 import * as XLSX from 'xlsx';
+import { obtenerCasosComplex } from '../services/complexService';
 // Elimina la importación de antd
 
 const todosLosCampos = [
   { clave: 'nmroAjste', label: 'No. Ajuste' },
   { clave: 'nmroSinstro', label: 'No. de Siniestro' },
-  { clave: 'nombIntermediario', label: 'Intermediario' },
+  { clave: 'intermediario', label: 'Intermediario' },
   { clave: 'codWorkflow', label: 'Cod Workflow' },
   { clave: 'nmroPolza', label: 'No. de Poliza' },
-  { clave: 'codiRespnsble', label: 'Código Responsable' },
   { clave: 'nombreResponsable', label: 'Responsable' },
   { clave: 'codiAsgrdra', label: 'Aseguradora' },
-  { clave: 'funcAsgrdra', label: 'Código Funcionario Aseguradora' },
-  { clave: 'nombreFuncionario', label: 'Funcionario Aseguradora' },
   { clave: 'asgrBenfcro', label: 'Asegurado o Beneficiario' },
   { clave: 'fchaAsgncion', label: 'Fecha Asignacion' },
   { clave: 'fchaInspccion', label: 'Fecha de Inspeccion' },
   { clave: 'fchaUltDoc', label: 'Fecha Ultimo Documento' },
   { clave: 'fchaInfoFnal', label: 'Fecha del Informme Final' },
-  { clave: 'amprAfctdo', label: 'Amparo Afectado' },
-  { clave: 'tipoDucumento', label: 'Tipo de Documento' },
-  { clave: 'numDocumento', label: 'Número de Documento' },
-  { clave: 'tipoPoliza', label: 'Tipo de Póliza' },
-  { clave: 'descSinstro', label: 'Descripción Siniestro' },
-  { clave: 'ciudadSiniestro', label: 'Ciudad Siniestro' },
-  { clave: 'fchaSinstro', label: 'Fecha Siniestro' },
-  { clave: 'fchaContIni', label: 'Fecha Cont. Inicial' },
-  { clave: 'obseContIni', label: 'Obs. Cont. Inicial' },
-  { clave: 'anexContIni', label: 'Anexo Cont. Inicial' },
-  { clave: 'obseInspccion', label: 'Obs. Inspección' },
-  { clave: 'fchaSoliDocu', label: 'Fecha Solicitud Documento' },
-  { clave: 'anexActaInspccion', label: 'Anexo Acta Inspección' },
-  { clave: 'anexSolDoc', label: 'Anexo Solicitud Documento' },
-  { clave: 'obseSoliDocu', label: 'Obs. Solicitud Documento' },
-  { clave: 'fchaInfoPrelm', label: 'Fecha Informe Preliminar' },
-  { clave: 'obseInfoPrelm', label: 'Obs. Informe Preliminar' },
-  { clave: 'anxoInfPrelim', label: 'Anexo Informe Preliminar' },
-  { clave: 'obseInfoFnal', label: 'Obs. Informe Final' },
-  { clave: 'anxoInfoFnal', label: 'Anexo Informe Final' },
-  { clave: 'fchaRepoActi', label: 'Fecha Reporte Actividad' },
-  { clave: 'obseRepoActi', label: 'Obs. Reporte Actividad' },
-  { clave: 'anxoRepoActi', label: 'Anexo Reporte Actividad' },
-  { clave: 'fchaUltSegui', label: 'Fecha Último Seguimiento' },
-  { clave: 'fchaActSegui', label: 'Fecha Actualización Seguimiento' },
-  { clave: 'diasTranscrrdo', label: 'Días Transcurridos' },
+  { clave: 'codi_estdo', label: 'Estado del Siniestro' },
+  { clave: 'nombreFuncionario', label: 'Funcionario Aseguradora' },
+  { clave: 'diasUltRev', label: 'Dias Ultima Revisión' },
   { clave: 'obseSegmnto', label: 'Observaciones de Seguimiento' },
-  { clave: 'vlorResrva', label: 'Valor Reserva' },
-  { clave: 'vlorReclmo', label: 'Valor Reclamo' },
-  { clave: 'montoIndmzar', label: 'Monto a Indemnizar' },
-  { clave: 'fchaFinqtoIndem', label: 'Fecha Fin Qto Indemnización' },
-  { clave: 'nmroFactra', label: 'Número Factura' },
-  { clave: 'vlorServcios', label: 'Valor Servicios' },
-  { clave: 'vlorGastos', label: 'Valor Gastos' },
-  { clave: 'total', label: 'Total' },
-  { clave: 'totalGeneral', label: 'Total General' },
-  { clave: 'totalPagado', label: 'Total Pagado' },
-  { clave: 'iva', label: 'IVA' },
-  { clave: 'reteiva', label: 'ReteIVA' },
-  { clave: 'retefuente', label: 'ReteFuente' },
-  { clave: 'reteica', label: 'ReteICA' },
-  { clave: 'porcIva', label: '% IVA' },
-  { clave: 'porcReteiva', label: '% ReteIVA' },
-  { clave: 'porcRetefuente', label: '% ReteFuente' },
-  { clave: 'porcReteica', label: '% ReteICA' },
-  { clave: 'fchaFactra', label: 'Fecha Factura' },
-  { clave: 'anxoFactra', label: 'Anexo Factura' },
-  { clave: 'anxoHonorarios', label: 'Anexo Honorarios' },
-  { clave: 'anxoHonorariosdefinit', label: 'Anexo Honorarios Definitivos' },
-  { clave: 'anxoAutorizacion', label: 'Anexo Autorización' },
-  { clave: 'fchaUltRevi', label: 'Fecha Última Revisión' },
-  { clave: 'obseComprmsi', label: 'Obs. Compromiso' },
-  { clave: 'amparo_afectado', label: 'Amparo Afectado' },
-  { clave: 'fecha_fin_quito_indemnizacion', label: 'Fecha Fin Qto Indemnización' },
-  { clave: 'anexo_honorarios', label: 'Anexo Honorarios' },
-  { clave: 'anexo_honorarios_definitivo', label: 'Anexo Honorarios Definitivo' },
-  { clave: 'anexo_autorizacion', label: 'Anexo Autorización' },
-  { clave: 'porcentaje_iva', label: '% IVA' },
-  { clave: 'porcentaje_reteiva', label: '% ReteIVA' },
-  { clave: 'porcentaje_retefuente', label: '% ReteFuente' },
-  { clave: 'porcentaje_reteica', label: '% ReteICA' },
-  // ...otros campos del formulario si es necesario
+  // Campos adicionales de FormularioCasoComplex, con claves únicas
+  { clave: 'responsable_form', label: 'Responsable (formulario)' },
+  { clave: 'aseguradora_form', label: 'Aseguradora (formulario)' },
+  { clave: 'funcionario_aseguradora_form', label: 'Funcionario Aseguradora (formulario)' },
+  { clave: 'numero_siniestro_form', label: 'Número de Siniestro (formulario)' },
+  { clave: 'codigo_workflow_form', label: 'Código Workflow (formulario)' },
+  { clave: 'intermediario_form', label: 'Intermediario (formulario)' },
+  { clave: 'numero_poliza_form', label: 'Número de Póliza (formulario)' },
+  { clave: 'asegurado_form', label: 'Asegurado (formulario)' },
+  { clave: 'tipo_documento_form', label: 'Tipo de Documento (formulario)' },
+  { clave: 'numero_documento_form', label: 'Número de Documento (formulario)' },
+  { clave: 'fecha_asignacion_form', label: 'Fecha Asignación (formulario)' },
+  { clave: 'fecha_siniestro_form', label: 'Fecha Siniestro (formulario)' },
+  { clave: 'ciudad_siniestro_form', label: 'Ciudad Siniestro (formulario)' },
+  { clave: 'tipo_poliza_form', label: 'Tipo de Póliza (formulario)' },
+  { clave: 'causa_siniestro_form', label: 'Causa Siniestro (formulario)' },
+  { clave: 'estado_form', label: 'Estado (formulario)' },
+  { clave: 'descripcion_siniestro_form', label: 'Descripción Siniestro (formulario)' },
+  // Puedes agregar aquí más campos del formulario según los vayas necesitando, siempre con clave única
 ];
 
 const columnasIniciales = [
@@ -115,82 +74,71 @@ function toDateInputValue(dateString) {
 
 // Función para mapear TODOS los campos del siniestro al formulario
 const mapSiniestroToForm = (siniestro) => ({
-  nmroAjste: siniestro.nmroAjste || '',
-  nmroSinstro: siniestro.nmroSinstro || '',
-  nombIntermediario: siniestro.nombIntermediario || '',
-  codWorkflow: siniestro.codWorkflow || '',
-  nmroPolza: siniestro.nmroPolza || '',
-  codiRespnsble: siniestro.codiRespnsble || '',
-  nombreResponsable: siniestro.nombreResponsable || '',
-  codiAsgrdra: siniestro.codiAsgrdra || '',
-  funcAsgrdra: siniestro.funcAsgrdra || '',
-  nombreFuncionario: siniestro.nombreFuncionario || '',
-  asgrBenfcro: siniestro.asgrBenfcro || '',
-  fchaAsgncion: toDateInputValue(siniestro.fchaAsgncion),
-  fchaInspccion: toDateInputValue(siniestro.fchaInspccion),
-  fchaUltDoc: toDateInputValue(siniestro.fchaUltDoc),
-  fchaInfoFnal: toDateInputValue(siniestro.fchaInfoFnal),
-  amprAfctdo: siniestro.amprAfctdo || '',
-  tipoDucumento: siniestro.tipoDucumento || '',
-  numDocumento: siniestro.numDocumento || '',
-  tipoPoliza: siniestro.tipoPoliza || '',
-  descSinstro: siniestro.descSinstro || '',
-  ciudadSiniestro: siniestro.ciudadSiniestro || '',
-  fchaSinstro: toDateInputValue(siniestro.fchaSinstro),
-  fchaContIni: toDateInputValue(siniestro.fchaContIni),
-  obseContIni: siniestro.obseContIni || '',
-  anexContIni: siniestro.anexContIni || '',
-  obseInspccion: siniestro.obseInspccion || '',
-  fchaSoliDocu: toDateInputValue(siniestro.fchaSoliDocu),
-  anexActaInspccion: siniestro.anexActaInspccion || '',
-  anexSolDoc: siniestro.anexSolDoc || '',
-  obseSoliDocu: siniestro.obseSoliDocu || '',
-  fchaInfoPrelm: toDateInputValue(siniestro.fchaInfoPrelm),
-  obseInfoPrelm: siniestro.obseInfoPrelm || '',
-  anxoInfPrelim: siniestro.anxoInfPrelim || '',
-  obseInfoFnal: siniestro.obseInfoFnal || '',
-  anxoInfoFnal: siniestro.anxoInfoFnal || '',
-  fchaRepoActi: toDateInputValue(siniestro.fchaRepoActi),
-  obseRepoActi: siniestro.obseRepoActi || '',
-  anxoRepoActi: siniestro.anxoRepoActi || '',
-  fchaUltSegui: toDateInputValue(siniestro.fchaUltSegui),
-  fchaActSegui: toDateInputValue(siniestro.fchaActSegui),
-  diasTranscrrdo: siniestro.diasTranscrrdo || '',
-  obseSegmnto: siniestro.obseSegmnto || '',
-  vlorResrva: siniestro.vlorResrva || '',
-  vlorReclmo: siniestro.vlorReclmo || '',
-  montoIndmzar: siniestro.montoIndmzar || '',
-  fchaFinqtoIndem: toDateInputValue(siniestro.fchaFinqtoIndem),
-  nmroFactra: siniestro.nmroFactra || '',
-  vlorServcios: siniestro.vlorServcios || '',
-  vlorGastos: siniestro.vlorGastos || '',
+  responsable: siniestro.nombreResponsable || '',
+  aseguradora: siniestro.codiAsgrdra || '',
+  funcionario_aseguradora: siniestro.nombreFuncionario || '',
+  numero_siniestro: siniestro.nmroSinstro || '',
+  codigo_workflow: siniestro.codWorkflow || '',
+  intermediario: siniestro.intermediario || '',
+  numero_poliza: siniestro.nmroPolza || '',
+  asegurado: siniestro.asgrBenfcro || '',
+  tipo_documento: siniestro.tipoDucumento || '',
+  numero_documento: siniestro.numDocumento || '',
+  fecha_asignacion: toDateInputValue(siniestro.fchaAsgncion),
+  fecha_siniestro: toDateInputValue(siniestro.fchaSinstro),
+  ciudad_siniestro: siniestro.ciudadSiniestro || '',
+  tipo_poliza: siniestro.tipoPoliza || '',
+  causa_siniestro: siniestro.causa_siniestro || '',
+  estado: siniestro.codiEstdo || '',
+  descripcion_siniestro: siniestro.descSinstro || '',
+  fcha_inspccion: toDateInputValue(siniestro.fchaInspccion),
+  fcha_soli_docu: toDateInputValue(siniestro.fcha_soli_docu),
+  fcha_info_prelm: toDateInputValue(siniestro.fcha_info_prelm),
+  fcha_info_fnal: toDateInputValue(siniestro.fcha_info_fnal),
+  fcha_repo_acti: toDateInputValue(siniestro.fcha_repo_acti),
+  fcha_ult_segui: toDateInputValue(siniestro.fcha_ult_segui),
+  fcha_act_segui: toDateInputValue(siniestro.fcha_act_segui),
+  fcha_finqto_indem: toDateInputValue(siniestro.fcha_finqto_indem),
+  fcha_factra: toDateInputValue(siniestro.fcha_factra),
+  fcha_ult_revi: toDateInputValue(siniestro.fcha_ult_revi),
+  // Números y montos
+  dias_transcrrdo: siniestro.dias_transcrrdo || '',
+  vlor_resrva: siniestro.vlor_resrva || '',
+  vlor_reclmo: siniestro.vlor_reclmo || '',
+  monto_indmzar: siniestro.monto_indmzar || '',
+  vlor_servcios: siniestro.vlor_servcios || '',
+  vlor_gastos: siniestro.vlor_gastos || '',
   total: siniestro.total || '',
-  totalGeneral: siniestro.totalGeneral || '',
-  totalPagado: siniestro.totalPagado || '',
+  total_general: siniestro.total_general || '',
+  total_pagado: siniestro.total_pagado || '',
   iva: siniestro.iva || '',
   reteiva: siniestro.reteiva || '',
   retefuente: siniestro.retefuente || '',
   reteica: siniestro.reteica || '',
-  porcIva: siniestro.porcIva || '',
-  porcReteiva: siniestro.porcReteiva || '',
-  porcRetefuente: siniestro.porcRetefuente || '',
-  porcReteica: siniestro.porcReteica || '',
-  fchaFactra: toDateInputValue(siniestro.fchaFactra),
-  anxoFactra: siniestro.anxoFactra || '',
-  anxoHonorarios: siniestro.anxoHonorarios || '',
-  anxoHonorariosdefinit: siniestro.anxoHonorariosdefinit || '',
-  anxoAutorizacion: siniestro.anxoAutorizacion || '',
-  fchaUltRevi: toDateInputValue(siniestro.fchaUltRevi),
-  obseComprmsi: siniestro.obseComprmsi || '',
-  amparo_afectado: siniestro.amparo_afectado || '',
-  fecha_fin_quito_indemnizacion: toDateInputValue(siniestro.fecha_fin_quito_indemnizacion),
-  anexo_honorarios: siniestro.anexo_honorarios || '',
-  anexo_honorarios_definitivo: siniestro.anexo_honorarios_definitivo || '',
-  anexo_autorizacion: siniestro.anexo_autorizacion || '',
-  porcentaje_iva: siniestro.porcentaje_iva || '',
-  porcentaje_reteiva: siniestro.porcentaje_reteiva || '',
-  porcentaje_retefuente: siniestro.porcentaje_retefuente || '',
-  porcentaje_reteica: siniestro.porcentaje_reteica || '',
+  porc_iva: siniestro.porc_iva || '',
+  porc_reteiva: siniestro.porc_reteiva || '',
+  porc_retefuente: siniestro.porc_retefuente || '',
+  porc_reteica: siniestro.porc_reteica || '',
+  // Adjuntos y observaciones
+  obse_cont_ini: siniestro.obse_cont_ini || '',
+  anex_cont_ini: siniestro.anex_cont_ini || '',
+  obse_inspccion: siniestro.obse_inspccion || '',
+  anex_acta_inspccion: siniestro.anex_acta_inspccion || '',
+  anex_sol_doc: siniestro.anex_sol_doc || '',
+  obse_soli_docu: siniestro.obse_soli_docu || '',
+  anxo_inf_prelim: siniestro.anxo_inf_prelim || '',
+  obse_info_prelm: siniestro.obse_info_prelm || '',
+  anxo_info_fnal: siniestro.anxo_info_fnal || '',
+  obse_info_fnal: siniestro.obse_info_fnal || '',
+  anxo_repo_acti: siniestro.anxo_repo_acti || '',
+  obse_repo_acti: siniestro.obse_repo_acti || '',
+  anxo_factra: siniestro.anxo_factra || '',
+  anxo_honorarios: siniestro.anxo_honorarios || '',
+  anxo_honorariosdefinit: siniestro.anxo_honorariosdefinit || '',
+  anxo_autorizacion: siniestro.anxo_autorizacion || '',
+  obse_comprmsi: siniestro.obse_comprmsi || '',
+  obse_segmnto: siniestro.obse_segmnto || '',
+  // ...agrega aquí cualquier otro campo que uses en el formulario
 });
 
 const ReporteComplex = () => {
@@ -244,7 +192,7 @@ const ReporteComplex = () => {
   const obtenerSiniestros = async () => {
     setLoading(true);
     try {
-      const data = await getSiniestrosEnriquecidos();
+      const data = await obtenerCasosComplex();
       setSiniestros(data);
     } catch (error) {
       console.error('Error al cargar siniestros:', error);
@@ -285,8 +233,9 @@ const ReporteComplex = () => {
     setLoading(false);
   };
 
-  // Solo mostrar en la tabla los registros de la base nueva
-  const siniestrosFiltrados = siniestros.filter(s => s.origen === 'nueva');
+  // Solo mostrar en la tabla los registros de la base historica
+  const siniestrosFiltrados = siniestros.filter(s => s.origen === 'historico');
+  console.log('siniestrosFiltrados:', siniestrosFiltrados);
   const siniestrosOrdenados = [...siniestrosFiltrados].sort((a, b) => {
     const campo = orden.campo;
     if (!campo) return 0;
@@ -318,11 +267,11 @@ const ReporteComplex = () => {
   const getNombreEstado = (siniestro) => {
     const valor = siniestro.codiEstdo;
     const valorStr = valor !== undefined && valor !== null ? String(valor) : '';
-    const estado = estados.find(e => String(e.codiEstdo) === valorStr);
+    const estado = estados.find(e => String(e.codiEstado) === valorStr);
     if (!estado) {
-      console.warn('No se encontró estado para:', valorStr, 'en', estados.map(e => String(e.codiEstdo)));
+      console.warn('No se encontró estado para:', valorStr, 'en', estados.map(e => String(e.codiEstado)));
     }
-    return estado ? estado.descEstdo : valorStr;
+    return estado ? estado.descEstado : valorStr;
   };
 
   // Mostrar mensaje de carga si los estados no están listos
@@ -421,26 +370,25 @@ const ReporteComplex = () => {
           <thead className="bg-gray-100 sticky top-0 z-10">
             <tr>
               {camposVisibles.map(({ clave, label }) => (
-                clave === 'codiEstdo' || clave.toLowerCase().includes('estado') ? null : (
-                  <th
-                    key={clave}
-                    onClick={() => cambiarOrden(clave)}
-                    className="p-2 border-b cursor-pointer whitespace-nowrap hover:bg-gray-200 text-left"
-                  >
-                    {label} {orden.campo === clave ? (orden.asc ? '↑' : '↓') : ''}
-                  </th>
-                )
+                <th
+                  key={clave}
+                  onClick={() => cambiarOrden(clave)}
+                  className="p-2 border-b cursor-pointer whitespace-nowrap hover:bg-gray-200 text-left"
+                >
+                  {label} {orden.campo === clave ? (orden.asc ? '↑' : '↓') : ''}
+                </th>
               ))}
-              <th className="p-2 border-b text-left">Estado</th>
+              <th className="p-2 border-b text-left">codiEstdo (número)</th>
+              <th className="p-2 border-b text-left">Estado (nombre)</th>
               <th className="p-2 border-b text-left">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={camposVisibles.length + 2} className="text-center py-6 text-gray-500">Cargando...</td></tr>
+              <tr><td colSpan={camposVisibles.length + 3} className="text-center py-6 text-gray-500">Cargando...</td></tr>
             ) : siniestrosPaginados.length === 0 ? (
               <tr>
-                <td colSpan={camposVisibles.length + 2} className="text-center py-6 text-gray-500">
+                <td colSpan={camposVisibles.length + 3} className="text-center py-6 text-gray-500">
                   No hay registros para mostrar
                 </td>
               </tr>
@@ -448,12 +396,18 @@ const ReporteComplex = () => {
               siniestrosPaginados.map((siniestro, index) => (
                 <tr key={siniestro._id || index} className="border-b hover:bg-gray-50">
                   {camposVisibles.map(({ clave }) => (
-                    clave === 'codiEstdo' || clave.toLowerCase().includes('estado') ? null : (
-                      <td key={clave} className="p-2 whitespace-nowrap">
-                        {siniestro[clave] || ''}
-                      </td>
-                    )
+                    <td key={clave} className="p-2 whitespace-nowrap">
+                      {clave.toLowerCase().includes('estado')
+                        ? (() => {
+                            const valorCelda = siniestro[clave];
+                            const valorCodiEstdo = siniestro.codiEstdo;
+                            const nombre = getNombreEstado(siniestro);
+                            return `clave: ${clave} | valor: ${valorCelda} | codiEstdo: ${valorCodiEstdo} | nombre: ${nombre}`;
+                          })()
+                        : siniestro[clave] || ''}
+                    </td>
                   ))}
+                  <td className="p-2 whitespace-nowrap">{siniestro.codiEstdo ?? ''}</td>
                   <td className="p-2 whitespace-nowrap">{getNombreEstado(siniestro)}</td>
                   <td className="p-2 whitespace-nowrap space-x-2">
                     <button
