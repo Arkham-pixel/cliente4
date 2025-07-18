@@ -12,24 +12,30 @@ import { useDropzone } from 'react-dropzone';
 export default function FormularioCasoComplex({ initialData, onSave, onCancel }) {
   const [tabActiva, setTabActiva] = useState('datosGenerales');
   const [formData, setFormData] = useState({
-    responsable: '',
-    aseguradora: '',
-    funcionario_aseguradora: '',
-    numero_siniestro: '',
-    codigo_workflow: '',
-    intermediario: '',
-    numero_poliza: '',
-    asegurado: '',
-    tipo_documento: '',
-    numero_documento: '',
-    fecha_asignacion: '',
-    fecha_siniestro: '',
-    ciudad_siniestro: '',
-    tipo_poliza: '',
+    nmroAjste: '',
+    nmroSinstro: '',
+    nombIntermediario: '',
+    codWorkflow: '',
+    nmroPolza: '',
+    codiRespnsble: '',
+    nombreResponsable: '',
+    codiAsgrdra: '',
+    funcAsgrdra: '',
+    nombreFuncionario: '',
+    asgrBenfcro: '',
+    tipoDucumento: '',
+    numDocumento: '',
+    tipoPoliza: '',
+    ciudadSiniestro: '',
+    amprAfctdo: '',
+    descSinstro: '',
     causa_siniestro: '',
     estado: '',
-    descripcion_siniestro: '',
-    // ...agrega aquí los demás campos que uses
+    fchaAsgncion: '',
+    fchaSinstro: '',
+    fchaInspccion: '',
+    fchaContIni: '',
+    // ...otros campos existentes...
   });
 
   useEffect(() => {
