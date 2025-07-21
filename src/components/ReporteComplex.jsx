@@ -3,7 +3,6 @@ import { getSiniestrosEnriquecidos, deleteSiniestro, updateSiniestro } from '../
 import { getEstados } from '../services/estadosService';
 import FormularioCasoComplex from './SubcomponenteCompex/FormularioCasoComplex';
 import * as XLSX from 'xlsx';
-import { obtenerCasosComplex } from '../services/complexService';
 // Elimina la importación de antd
 
 const todosLosCampos = [
@@ -192,7 +191,7 @@ const ReporteComplex = () => {
   const obtenerSiniestros = async () => {
     setLoading(true);
     try {
-      const data = await obtenerCasosComplex();
+      const data = await getSiniestrosEnriquecidos();
       setSiniestros(data);
     } catch (error) {
       console.error('Error al cargar siniestros:', error);

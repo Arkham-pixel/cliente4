@@ -44,13 +44,14 @@ export default function Trazabilidad({
   isDragActiveInformeFinal,
   getRootPropsUltimoDocumento,
   getInputPropsUltimoDocumento,
-  isDragActiveUltimoDocumento
+  isDragActiveUltimoDocumento,
+  historialDocs,
+  setHistorialDocs
 }) {
   // Estado para modal y documentos
   const [modalAbierto, setModalAbierto] = useState(false);
   const [tipoSeleccionado, setTipoSeleccionado] = useState('');
   const [archivoSeleccionado, setArchivoSeleccionado] = useState(null);
-  const [historialDocs, setHistorialDocs] = useState([]);
   const [busquedaTipo, setBusquedaTipo] = useState('');
   const [comentario, setComentario] = useState('');
   const [mostrarListaCompleta, setMostrarListaCompleta] = useState(false);

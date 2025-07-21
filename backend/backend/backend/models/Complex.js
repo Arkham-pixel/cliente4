@@ -58,6 +58,14 @@ const ComplexSchema = new mongoose.Schema({
   numero_poliza: String,
   fecha_asignacion: Date,
   creado_en: { type: Date, default: Date.now },
+  historialDocs: [
+    {
+      tipo: String,
+      nombre: String,
+      fecha: String,
+      comentario: String
+    }
+  ],
 });
 
 export default mongoose.model('Complex', ComplexSchema);

@@ -36,13 +36,26 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
     fchaInspccion: '',
     fchaContIni: '',
     // ...otros campos existentes...
+    historialDocs: [],
   });
 
+  // Sincronizar historialDocs con initialData si existe (modo edición)
   useEffect(() => {
     if (initialData) {
-      setFormData(prev => ({ ...prev, ...initialData }));
+      setFormData(prev => ({ ...prev, ...initialData, historialDocs: initialData.historialDocs || [] }));
     }
   }, [initialData]);
+
+  // Estado local para historialDocs, sincronizado con formData
+  const [historialDocs, setHistorialDocs] = useState([]);
+  useEffect(() => {
+    // Si cambia el formData (por edición), actualiza el historial local
+    setHistorialDocs(formData.historialDocs || []);
+  }, [formData.historialDocs]);
+  useEffect(() => {
+    // Si cambia el historial local, actualiza el formData global
+    setFormData(prev => ({ ...prev, historialDocs }));
+  }, [historialDocs]);
 
   // Handler de cambios
   const handleChange = (e) => {
@@ -218,9 +231,72 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
       });
   }, []);
 
+  // Función para mapear los campos del frontend a los del backend
+  function mapFormDataToBackend(formData) {
+    return {
+      numero_ajuste: formData.nmroAjste,
+      codigo_workflow: formData.codWorkflow,
+      numero_siniestro: formData.nmroSinstro,
+      intermediario: formData.nombIntermediario,
+      aseguradora: formData.aseguradora,
+      funcionario_aseguradora: formData.funcionario_aseguradora,
+      responsable: formData.codiRespnsble || formData.responsable,
+      asegurado: formData.asgrBenfcro,
+      tipo_documento: formData.tipoDucumento,
+      numero_documento: formData.numDocumento,
+      fecha_siniestro: formData.fchaSinstro,
+      ciudad_siniestro: formData.ciudadSiniestro || formData.ciudad_siniestro,
+      descripcion_siniestro: formData.descSinstro,
+      estado: formData.estado,
+      tipo_poliza: formData.tipoPoliza,
+      causa_siniestro: formData.causa_siniestro,
+      valor_reserva: formData.valor_reserva,
+      valor_reclamo: formData.valor_reclamo,
+      monto_indemnizar: formData.monto_indemnizar,
+      fecha_contacto_inicial: formData.fchaContIni,
+      observaciones_contacto_inicial: formData.observaciones_contacto_inicial,
+      adjuntos_contacto_inicial: formData.adjuntos_contacto_inicial,
+      fecha_inspeccion: formData.fchaInspccion,
+      observacion_inspeccion: formData.observacion_inspeccion,
+      adjunto_acta_inspeccion: formData.adjunto_acta_inspeccion,
+      fecha_solicitud_documentos: formData.fecha_solicitud_documentos,
+      observacion_solicitud_documento: formData.observacion_solicitud_documento,
+      adjunto_solicitud_documento: formData.adjunto_solicitud_documento,
+      fecha_informe_preliminar: formData.fecha_informe_preliminar,
+      adjunto_informe_preliminar: formData.adjunto_informe_preliminar,
+      observacion_informe_preliminar: formData.observacion_informe_preliminar,
+      fecha_informe_final: formData.fecha_informe_final,
+      adjunto_informe_final: formData.adjunto_informe_final,
+      observacion_informe_final: formData.observacion_informe_final,
+      fecha_ultimo_documento: formData.fecha_ultimo_documento,
+      adjunto_entrega_ultimo_documento: formData.adjunto_entrega_ultimo_documento,
+      numero_factura: formData.numero_factura,
+      valor_servicio: formData.valor_servicio,
+      valor_gastos: formData.valor_gastos,
+      iva: formData.iva,
+      reteiva: formData.reteiva,
+      retefuente: formData.retefuente,
+      reteica: formData.reteica,
+      total_base: formData.total_base,
+      total_factura: formData.total_factura,
+      total_pagado: formData.total_pagado,
+      fecha_factura: formData.fecha_factura,
+      fecha_ultima_revision: formData.fecha_ultima_revision,
+      observacion_compromisos: formData.observacion_compromisos,
+      adjunto_factura: formData.adjunto_factura,
+      fecha_ultimo_seguimiento: formData.fecha_ultimo_seguimiento,
+      observacion_seguimiento_pendientes: formData.observacion_seguimiento_pendientes,
+      adjunto_seguimientos_pendientes: formData.adjunto_seguimientos_pendientes,
+      numero_poliza: formData.nmroPolza,
+      fecha_asignacion: formData.fchaAsgncion,
+      creado_en: formData.creado_en
+      // Agrega aquí más campos si es necesario
+    };
+  }
+
   const handleSubmit = (e) => {
     e && e.preventDefault();
-    if (onSave) onSave(formData);
+    if (onSave) onSave(mapFormDataToBackend(formData));
   };
 
   return (
@@ -311,7 +387,7 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
         <button
           type="button"
           className="px-4 py-2 bg-blue-600 text-white rounded"
-          onClick={onSave ? () => onSave(formData) : () => alert('Guardar (sin acción definida)')}
+          onClick={onSave ? () => onSave(mapFormDataToBackend(formData)) : () => alert('Guardar (sin acción definida)')}
         >
           Guardar
         </button>
@@ -365,6 +441,8 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
             getRootPropsUltimoDocumento={dropzonePropsUltimoDocumento.getRootProps}
             getInputPropsUltimoDocumento={dropzonePropsUltimoDocumento.getInputProps}
             isDragActiveUltimoDocumento={dropzonePropsUltimoDocumento.isDragActive}
+            historialDocs={historialDocs}
+            setHistorialDocs={setHistorialDocs}
           />
         )}
         {tabActiva === 'facturacion' && (
