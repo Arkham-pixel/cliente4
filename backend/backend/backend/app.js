@@ -50,4 +50,7 @@ app.use('/api/responsables', responsableRoutes);
 app.use('/api/estados', estadoRoutes);
 app.use('/api/complex', complexRoutes);
 
+console.log('EMAIL_USER:', process.env.EMAIL_USER);
+console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? '***' : 'NO DEFINIDO');
+
 export default app; 
