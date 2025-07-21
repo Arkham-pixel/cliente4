@@ -6,10 +6,10 @@ const SecurUserSchema = new mongoose.Schema({
   pswd: String,
   name: String,
   email: String,
-  active: Boolean,
+  active: String, // Cambiado de Boolean a String
   activation_code: String,
   priv_admin: Boolean,
-  mfa: Boolean,
+  mfa: String, // Cambiado de Boolean a String
   picture: String,
   role: String,
   phone: String,
