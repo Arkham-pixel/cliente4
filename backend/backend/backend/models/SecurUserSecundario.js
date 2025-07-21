@@ -15,6 +15,8 @@ const SecurUserSchema = new mongoose.Schema({
   phone: String,
   pswd_last_updated: Date,
   mfa_last_updated: Date,
+  twoFACode: String,
+  twoFACodeExpires: Date,
 });
 
 export default secondaryConnection.model("securUsers", SecurUserSchema, "securUsers");

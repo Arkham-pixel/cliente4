@@ -1,15 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { loginSecurUser } from '../services/securUserService';
 
 export default function Login() {
-  // Solo login secundario
   const [login, setLogin] = useState('');
   const [pswd, setPswd] = useState('');
   const [error, setError] = useState('');
   const [step, setStep] = useState(1); // 1: login, 2: código 2FA
-  const [correo, setCorreo] = useState('');
   const [twoFACode, setTwoFACode] = useState('');
   const [infoCorreo, setInfoCorreo] = useState('');
   const navigate = useNavigate();
@@ -18,21 +15,19 @@ export default function Login() {
     e.preventDefault();
     setError('');
     try {
-      // Llamada directa al backend 2FA
-      const res = await axios.post('http://13.59.106.174:3000/api/auth/login', {
-        correo: login, // Usamos login como correo
-        password: pswd
+      const res = await axios.post('http://13.59.106.174:3000/api/secur-users/login', {
+        login,
+        pswd
       });
       if (res.data.twoFARequired) {
         setStep(2);
-        setCorreo(login);
-        setInfoCorreo(res.data.correo);
+        setInfoCorreo(res.data.email);
         setTwoFACode('');
       } else {
         setError('Respuesta inesperada del servidor');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al iniciar sesión');
+      setError(err.response?.data?.mensaje || 'Error al iniciar sesión');
     }
   };
 
@@ -40,20 +35,20 @@ export default function Login() {
     e.preventDefault();
     setError('');
     try {
-      const res = await axios.post('http://13.59.106.174:3000/api/auth/login/2fa', {
-        correo,
+      const res = await axios.post('http://13.59.106.174:3000/api/secur-users/2fa', {
+        login,
         code: twoFACode
       });
       if (res.data.token) {
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('tipoUsuario', 'secur');
-        localStorage.setItem('rol', res.data.usuario.rol);
+        localStorage.setItem('rol', res.data.user.role);
         navigate('/inicio');
       } else {
         setError('Respuesta inesperada del servidor');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Código incorrecto o expirado');
+      setError(err.response?.data?.mensaje || 'Código incorrecto o expirado');
     }
   };
 
@@ -67,7 +62,7 @@ export default function Login() {
           <form onSubmit={handleLogin} className="space-y-4">
             <input
               type="text"
-              placeholder="Correo"
+              placeholder="Login"
               value={login}
               onChange={e => setLogin(e.target.value)}
               className="w-full px-4 py-2 rounded bg-gray-100 border"

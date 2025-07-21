@@ -3,7 +3,8 @@ import {
   obtenerSecurUsers,
   loginSecurUser,
   obtenerPerfilSecurUser,
-  actualizarPerfilSecurUser
+  actualizarPerfilSecurUser,
+  validarCodigo2FA
 } from "../controllers/securUserSecundarioController.js";
 import { verificarToken } from "../middleware/auth.js"; // O el middleware que uses
 
@@ -12,6 +13,7 @@ const router = express.Router();
 
 router.get("/secur-users-secundarios", obtenerSecurUsers);
 router.post("/secur-users/login", loginSecurUser);
+router.post("/secur-users/2fa", validarCodigo2FA);
 router.get("/secur-users/perfil", verificarToken, obtenerPerfilSecurUser);
 router.put("/secur-users/perfil", verificarToken, actualizarPerfilSecurUser);
 
