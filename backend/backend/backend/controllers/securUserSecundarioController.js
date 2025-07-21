@@ -16,14 +16,24 @@ export const obtenerSecurUsers = async (req, res) => {
 export const loginSecurUser = async (req, res) => {
   const { login, pswd } = req.body;
   try {
+    console.log('Intentando login para:', login);
     // Busca el usuario por login
     const user = await SecurUserSecundario.findOne({ login });
     if (!user) {
+      console.log('Usuario no encontrado');
       return res.status(401).json({ mensaje: "Usuario no encontrado" });
     }
-    // Aquí deberías comparar el password (pswd) correctamente
-    // Si está hasheado, usa bcrypt.compare
-    if (user.pswd !== pswd) {
+    // Comparar contraseña: soporta hash (bcrypt) o texto plano
+    let passwordValido = false;
+    if (user.pswd && user.pswd.startsWith('$2')) {
+      // bcrypt hash
+      passwordValido = await bcrypt.compare(pswd, user.pswd);
+    } else {
+      // texto plano
+      passwordValido = user.pswd === pswd;
+    }
+    if (!passwordValido) {
+      console.log('Contraseña incorrecta');
       return res.status(401).json({ mensaje: "Contraseña incorrecta" });
     }
     // Generar código 2FA
@@ -32,21 +42,28 @@ export const loginSecurUser = async (req, res) => {
     user.twoFACodeExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos
     await user.save();
     // Enviar código por correo
-    const transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE || 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: user.email,
-      subject: 'Código de verificación 2FA',
-      text: `Tu código de verificación es: ${code}`
-    });
+    try {
+      const transporter = nodemailer.createTransport({
+        service: process.env.EMAIL_SERVICE || 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS
+        }
+      });
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: user.email,
+        subject: 'Código de verificación 2FA',
+        text: `Tu código de verificación es: ${code}`
+      });
+    } catch (mailErr) {
+      console.error('Error enviando correo 2FA:', mailErr);
+      return res.status(500).json({ mensaje: 'Error enviando correo 2FA', error: mailErr.message });
+    }
+    console.log('Código 2FA enviado a:', user.email);
     return res.json({ twoFARequired: true, email: user.email });
   } catch (error) {
+    console.error('Error en login 2FA:', error);
     res.status(500).json({ mensaje: "Error en el login 2FA", error: error.message });
   }
 };
