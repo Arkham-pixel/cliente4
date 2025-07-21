@@ -20,10 +20,18 @@ export default function AgregarCuenta() {
     cedula: "",
     foto: null,
     rol: "usuario",
+    password: ""
   });
 
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+
+  const validatePassword = (password) => {
+    // Mínimo 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+    return regex.test(password);
+  };
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -31,6 +39,13 @@ export default function AgregarCuenta() {
       setFormData({ ...formData, foto: files[0] });
     } else {
       setFormData({ ...formData, [name]: value });
+      if (name === "password") {
+        if (!validatePassword(value)) {
+          setPasswordError("La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial.");
+        } else {
+          setPasswordError("");
+        }
+      }
     }
   };
 
@@ -63,6 +78,7 @@ export default function AgregarCuenta() {
         cedula: "",
         foto: null,
         rol: "usuario",
+        password: ""
       });
     } catch (err) {
       setError(err.response?.data?.message || "Error al crear el usuario");
@@ -169,11 +185,25 @@ export default function AgregarCuenta() {
           />
         </div>
 
+        <div>
+          <label className="block font-medium">Contraseña</label>
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            className="w-full border rounded px-3 py-2"
+            required
+          />
+          {passwordError && <p className="text-red-600 text-sm mt-1">{passwordError}</p>}
+        </div>
+
         <button
           type="submit"
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          disabled={!!passwordError}
         >
-          Crear cuenta
+          Agregar
         </button>
       </form>
     </div>

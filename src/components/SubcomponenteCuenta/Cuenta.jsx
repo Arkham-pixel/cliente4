@@ -1,14 +1,13 @@
 import React, { useState } from "react";
 import EditarCuentas from "./EditarCuenta";
 import AgregarCuenta from "./AgregarCuenta";
+import axios from "axios";
 
 // Puedes mover esto a su propio archivo si luego creces
 function EliminarCuenta() {
   return <div>Eliminar cuenta aquí</div>;
 }
-function SeguridadCuenta() {
-  return <div>Seguridad de la cuenta aquí</div>;
-}
+// Eliminar cualquier referencia visual o lógica a activar/desactivar 2FA o "seguridad de la cuenta"
 
 // Simulación de usuario actual (puedes reemplazarlo con props, context o Firebase)
 const user = {
@@ -16,11 +15,34 @@ const user = {
   rol: "admin", // Cambia a "admin" o "soporte" para ver las pestañas adicionales
 };
 
-const Cuenta = () => {
+export default function Cuenta() {
   const [pestana, setPestana] = useState("editar");
+  const rol = localStorage.getItem("rol");
+  const esAdminOSoporte = rol === "admin" || rol === "soporte";
+  const [usuarioEliminar, setUsuarioEliminar] = useState("");
+  const [eliminando, setEliminando] = useState(false);
+  const [mensaje, setMensaje] = useState("");
 
-  // Control de roles permitidos
-  const esAdminOSoporte = user.rol === "admin" || user.rol === "soporte";
+  const handleEliminarCuenta = async (e) => {
+    e.preventDefault();
+    if (!usuarioEliminar.trim()) {
+      setMensaje("Debes ingresar el login o email del usuario a eliminar.");
+      return;
+    }
+    if (!window.confirm("¿Estás seguro de que deseas eliminar este usuario? Esta acción no se puede deshacer.")) return;
+    setEliminando(true);
+    setMensaje("");
+    try {
+      // Llama al endpoint real de eliminación (ajusta la URL según tu backend)
+      await axios.delete(`/api/secur-users?loginOrEmail=${encodeURIComponent(usuarioEliminar.trim())}`);
+      setMensaje("Usuario eliminado correctamente.");
+      setUsuarioEliminar("");
+    } catch (err) {
+      setMensaje(err.response?.data?.mensaje || "Error al eliminar el usuario");
+    } finally {
+      setEliminando(false);
+    }
+  };
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow">
@@ -51,23 +73,35 @@ const Cuenta = () => {
             Eliminar cuenta
           </button>
         )}
-
-        <button
-          className={`px-4 py-2 rounded ${pestana === "seguridad" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
-          onClick={() => setPestana("seguridad")}
-        >
-          Seguridad de la cuenta
-        </button>
       </div>
 
       <div>
         {pestana === "editar" && <EditarCuentas />}
         {pestana === "agregar" && esAdminOSoporte && <AgregarCuenta />}
-        {pestana === "eliminar" && esAdminOSoporte && <EliminarCuenta />}
-        {pestana === "seguridad" && <SeguridadCuenta />}
+        {pestana === "eliminar" && esAdminOSoporte && (
+          <div className="mt-6">
+            <form onSubmit={handleEliminarCuenta} className="space-y-2">
+              <label className="block font-medium">Login o Email del usuario a eliminar</label>
+              <input
+                type="text"
+                value={usuarioEliminar}
+                onChange={e => setUsuarioEliminar(e.target.value)}
+                className="border px-2 py-2 w-full rounded"
+                placeholder="Ingresa login o email"
+                disabled={eliminando}
+              />
+              <button
+                type="submit"
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                disabled={eliminando}
+              >
+                {eliminando ? "Eliminando..." : "Eliminar usuario"}
+              </button>
+              {mensaje && <p className="mt-2 text-sm text-red-600">{mensaje}</p>}
+            </form>
+          </div>
+        )}
       </div>
     </div>
   );
-};
-
-export default Cuenta;
+}

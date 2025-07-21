@@ -149,3 +149,66 @@ export const actualizarPerfilSecurUser = async (req, res) => {
     res.status(500).json({ mensaje: "Error al actualizar perfil", error: error.message });
   }
 };
+
+export const cambiarPasswordSecurUser = async (req, res) => {
+  try {
+    const userId = req.usuario.id;
+    const { oldPassword, newPassword } = req.body;
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ mensaje: "Todos los campos son obligatorios" });
+    }
+    const user = await SecurUserSecundario.findById(userId);
+    if (!user) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado" });
+    }
+    // Validar contraseña actual (soporta hash o texto plano)
+    let passwordValido = false;
+    if (user.pswd && user.pswd.startsWith('$2')) {
+      passwordValido = await bcrypt.compare(oldPassword, user.pswd);
+    } else {
+      passwordValido = user.pswd === oldPassword;
+    }
+    if (!passwordValido) {
+      return res.status(401).json({ mensaje: "La contraseña actual es incorrecta" });
+    }
+    // Hashear la nueva contraseña
+    const hashed = await bcrypt.hash(newPassword, 10);
+    user.pswd = hashed;
+    await user.save();
+    res.json({ mensaje: "Contraseña cambiada correctamente" });
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error al cambiar la contraseña", error: error.message });
+  }
+};
+
+export const eliminarSecurUser = async (req, res) => {
+  try {
+    const { loginOrEmail } = req.query;
+    // Obtener el usuario autenticado desde el token (req.usuario)
+    const usuarioActual = req.usuario;
+    if (!loginOrEmail) {
+      return res.status(400).json({ mensaje: "Debes proporcionar login o email" });
+    }
+    const user = await SecurUserSecundario.findOne({
+      $or: [
+        { login: loginOrEmail },
+        { email: loginOrEmail }
+      ]
+    });
+    if (!user) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado" });
+    }
+    // Evitar que el admin/soporte se elimine a sí mismo
+    if (
+      usuarioActual &&
+      ((usuarioActual.login && usuarioActual.login === user.login) ||
+       (usuarioActual.email && usuarioActual.email === user.email))
+    ) {
+      return res.status(403).json({ mensaje: "No puedes eliminar tu propio usuario" });
+    }
+    await SecurUserSecundario.deleteOne({ _id: user._id });
+    res.json({ mensaje: "Usuario eliminado correctamente" });
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error al eliminar usuario", error: error.message });
+  }
+};
