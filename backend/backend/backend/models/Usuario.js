@@ -9,7 +9,9 @@ const UsuarioSchema = new mongoose.Schema({
   celular:          { type: String, trim: true },
   cedula:           { type: String, trim: true },
   fechaNacimiento:  { type: Date },
-  foto:             { type: String } 
+  foto:             { type: String },
+  twoFACode:        { type: String },
+  twoFACodeExpires: { type: Date }
 }, {
   timestamps: true
 });

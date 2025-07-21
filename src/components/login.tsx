@@ -4,49 +4,56 @@ import axios from 'axios';
 import { loginSecurUser } from '../services/securUserService';
 
 export default function Login() {
-  const [tipo, setTipo] = useState('normal'); // 'normal' o 'secur'
-  const [correo, setCorreo] = useState('');
-  const [password, setPassword] = useState('');
+  // Solo login secundario
   const [login, setLogin] = useState('');
   const [pswd, setPswd] = useState('');
   const [error, setError] = useState('');
+  const [step, setStep] = useState(1); // 1: login, 2: código 2FA
+  const [correo, setCorreo] = useState('');
+  const [twoFACode, setTwoFACode] = useState('');
+  const [infoCorreo, setInfoCorreo] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     try {
-      if (tipo === 'normal') {
-        const res = await axios.post(
-          'http://13.59.106.174:3000/api/auth/login',
-          { correo, password }
-        );
-        const jwt = res.data.token;
-        if (!jwt) {
-          setError('Credenciales incorrectas');
-          return;
-        }
-        localStorage.setItem('token', jwt);
-        localStorage.setItem('tipoUsuario', 'normal');
-        localStorage.setItem('rol', res.data.user.rol); // <-- Guarda el rol del usuario normal
+      // Llamada directa al backend 2FA
+      const res = await axios.post('http://13.59.106.174:3000/api/auth/login', {
+        correo: login, // Usamos login como correo
+        password: pswd
+      });
+      if (res.data.twoFARequired) {
+        setStep(2);
+        setCorreo(login);
+        setInfoCorreo(res.data.correo);
+        setTwoFACode('');
       } else {
-        const data = await loginSecurUser({ login, pswd });
-        if (!data.token) {
-          setError('Credenciales incorrectas');
-          return;
-        }   
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('tipoUsuario', 'secur');
-        localStorage.setItem('rol', data.user.role); // <-- Guarda el rol del usuario secundario
+        setError('Respuesta inesperada del servidor');
       }
-      navigate('/inicio');
     } catch (err) {
-      const msg =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        err.message ||
-        'Error al iniciar sesión';
-      setError(msg);
+      setError(err.response?.data?.message || 'Error al iniciar sesión');
+    }
+  };
+
+  const handle2FA = async (e) => {
+    e.preventDefault();
+    setError('');
+    try {
+      const res = await axios.post('http://13.59.106.174:3000/api/auth/login/2fa', {
+        correo,
+        code: twoFACode
+      });
+      if (res.data.token) {
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('tipoUsuario', 'secur');
+        localStorage.setItem('rol', res.data.usuario.rol);
+        navigate('/inicio');
+      } else {
+        setError('Respuesta inesperada del servidor');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Código incorrecto o expirado');
     }
   };
 
@@ -56,62 +63,55 @@ export default function Login() {
         <h1 className="text-2xl font-bold text-center mb-6">
           APLICATIVO GRUPO PROSER
         </h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <select
-            value={tipo}
-            onChange={e => setTipo(e.target.value)}
-            className="w-full px-4 py-2 rounded bg-gray-100 border"
-          >
-            <option value="normal">Usuario normal</option>
-            <option value="secur">Usuario secundario</option>
-          </select>
-          {tipo === 'normal' ? (
-            <>
-              <input
-                type="email"
-                placeholder="Correo"
-                value={correo}
-                onChange={e => setCorreo(e.target.value)}
-                className="w-full px-4 py-2 rounded bg-gray-100 border"
-                required
-              />
-              <input
-                type="password"
-                placeholder="Contraseña"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="w-full px-4 py-2 rounded bg-gray-100 border"
-                required
-              />
-            </>
-          ) : (
-            <>
-              <input
-                type="text"
-                placeholder="Login"
-                value={login}
-                onChange={e => setLogin(e.target.value)}
-                className="w-full px-4 py-2 rounded bg-gray-100 border"
-                required
-              />
-              <input
-                type="password"
-                placeholder="Contraseña"
-                value={pswd}
-                onChange={e => setPswd(e.target.value)}
-                className="w-full px-4 py-2 rounded bg-gray-100 border"
-                required
-              />
-            </>
-          )}
-          <button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded text-white font-medium transition-colors"
-          >
-            Entrar
-          </button>
-          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-        </form>
+        {step === 1 ? (
+          <form onSubmit={handleLogin} className="space-y-4">
+            <input
+              type="text"
+              placeholder="Correo"
+              value={login}
+              onChange={e => setLogin(e.target.value)}
+              className="w-full px-4 py-2 rounded bg-gray-100 border"
+              required
+            />
+            <input
+              type="password"
+              placeholder="Contraseña"
+              value={pswd}
+              onChange={e => setPswd(e.target.value)}
+              className="w-full px-4 py-2 rounded bg-gray-100 border"
+              required
+            />
+            <button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded text-white font-medium transition-colors"
+            >
+              Entrar
+            </button>
+            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+          </form>
+        ) : (
+          <form onSubmit={handle2FA} className="space-y-4">
+            <p className="text-sm text-gray-700 mb-2">
+              Se ha enviado un código de verificación a: <span className="font-semibold">{infoCorreo}</span>
+            </p>
+            <input
+              type="text"
+              placeholder="Código de verificación"
+              value={twoFACode}
+              onChange={e => setTwoFACode(e.target.value)}
+              className="w-full px-4 py-2 rounded bg-gray-100 border"
+              required
+              autoFocus
+            />
+            <button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded text-white font-medium transition-colors"
+            >
+              Verificar código
+            </button>
+            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+          </form>
+        )}
         <div className="mt-4 text-sm text-center">
           <a href="/register" className="text-blue-600 hover:underline">
             Registrarse

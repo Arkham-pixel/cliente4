@@ -46,16 +46,10 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
     }
   }, [initialData]);
 
-  // Estado local para historialDocs, sincronizado con formData
-  const [historialDocs, setHistorialDocs] = useState([]);
-  useEffect(() => {
-    // Si cambia el formData (por edición), actualiza el historial local
-    setHistorialDocs(formData.historialDocs || []);
-  }, [formData.historialDocs]);
-  useEffect(() => {
-    // Si cambia el historial local, actualiza el formData global
-    setFormData(prev => ({ ...prev, historialDocs }));
-  }, [historialDocs]);
+  // Función para actualizar historialDocs dentro de formData
+  const updateHistorialDocs = (updater) => {
+    setFormData(prev => ({ ...prev, historialDocs: typeof updater === 'function' ? updater(prev.historialDocs) : updater }));
+  };
 
   // Handler de cambios
   const handleChange = (e) => {
@@ -273,13 +267,6 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
       numero_factura: formData.numero_factura,
       valor_servicio: formData.valor_servicio,
       valor_gastos: formData.valor_gastos,
-      iva: formData.iva,
-      reteiva: formData.reteiva,
-      retefuente: formData.retefuente,
-      reteica: formData.reteica,
-      total_base: formData.total_base,
-      total_factura: formData.total_factura,
-      total_pagado: formData.total_pagado,
       fecha_factura: formData.fecha_factura,
       fecha_ultima_revision: formData.fecha_ultima_revision,
       observacion_compromisos: formData.observacion_compromisos,
@@ -289,7 +276,8 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
       adjunto_seguimientos_pendientes: formData.adjunto_seguimientos_pendientes,
       numero_poliza: formData.nmroPolza,
       fecha_asignacion: formData.fchaAsgncion,
-      creado_en: formData.creado_en
+      creado_en: formData.creado_en,
+      historialDocs: formData.historialDocs
       // Agrega aquí más campos si es necesario
     };
   }
@@ -441,8 +429,8 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
             getRootPropsUltimoDocumento={dropzonePropsUltimoDocumento.getRootProps}
             getInputPropsUltimoDocumento={dropzonePropsUltimoDocumento.getInputProps}
             isDragActiveUltimoDocumento={dropzonePropsUltimoDocumento.isDragActive}
-            historialDocs={historialDocs}
-            setHistorialDocs={setHistorialDocs}
+            historialDocs={formData.historialDocs}
+            setHistorialDocs={updateHistorialDocs}
           />
         )}
         {tabActiva === 'facturacion' && (

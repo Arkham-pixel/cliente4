@@ -83,14 +83,40 @@ export default function Trazabilidad({
   );
 
   // Manejar carga de documento
-  const handleCargarDocumento = () => {
+  const handleCargarDocumento = async () => {
     if (!tipoSeleccionado || !archivoSeleccionado) return;
     const fecha = new Date().toISOString().split('T')[0];
+
+    // 1. Subir el archivo al backend
+    const formDataFile = new FormData();
+    formDataFile.append('file', archivoSeleccionado);
+    let urlArchivo = '';
+    let nombreOriginal = archivoSeleccionado.name;
+    try {
+      const resp = await fetch('/api/complex/upload', {
+        method: 'POST',
+        body: formDataFile
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        urlArchivo = data.url;
+        nombreOriginal = data.filename || archivoSeleccionado.name;
+      } else {
+        alert('Error al subir el archivo');
+        return;
+      }
+    } catch (err) {
+      alert('Error de red al subir el archivo');
+      return;
+    }
+
+    // 2. Guardar en historialDocs con la URL
     setHistorialDocs(prev => [
       ...prev,
       {
         tipo: tiposSolicitud.find(t => t.value === tipoSeleccionado)?.label || tipoSeleccionado,
-        nombre: archivoSeleccionado.name,
+        nombre: nombreOriginal,
+        url: urlArchivo,
         fecha,
         comentario: comentario || 'Sin comentarios'
       }
@@ -226,9 +252,13 @@ export default function Trazabilidad({
                   <td className="p-2 border">{doc.fecha}</td>
                   <td className="p-2 border">{doc.comentario}</td>
                   <td className="p-2 border text-center">
-                    <button className="text-blue-600 hover:underline" disabled>
-                      Descargar
-                    </button>
+                    {doc.url ? (
+                      <a href={doc.url} target="_blank" rel="noopener noreferrer" download={doc.nombre} className="text-blue-600 hover:underline">
+                        Descargar
+                      </a>
+                    ) : (
+                      <span className="text-gray-400">No disponible</span>
+                    )}
                   </td>
                 </tr>
               ))}

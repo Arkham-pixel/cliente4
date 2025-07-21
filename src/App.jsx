@@ -8,7 +8,6 @@ import ResetPassword from './components/ResetPassword'
 import Layout from './components/Layout'
 import Inicio from './components/Inicio'
 import FormularioInspeccion from './components/FormularioInspeccion'
-import AgregarCaso from './components/AgregarCaso'
 import ReporteComplex from './components/ReporteComplex'
 import DashboardComplex from './components/DashboardComplex'
 import AgregarCasoRiesgo from './components/SubcomponentesRiesgo/AgregarCasoRiesgo'
@@ -84,10 +83,10 @@ export default function App() {
             element={<FormularioCasoComplex onSave={guardarCasoComplex} />}
           />
           <Route path="formularioinspeccion" element={<FormularioInspeccion />} />
-          <Route path="complex/agregar" element={<AgregarCaso />} />
+          <Route path="complex/agregar" element={<FormularioCasoComplex onSave={guardarCasoComplex} />} />
           <Route path="complex/excel" element={<ReporteComplex />} />
           <Route path="complex/dashboard" element={<DashboardComplex />} />
-          <Route path="editar-caso/:id" element={<AgregarCaso modoEdicion />} />
+          <Route path="editar-caso/:id" element={<FormularioCasoComplex onSave={guardarCasoComplex} modoEdicion={true} />} />
           <Route path="riesgos/agregar" element={<AgregarCasoRiesgo />} />
           <Route path="riesgos/dashboard" element={<Dashboard />} />
           <Route path="riesgos/exportar" element={<ReporteRiesgo />} />

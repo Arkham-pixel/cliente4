@@ -1,45 +1,83 @@
 // routes/auth.routes.js
 import express from "express";
+import nodemailer from 'nodemailer';
 import Usuario from "../models/Usuario.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
-// 🚪 Login
+// 🚪 Login con 2FA
 router.post("/login", async (req, res) => {
   const { correo, password } = req.body;
-
   try {
     const usuario = await Usuario.findOne({ correo });
-
     if (!usuario) {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
-
     const passwordValido = await bcrypt.compare(password, usuario.password);
     if (!passwordValido) {
       return res.status(401).json({ message: "Contraseña incorrecta" });
     }
+    // Generar código 2FA
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    usuario.twoFACode = code;
+    usuario.twoFACodeExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos
+    await usuario.save();
+    // Enviar código por correo
+    // (Ajusta el transporter según tu configuración real)
+    const transporter = nodemailer.createTransport({
+      service: process.env.EMAIL_SERVICE || 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: usuario.correo,
+      subject: 'Código de verificación 2FA',
+      text: `Tu código de verificación es: ${code}`
+    });
+    return res.json({ twoFARequired: true, correo: usuario.correo });
+  } catch (error) {
+    console.error("Error en login 2FA:", error);
+    res.status(500).json({ message: "Error en el servidor" });
+  }
+});
 
+// Validar código 2FA y devolver token
+router.post("/login/2fa", async (req, res) => {
+  const { correo, code } = req.body;
+  try {
+    const usuario = await Usuario.findOne({ correo });
+    if (!usuario || !usuario.twoFACode || !usuario.twoFACodeExpires) {
+      return res.status(400).json({ message: "Código no solicitado o usuario inválido" });
+    }
+    if (usuario.twoFACode !== code) {
+      return res.status(401).json({ message: "Código incorrecto" });
+    }
+    if (usuario.twoFACodeExpires < new Date()) {
+      return res.status(401).json({ message: "Código expirado" });
+    }
+    // Limpiar el código después de usarlo
+    usuario.twoFACode = undefined;
+    usuario.twoFACodeExpires = undefined;
+    await usuario.save();
+    // Generar token
     const token = jwt.sign(
       { id: usuario._id, rol: usuario.rol },
       process.env.JWT_SECRET || "secreto_super_seguro",
       { expiresIn: "4h" }
     );
-
-    res.json({
-      token,
-      usuario: {
-        id: usuario._id,
-        nombre: usuario.nombre,
-        correo: usuario.correo,
-        rol: usuario.rol
-      }
-    });
-
+    res.json({ token, usuario: {
+      id: usuario._id,
+      nombre: usuario.nombre,
+      correo: usuario.correo,
+      rol: usuario.rol
+    }});
   } catch (error) {
-    console.error("Error en login:", error);
+    console.error("Error en login 2FA (verificación):", error);
     res.status(500).json({ message: "Error en el servidor" });
   }
 });
