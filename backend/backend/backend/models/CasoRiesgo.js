@@ -1,12 +1,33 @@
 import mongoose from 'mongoose';
 
-const casoRiesgoSchema = new mongoose.Schema({
-  aseguradora: String,
-  direccion: String,
-  ciudad: String,
-  asegurado: String,
-  fechaInspeccion: Date,
-  creadoEn: { type: Date, default: Date.now }
-});
+const riesgoSchema = new mongoose.Schema({
+  nmroRiesgo: Number,
+  codiIspector: String,
+  codiAsgrdra: String,
+  asgrBenfcro: String,
+  nmroConsecutivo: String,
+  fchaAsgncion: Date,
+  observAsignacion: String,
+  adjuntoAsignacion: String,
+  fchaInspccion: Date,
+  observInspeccion: String,
+  adjuntoInspeccion: String,
+  codiClasificacion: String,
+  fchaInforme: Date,
+  anxoInfoFnal: String,
+  observInforme: String,
+  codDireccion: String,
+  funcSolicita: String,
+  codigoPoblado: String,
+  ciudadSucursal: String,
+  codiEstdo: Number,
+  vlorTarifaAseguradora: Number,
+  vlorHonorarios: Number,
+  vlorGastos: Number,
+  nmroFactra: Number,
+  fchaFactra: Date,
+  totalPagado: Number,
+  anxoFactra: String
+}, { collection: 'gsk3cAppriesgos' });
 
-export default mongoose.model('CasoRiesgo', casoRiesgoSchema);
+export default mongoose.model('Riesgo', riesgoSchema, 'gsk3cAppriesgos');
