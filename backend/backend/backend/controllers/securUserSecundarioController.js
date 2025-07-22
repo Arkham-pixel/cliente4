@@ -175,7 +175,7 @@ export const cambiarPasswordSecurUser = async (req, res) => {
     const hashed = await bcrypt.hash(newPassword, 10);
     user.pswd = hashed;
     await user.save();
-    res.json({ mensaje: "Contraseña cambiada correctamente" });
+    res.json({ mensaje: "Contraseña cambiada correctamente", user: { login: user.login } });
   } catch (error) {
     res.status(500).json({ mensaje: "Error al cambiar la contraseña", error: error.message });
   }

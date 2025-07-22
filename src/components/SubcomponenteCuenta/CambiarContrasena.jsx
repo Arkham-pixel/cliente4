@@ -33,12 +33,15 @@ export default function CambiarContrasena() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      await axios.post(
+      const res = await axios.post(
         "http://13.59.106.174:3000/api/secur-users/cambiar-password",
         { oldPassword, newPassword },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSuccessMsg("Contraseña cambiada correctamente");
+      if (res.data.user && res.data.user.login) {
+        localStorage.setItem('login', res.data.user.login);
+      }
       setOldPassword("");
       setNewPassword("");
       setVerifyPassword("");

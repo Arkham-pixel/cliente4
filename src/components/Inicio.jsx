@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+const API = 'http://13.59.106.174:3000/api';
+
 // Simulación de usuarios y comunicados reales (reemplaza por tu backend o contexto)
 const usuariosEjemplo = [
   // { nombre: "Juan Pérez", puntos: 120 },
@@ -46,30 +48,28 @@ const Inicio = () => {
 
   // Cargar tareas y comunicados al iniciar
   useEffect(() => {
-    // Simulación de fetch real
+    const token = localStorage.getItem('token');
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
     const fetchTareas = async () => {
       try {
-        // const res = await axios.get(`/api/tareas?login=${usuarioActual.login}`);
-        // setTareas(res.data);
-        setTareas([]); // Simulado
+        const res = await axios.get(`${API}/tareas?login=${usuarioActual.login}`, { headers });
+        setTareas(res.data);
       } catch (err) {
         alert("Error al cargar tareas");
       }
     };
     const fetchComunicados = async () => {
       try {
-        // const res = await axios.get(`/api/comunicados`);
-        // setComunicados(res.data);
-        setComunicados([]); // Simulado
+        const res = await axios.get(`${API}/comunicados`, { headers });
+        setComunicados(res.data);
       } catch (err) {
         alert("Error al cargar comunicados");
       }
     };
     const fetchUsuarios = async () => {
       try {
-        // const res = await axios.get(`/api/usuarios/ranking`);
-        // setUsuarios(res.data);
-        setUsuarios([]); // Simulado
+        const res = await axios.get(`${API}/usuarios/ranking`, { headers });
+        setUsuarios(res.data);
       } catch (err) {
         alert("Error al cargar ranking");
       }
@@ -90,11 +90,10 @@ const Inicio = () => {
       return;
     }
     try {
-      // await axios.post(`/api/tareas`, { texto: nuevaTarea, fecha: nuevaFecha, login: usuarioActual.login });
-      setTareas([
-        ...tareas,
-        { id: Date.now(), texto: nuevaTarea, fecha: nuevaFecha, cumplida: false }
-      ]);
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const res = await axios.post(`${API}/tareas`, { login: usuarioActual.login, texto: nuevaTarea, fecha: nuevaFecha }, { headers });
+      setTareas([...tareas, res.data]);
       setNuevaTarea("");
       setNuevaFecha("");
       alert("Tarea agregada");
@@ -113,10 +112,10 @@ const Inicio = () => {
       return;
     }
     try {
-      // await axios.put(`/api/tareas/${id}`, { texto: editTexto, fecha: editFecha });
-      setTareas(tareas.map(t =>
-        t.id === id ? { ...t, texto: editTexto, fecha: editFecha } : t
-      ));
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const res = await axios.put(`${API}/tareas/${id}`, { texto: editTexto, fecha: editFecha }, { headers });
+      setTareas(tareas.map(t => t._id === id ? res.data : t));
       setEditandoId(null);
       setEditTexto("");
       setEditFecha("");
@@ -128,10 +127,10 @@ const Inicio = () => {
 
   const toggleCumplida = async (id) => {
     try {
-      // await axios.patch(`/api/tareas/${id}/cumplida`);
-      setTareas(tareas.map(t =>
-        t.id === id ? { ...t, cumplida: !t.cumplida } : t
-      ));
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const res = await axios.patch(`${API}/tareas/${id}/cumplida`, {}, { headers });
+      setTareas(tareas.map(t => t._id === id ? res.data : t));
     } catch (err) {
       alert("Error al actualizar tarea");
     }
@@ -139,8 +138,10 @@ const Inicio = () => {
 
   const eliminarTarea = async (id) => {
     try {
-      // await axios.delete(`/api/tareas/${id}`);
-      setTareas(tareas.filter(t => t.id !== id));
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      await axios.delete(`${API}/tareas/${id}`, { headers });
+      setTareas(tareas.filter(t => t._id !== id));
       alert("Tarea eliminada");
     } catch (err) {
       alert("Error al eliminar tarea");
@@ -156,21 +157,19 @@ const Inicio = () => {
       return;
     }
     try {
-      // await axios.post(`/api/comunicados`, nuevoComunicado);
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const fechaInicio = new Date();
       const fechaFin = new Date(fechaInicio);
       fechaFin.setDate(fechaInicio.getDate() + Number(nuevoComunicado.duracion));
-      setComunicados([
-        ...comunicados,
-        {
-          id: Date.now(),
-          titulo: nuevoComunicado.titulo,
-          mensaje: nuevoComunicado.mensaje,
-          fecha: fechaInicio.toISOString().slice(0, 10),
-          fechaFin: fechaFin.toISOString().slice(0, 10),
-          duracion: nuevoComunicado.duracion,
-        }
-      ]);
+      const res = await axios.post(`${API}/comunicados`, {
+        titulo: nuevoComunicado.titulo,
+        mensaje: nuevoComunicado.mensaje,
+        fecha: fechaInicio,
+        fechaFin,
+        duracion: nuevoComunicado.duracion
+      }, { headers });
+      setComunicados([...comunicados, res.data]);
       setNuevoComunicado({ titulo: "", mensaje: "", duracion: 1 });
       alert("Comunicado agregado");
     } catch (err) {
@@ -180,8 +179,10 @@ const Inicio = () => {
 
   const eliminarComunicado = async (id) => {
     try {
-      // await axios.delete(`/api/comunicados/${id}`);
-      setComunicados(comunicados.filter(c => c.id !== id));
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      await axios.delete(`${API}/comunicados/${id}`, { headers });
+      setComunicados(comunicados.filter(c => c._id !== id));
       alert("Comunicado eliminado");
     } catch (err) {
       alert("Error al eliminar comunicado");
@@ -189,7 +190,7 @@ const Inicio = () => {
   };
 
   const iniciarEdicionCom = (com) => {
-    setEditandoComId(com.id);
+    setEditandoComId(com._id);
     setEditComunicado({ titulo: com.titulo, mensaje: com.mensaje });
   };
 
@@ -199,10 +200,10 @@ const Inicio = () => {
       return;
     }
     try {
-      // await axios.put(`/api/comunicados/${id}`, editComunicado);
-      setComunicados(comunicados.map(c =>
-        c.id === id ? { ...c, ...editComunicado } : c
-      ));
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const res = await axios.put(`${API}/comunicados/${id}`, editComunicado, { headers });
+      setComunicados(comunicados.map(c => c._id === id ? res.data : c));
       setEditandoComId(null);
       setEditComunicado({ titulo: "", mensaje: "" });
       alert("Comunicado editado");
@@ -268,9 +269,9 @@ const Inicio = () => {
                 <td colSpan={4} className="text-center text-gray-400 py-4">Sin tareas</td>
               </tr>
             ) : tareasFiltradas.map(t => (
-              <tr key={t.id} className={t.cumplida ? "bg-green-50" : ""}>
+              <tr key={t._id} className={t.cumplida ? "bg-green-50" : ""}>
                 <td className="p-2">
-                  {editandoId === t.id ? (
+                  {editandoId === t._id ? (
                     <input
                       type="text"
                       className="border px-2 py-1 rounded w-full"
@@ -280,7 +281,7 @@ const Inicio = () => {
                   ) : t.texto}
                 </td>
                 <td className="p-2">
-                  {editandoId === t.id ? (
+                  {editandoId === t._id ? (
                     <input
                       type="date"
                       className="border px-2 py-1 rounded"
@@ -293,14 +294,14 @@ const Inicio = () => {
                   <input
                     type="checkbox"
                     checked={t.cumplida}
-                    onChange={() => toggleCumplida(t.id)}
+                    onChange={() => toggleCumplida(t._id)}
                   />
                 </td>
                 <td className="p-2 space-x-2">
-                  {editandoId === t.id ? (
+                  {editandoId === t._id ? (
                     <button
                       className="bg-green-500 text-white px-2 py-1 rounded text-xs"
-                      onClick={() => guardarEdicion(t.id)}
+                      onClick={() => guardarEdicion(t._id)}
                     >
                       Guardar
                     </button>
@@ -309,7 +310,7 @@ const Inicio = () => {
                       <button
                         className="bg-yellow-400 text-white px-2 py-1 rounded text-xs"
                         onClick={() => {
-                          setEditandoId(t.id);
+                          setEditandoId(t._id);
                           setEditTexto(t.texto);
                           setEditFecha(t.fecha);
                         }}
@@ -318,7 +319,7 @@ const Inicio = () => {
                       </button>
                       <button
                         className="bg-red-500 text-white px-2 py-1 rounded text-xs"
-                        onClick={() => eliminarTarea(t.id)}
+                        onClick={() => eliminarTarea(t._id)}
                       >
                         Eliminar
                       </button>
@@ -398,8 +399,8 @@ const Inicio = () => {
           {comunicadosFiltrados.length === 0 ? (
             <li className="text-gray-400 text-center">No hay comunicados.</li>
           ) : comunicadosFiltrados.map((c, idx) => (
-            <li key={c.id || idx} className="border-l-4 border-blue-600 pl-3 relative">
-              {editandoComId === c.id ? (
+            <li key={c._id || idx} className="border-l-4 border-blue-600 pl-3 relative">
+              {editandoComId === c._id ? (
                 <div className="flex flex-col md:flex-row gap-2">
                   <input
                     type="text"
@@ -415,7 +416,7 @@ const Inicio = () => {
                   />
                   <button
                     className="bg-green-500 text-white px-2 py-1 rounded text-xs"
-                    onClick={() => guardarEdicionCom(c.id)}
+                    onClick={() => guardarEdicionCom(c._id)}
                   >
                     Guardar
                   </button>
@@ -437,7 +438,7 @@ const Inicio = () => {
                       </button>
                       <button
                         className="bg-red-500 text-white px-2 py-1 rounded text-xs"
-                        onClick={() => eliminarComunicado(c.id)}
+                        onClick={() => eliminarComunicado(c._id)}
                       >
                         Eliminar
                       </button>
