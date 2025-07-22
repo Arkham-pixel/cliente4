@@ -18,6 +18,7 @@ import complexRoutes from './routes/complex.routes.js';
 import tareasRoutes from './routes/tareas.routes.js';
 import comunicadosRoutes from './routes/comunicados.routes.js';
 import usuariosRoutes from './routes/usuarios.routes.js';
+import casosRoutes from './routes/casos.js';
 
 const app = express();
 
@@ -55,6 +56,7 @@ app.use('/api/complex', complexRoutes);
 app.use('/api/tareas', tareasRoutes);
 app.use('/api/comunicados', comunicadosRoutes);
 app.use('/api/usuarios', usuariosRoutes);
+app.use('/api/casos', casosRoutes);
 
 console.log('EMAIL_USER:', process.env.EMAIL_USER);
 console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? '***' : 'NO DEFINIDO');
