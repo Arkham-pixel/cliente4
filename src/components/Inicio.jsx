@@ -1,5 +1,6 @@
 // src/components/Inicio.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 // Simulación de usuarios y comunicados reales (reemplaza por tu backend o contexto)
 const usuariosEjemplo = [
@@ -12,10 +13,10 @@ const comunicadosIniciales = [
   // { id: 1, titulo: "Mantenimiento", mensaje: "La plataforma estará en mantenimiento el sábado.", fecha: "2025-06-28" }
 ];
 
-// Simula el usuario actual (reemplaza por tu auth real)
 const usuarioActual = {
-  nombre: "Admin",
-  rol: "admin", // Puede ser: "admin", "soporte", "usuario"
+  nombre: localStorage.getItem('nombre') || "Usuario",
+  rol: localStorage.getItem('rol') || "usuario",
+  login: localStorage.getItem('login') || ""
 };
 
 function diasDesde(fecha) {
@@ -33,50 +34,129 @@ const Inicio = () => {
   const [editandoId, setEditandoId] = useState(null);
   const [editTexto, setEditTexto] = useState("");
   const [editFecha, setEditFecha] = useState("");
+  const [busquedaTarea, setBusquedaTarea] = useState("");
 
   // Ranking y comunicados
-  const [usuarios] = useState(usuariosEjemplo);
-  const [comunicados, setComunicados] = useState(comunicadosIniciales);
+  const [usuarios, setUsuarios] = useState([]);
+  const [comunicados, setComunicados] = useState([]);
   const [nuevoComunicado, setNuevoComunicado] = useState({ titulo: "", mensaje: "", duracion: 1 });
   const [editandoComId, setEditandoComId] = useState(null);
   const [editComunicado, setEditComunicado] = useState({ titulo: "", mensaje: "" });
+  const [busquedaComunicado, setBusquedaComunicado] = useState("");
+
+  // Cargar tareas y comunicados al iniciar
+  useEffect(() => {
+    // Simulación de fetch real
+    const fetchTareas = async () => {
+      try {
+        // const res = await axios.get(`/api/tareas?login=${usuarioActual.login}`);
+        // setTareas(res.data);
+        setTareas([]); // Simulado
+      } catch (err) {
+        alert("Error al cargar tareas");
+      }
+    };
+    const fetchComunicados = async () => {
+      try {
+        // const res = await axios.get(`/api/comunicados`);
+        // setComunicados(res.data);
+        setComunicados([]); // Simulado
+      } catch (err) {
+        alert("Error al cargar comunicados");
+      }
+    };
+    const fetchUsuarios = async () => {
+      try {
+        // const res = await axios.get(`/api/usuarios/ranking`);
+        // setUsuarios(res.data);
+        setUsuarios([]); // Simulado
+      } catch (err) {
+        alert("Error al cargar ranking");
+      }
+    };
+    fetchTareas();
+    fetchComunicados();
+    fetchUsuarios();
+  }, []);
 
   // Tareas
-  const agregarTarea = () => {
-    if (nuevaTarea && nuevaFecha) {
+  const agregarTarea = async () => {
+    if (!nuevaTarea.trim() || !nuevaFecha) {
+      alert("Debes ingresar la tarea y la fecha");
+      return;
+    }
+    if (new Date(nuevaFecha) < new Date(new Date().toISOString().slice(0, 10))) {
+      alert("La fecha no puede ser pasada");
+      return;
+    }
+    try {
+      // await axios.post(`/api/tareas`, { texto: nuevaTarea, fecha: nuevaFecha, login: usuarioActual.login });
       setTareas([
         ...tareas,
         { id: Date.now(), texto: nuevaTarea, fecha: nuevaFecha, cumplida: false }
       ]);
       setNuevaTarea("");
       setNuevaFecha("");
+      alert("Tarea agregada");
+    } catch (err) {
+      alert("Error al agregar tarea");
     }
   };
 
-  const guardarEdicion = (id) => {
-    setTareas(tareas.map(t =>
-      t.id === id ? { ...t, texto: editTexto, fecha: editFecha } : t
-    ));
-    setEditandoId(null);
-    setEditTexto("");
-    setEditFecha("");
+  const guardarEdicion = async (id) => {
+    if (!editTexto.trim() || !editFecha) {
+      alert("Debes ingresar la tarea y la fecha");
+      return;
+    }
+    if (new Date(editFecha) < new Date(new Date().toISOString().slice(0, 10))) {
+      alert("La fecha no puede ser pasada");
+      return;
+    }
+    try {
+      // await axios.put(`/api/tareas/${id}`, { texto: editTexto, fecha: editFecha });
+      setTareas(tareas.map(t =>
+        t.id === id ? { ...t, texto: editTexto, fecha: editFecha } : t
+      ));
+      setEditandoId(null);
+      setEditTexto("");
+      setEditFecha("");
+      alert("Tarea editada");
+    } catch (err) {
+      alert("Error al editar tarea");
+    }
   };
 
-  const toggleCumplida = (id) => {
-    setTareas(tareas.map(t =>
-      t.id === id ? { ...t, cumplida: !t.cumplida } : t
-    ));
+  const toggleCumplida = async (id) => {
+    try {
+      // await axios.patch(`/api/tareas/${id}/cumplida`);
+      setTareas(tareas.map(t =>
+        t.id === id ? { ...t, cumplida: !t.cumplida } : t
+      ));
+    } catch (err) {
+      alert("Error al actualizar tarea");
+    }
   };
 
-  const eliminarTarea = (id) => {
-    setTareas(tareas.filter(t => t.id !== id));
+  const eliminarTarea = async (id) => {
+    try {
+      // await axios.delete(`/api/tareas/${id}`);
+      setTareas(tareas.filter(t => t.id !== id));
+      alert("Tarea eliminada");
+    } catch (err) {
+      alert("Error al eliminar tarea");
+    }
   };
 
   // Comunicados (solo admin/soporte)
   const puedeGestionarComunicados = usuarioActual.rol === "admin" || usuarioActual.rol === "soporte";
 
-  const agregarComunicado = () => {
-    if (nuevoComunicado.titulo && nuevoComunicado.mensaje && nuevoComunicado.duracion > 0) {
+  const agregarComunicado = async () => {
+    if (!nuevoComunicado.titulo.trim() || !nuevoComunicado.mensaje.trim() || nuevoComunicado.duracion <= 0) {
+      alert("Debes ingresar título, mensaje y duración válida");
+      return;
+    }
+    try {
+      // await axios.post(`/api/comunicados`, nuevoComunicado);
       const fechaInicio = new Date();
       const fechaFin = new Date(fechaInicio);
       fechaFin.setDate(fechaInicio.getDate() + Number(nuevoComunicado.duracion));
@@ -92,11 +172,20 @@ const Inicio = () => {
         }
       ]);
       setNuevoComunicado({ titulo: "", mensaje: "", duracion: 1 });
+      alert("Comunicado agregado");
+    } catch (err) {
+      alert("Error al agregar comunicado");
     }
   };
 
-  const eliminarComunicado = (id) => {
-    setComunicados(comunicados.filter(c => c.id !== id));
+  const eliminarComunicado = async (id) => {
+    try {
+      // await axios.delete(`/api/comunicados/${id}`);
+      setComunicados(comunicados.filter(c => c.id !== id));
+      alert("Comunicado eliminado");
+    } catch (err) {
+      alert("Error al eliminar comunicado");
+    }
   };
 
   const iniciarEdicionCom = (com) => {
@@ -104,13 +193,32 @@ const Inicio = () => {
     setEditComunicado({ titulo: com.titulo, mensaje: com.mensaje });
   };
 
-  const guardarEdicionCom = (id) => {
-    setComunicados(comunicados.map(c =>
-      c.id === id ? { ...c, ...editComunicado } : c
-    ));
-    setEditandoComId(null);
-    setEditComunicado({ titulo: "", mensaje: "" });
+  const guardarEdicionCom = async (id) => {
+    if (!editComunicado.titulo.trim() || !editComunicado.mensaje.trim()) {
+      alert("Debes ingresar título y mensaje");
+      return;
+    }
+    try {
+      // await axios.put(`/api/comunicados/${id}`, editComunicado);
+      setComunicados(comunicados.map(c =>
+        c.id === id ? { ...c, ...editComunicado } : c
+      ));
+      setEditandoComId(null);
+      setEditComunicado({ titulo: "", mensaje: "" });
+      alert("Comunicado editado");
+    } catch (err) {
+      alert("Error al editar comunicado");
+    }
   };
+
+  // Filtrado de tareas y comunicados
+  const tareasFiltradas = tareas.filter(t =>
+    t.texto.toLowerCase().includes(busquedaTarea.toLowerCase())
+  );
+  const comunicadosFiltrados = comunicados.filter(c =>
+    c.titulo.toLowerCase().includes(busquedaComunicado.toLowerCase()) ||
+    c.mensaje.toLowerCase().includes(busquedaComunicado.toLowerCase())
+  );
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -138,6 +246,13 @@ const Inicio = () => {
             Agregar
           </button>
         </div>
+        <input
+          type="text"
+          placeholder="Buscar tarea..."
+          className="border px-2 py-1 rounded mb-2 w-full"
+          value={busquedaTarea}
+          onChange={e => setBusquedaTarea(e.target.value)}
+        />
         <table className="w-full text-sm border">
           <thead>
             <tr className="bg-gray-100">
@@ -148,11 +263,11 @@ const Inicio = () => {
             </tr>
           </thead>
           <tbody>
-            {tareas.length === 0 ? (
+            {tareasFiltradas.length === 0 ? (
               <tr>
                 <td colSpan={4} className="text-center text-gray-400 py-4">Sin tareas</td>
               </tr>
-            ) : tareas.map(t => (
+            ) : tareasFiltradas.map(t => (
               <tr key={t.id} className={t.cumplida ? "bg-green-50" : ""}>
                 <td className="p-2">
                   {editandoId === t.id ? (
@@ -229,6 +344,7 @@ const Inicio = () => {
                 <li key={u.nombre} className="flex items-center gap-2">
                   <span className="font-bold text-lg">{idx + 1}.</span>
                   <span>{u.nombre}</span>
+                  {u.avatar && <img src={u.avatar} alt="avatar" className="w-6 h-6 rounded-full ml-2" />}
                   <span className="ml-auto bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-semibold">{u.puntos} pts</span>
                 </li>
               ))}
@@ -239,6 +355,13 @@ const Inicio = () => {
       {/* Tablero de comunicados */}
       <div className="bg-white rounded shadow p-4 mt-6 md:mt-0 md:col-span-3">
         <h2 className="text-xl font-bold mb-4">📢 Comunicados</h2>
+        <input
+          type="text"
+          placeholder="Buscar comunicado..."
+          className="border px-2 py-1 rounded mb-2 w-full"
+          value={busquedaComunicado}
+          onChange={e => setBusquedaComunicado(e.target.value)}
+        />
         {puedeGestionarComunicados && (
           <div className="flex flex-col md:flex-row gap-2 mb-4">
             <input
@@ -272,9 +395,9 @@ const Inicio = () => {
           </div>
         )}
         <ul className="space-y-3">
-          {comunicados.length === 0 ? (
+          {comunicadosFiltrados.length === 0 ? (
             <li className="text-gray-400 text-center">No hay comunicados.</li>
-          ) : comunicados.map((c, idx) => (
+          ) : comunicadosFiltrados.map((c, idx) => (
             <li key={c.id || idx} className="border-l-4 border-blue-600 pl-3 relative">
               {editandoComId === c.id ? (
                 <div className="flex flex-col md:flex-row gap-2">

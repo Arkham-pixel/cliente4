@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import EditarCuentas from "./EditarCuenta";
 import AgregarCuenta from "./AgregarCuenta";
 import axios from "axios";
+import MiCuenta from "./miCuenta";
+import CambiarContrasena from "./CambiarContrasena";
 
 // Puedes mover esto a su propio archivo si luego creces
 function EliminarCuenta() {
@@ -48,14 +50,19 @@ export default function Cuenta() {
     <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow">
       <h2 className="text-2xl font-bold mb-4">Cuenta</h2>
 
-      <div className="flex space-x-2 mb-6">
+      <div className="flex space-x-2 mb-4">
         <button
           className={`px-4 py-2 rounded ${pestana === "editar" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
           onClick={() => setPestana("editar")}
         >
-          Editar cuentas
+          Editar cuenta
         </button>
-
+        <button
+          className={`px-4 py-2 rounded ${pestana === "micuenta" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
+          onClick={() => setPestana("micuenta")}
+        >
+          Cambiar contraseña
+        </button>
         {esAdminOSoporte && (
           <button
             className={`px-4 py-2 rounded ${pestana === "agregar" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
@@ -64,7 +71,6 @@ export default function Cuenta() {
             Agregar cuenta
           </button>
         )}
-
         {esAdminOSoporte && (
           <button
             className={`px-4 py-2 rounded ${pestana === "eliminar" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
@@ -77,6 +83,7 @@ export default function Cuenta() {
 
       <div>
         {pestana === "editar" && <EditarCuentas />}
+        {pestana === "micuenta" && <CambiarContrasena />}
         {pestana === "agregar" && esAdminOSoporte && <AgregarCuenta />}
         {pestana === "eliminar" && esAdminOSoporte && (
           <div className="mt-6">

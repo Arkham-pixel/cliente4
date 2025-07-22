@@ -15,6 +15,9 @@ import funcionarioAseguradoraRoutes from './routes/funcionarioAseguradora.routes
 import responsableRoutes from './routes/responsable.routes.js';
 import estadoRoutes from './routes/estado.routes.js';
 import complexRoutes from './routes/complex.routes.js';
+import tareasRoutes from './routes/tareas.routes.js';
+import comunicadosRoutes from './routes/comunicados.routes.js';
+import usuariosRoutes from './routes/usuarios.routes.js';
 
 const app = express();
 
@@ -49,6 +52,9 @@ app.use('/api/funcionarios-aseguradora', funcionarioAseguradoraRoutes);
 app.use('/api/responsables', responsableRoutes);
 app.use('/api/estados', estadoRoutes);
 app.use('/api/complex', complexRoutes);
+app.use('/api/tareas', tareasRoutes);
+app.use('/api/comunicados', comunicadosRoutes);
+app.use('/api/usuarios', usuariosRoutes);
 
 console.log('EMAIL_USER:', process.env.EMAIL_USER);
 console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? '***' : 'NO DEFINIDO');
