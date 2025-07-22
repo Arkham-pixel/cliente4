@@ -6,6 +6,7 @@ import FacturacionRiesgo from "./FacturacionRiesgo.jsx";
 import ListaCasosRiesgo from "./ListaCasosRiesgo";
 import { useCasosRiesgo } from "../../context/CasosRiesgoContext";
 import ciudadesColombia from "../../data/colombia.json"; // si usas react-select
+import axios from 'axios';
 
 const initialFormData = {
   aseguradora: '',
@@ -30,13 +31,54 @@ const AgregarCasoRiesgo = () => {
   const { agregarCaso, editarCaso, casos } = useCasosRiesgo();
   const navigate = useNavigate();
   const { id } = useParams();
+  const [estados, setEstados] = useState([]);
+
+  useEffect(() => {
+    axios.get('http://13.59.106.174:3000/api/estados-riesgos')
+      .then(res => setEstados(res.data))
+      .catch(() => setEstados([]));
+  }, []);
 
   const onEditarCaso = (caso, idx) => {
     setFormData({
-      ...caso,
-      ciudad: ciudadesColombia.find(c => c.label === caso.ciudad) || null,
-      clasificacion: { label: caso.clasificacion, value: caso.clasificacion },
-      quienSolicita: { label: caso.quienSolicita, value: caso.quienSolicita },
+      nmroRiesgo: caso.nmroRiesgo || '',
+      codiIspector: caso.codiIspector || '',
+      codiAsgrdra: caso.codiAsgrdra || '',
+      asgrBenfcro: caso.asgrBenfcro || '',
+      nmroConsecutivo: caso.nmroConsecutivo || '',
+      fchaAsgncion: caso.fchaAsgncion ? new Date(caso.fchaAsgncion).toISOString().slice(0,10) : '',
+      observAsignacion: caso.observAsignacion || '',
+      adjuntoAsignacion: caso.adjuntoAsignacion || null,
+      fchaInspccion: caso.fchaInspccion ? new Date(caso.fchaInspccion).toISOString().slice(0,10) : '',
+      observInspeccion: caso.observInspeccion || '',
+      adjuntoInspeccion: caso.adjuntoInspeccion || null,
+      codiClasificacion: caso.codiClasificacion || '',
+      fchaInforme: caso.fchaInforme ? new Date(caso.fchaInforme).toISOString().slice(0,10) : '',
+      anxoInfoFnal: caso.anxoInfoFnal || null,
+      observInforme: caso.observInforme || '',
+      codDireccion: caso.codDireccion || '',
+      funcSolicita: caso.funcSolicita || '',
+      codigoPoblado: caso.codigoPoblado || '',
+      ciudadSucursal: caso.ciudadSucursal || '',
+      codiEstdo: caso.codiEstdo ? caso.codiEstdo.toString() : '',
+      vlorTarifaAseguradora: caso.vlorTarifaAseguradora || '',
+      vlorHonorarios: caso.vlorHonorarios || '',
+      vlorGastos: caso.vlorGastos || '',
+      nmroFactra: caso.nmroFactra || '',
+      fchaFactra: caso.fchaFactra ? new Date(caso.fchaFactra).toISOString().slice(0,10) : '',
+      totalPagado: caso.totalPagado || '',
+      anxoFactra: caso.anxoFactra || null,
+      // selects y objetos
+      clasificacion: caso.codiClasificacion ? { label: caso.codiClasificacion, value: caso.codiClasificacion } : null,
+      quienSolicita: caso.funcSolicita ? { label: caso.funcSolicita, value: caso.funcSolicita } : null,
+      ciudad: ciudadesColombia.find(c => c.label === (caso.ciudadSucursal || caso.ciudad)) || null,
+      asegurado: caso.asgrBenfcro || caso.asegurado || '',
+      direccion: caso.codDireccion || caso.direccion || '',
+      estado: caso.codiEstdo ? caso.codiEstdo.toString() : '',
+      fechaAsignacion: caso.fchaAsgncion ? new Date(caso.fchaAsgncion).toISOString().slice(0,10) : '',
+      fechaInspeccion: caso.fchaInspccion ? new Date(caso.fchaInspccion).toISOString().slice(0,10) : '',
+      observaciones: caso.observInspeccion || '',
+      responsable: caso.funcSolicita || '',
     });
     setEditando(true);
     setCasoEditadoIndex(idx);
@@ -162,6 +204,13 @@ const AgregarCasoRiesgo = () => {
           className="border px-3 py-2 rounded w-full max-w-lg"
         />
       </div>
+      {formData.nmroRiesgo && (
+        <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+          <span style={{ color: 'red', fontSize: '2rem', fontWeight: 'bold' }}>
+            N° Riesgo: {formData.nmroRiesgo}
+          </span>
+        </div>
+      )}
       {renderizarContenido()}
       <div className="mt-6 flex justify-center space-x-4">
         <button

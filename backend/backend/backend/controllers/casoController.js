@@ -2,7 +2,11 @@ import Riesgo from '../models/CasoRiesgo.js';
 
 export const crearCaso = async (req, res) => {
   try {
-    const nuevoCaso = new Riesgo(req.body);
+    // Buscar el número de riesgo más alto existente
+    const ultimo = await Riesgo.findOne().sort({ nmroRiesgo: -1 });
+    const nuevoNumero = ultimo && ultimo.nmroRiesgo ? ultimo.nmroRiesgo + 1 : 1;
+    // Crear el nuevo caso con el número generado
+    const nuevoCaso = new Riesgo({ ...req.body, nmroRiesgo: nuevoNumero });
     await nuevoCaso.save();
     res.status(201).json(nuevoCaso);
   } catch (err) {

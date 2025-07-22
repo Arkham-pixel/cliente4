@@ -14,23 +14,27 @@ const ListaCasosRiesgo = ({ onEditarCaso }) => {
       <table className="w-3/4 border mb-4 text-center">
         <thead>
           <tr>
+            <th className="border px-2 py-1 font-bold">N° Riesgo</th>
             <th className="border px-2 py-1 font-bold">Asegurado</th>
             <th className="border px-2 py-1 font-bold">Ciudad</th>
             <th className="border px-2 py-1 font-bold">Estado</th>
+            <th className="border px-2 py-1 font-bold">Fecha Inspección</th>
             <th className="border px-2 py-1 font-bold">Acciones</th>
           </tr>
         </thead>
         <tbody>
           {casos.length === 0 ? (
             <tr>
-              <td colSpan={4} className="border px-2 py-4 text-gray-400">No hay casos registrados</td>
+              <td colSpan={6} className="border px-2 py-4 text-gray-400">No hay casos registrados</td>
             </tr>
           ) : (
             casosPagina.map((caso, idx) => (
               <tr key={idx}>
-                <td className="border px-2 py-1">{caso.asegurado}</td>
-                <td className="border px-2 py-1">{caso.ciudad}</td>
-                <td className="border px-2 py-1">{caso.estado}</td>
+                <td className="border px-2 py-1">{caso.nmroRiesgo}</td>
+                <td className="border px-2 py-1">{caso.asgrBenfcro}</td>
+                <td className="border px-2 py-1">{caso.ciudadSucursal}</td>
+                <td className="border px-2 py-1">{caso.codiEstdo}</td>
+                <td className="border px-2 py-1">{caso.fchaInspccion ? new Date(caso.fchaInspccion).toLocaleDateString() : ''}</td>
                 <td className="border px-2 py-1">
                   <button
                     className="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded"
