@@ -1,3 +1,4 @@
+import secondaryConnection from '../db/secondaryConnection.js';
 import mongoose from 'mongoose';
 
 const riesgoSchema = new mongoose.Schema({
@@ -30,4 +31,5 @@ const riesgoSchema = new mongoose.Schema({
   anxoFactra: String
 }, { collection: 'gsk3cAppriesgos' });
 
-export default mongoose.model('Riesgo', riesgoSchema, 'gsk3cAppriesgos');
+const Riesgo = secondaryConnection.model('Riesgo', riesgoSchema);
+export default Riesgo;
