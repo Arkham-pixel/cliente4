@@ -42,7 +42,7 @@ const ciudadesColombia = ciudadesData.flatMap(dep =>
   }))
 );
 
-const ActivacionRiesgo = ({ formData, setFormData }) => {
+const ActivacionRiesgo = ({ formData, setFormData, estados = [], aseguradoras = [], responsables = [] }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -72,6 +72,11 @@ const ActivacionRiesgo = ({ formData, setFormData }) => {
     }));
   };
 
+  console.log('DEBUG - formData.responsable:', formData.responsable);
+  console.log('DEBUG - responsables:', responsables);
+  const selectedResp = responsables.find(r => String(r.codiRespnsble) === String(formData.responsable));
+  console.log('Inspector seleccionado:', selectedResp);
+
   return (
     <div className="p-8 bg-white rounded shadow max-w-5xl mx-auto">
       <h2 className="text-xl font-bold mb-6 text-gray-700">Iniciar Inspección</h2>
@@ -80,52 +85,33 @@ const ActivacionRiesgo = ({ formData, setFormData }) => {
           {/* Columna 1 */}
           <div>
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">Aseguradora</label>
+              <label className="block text-sm font-medium mb-1">Cliente</label>
               <select
                 name="aseguradora"
-                value={formData.aseguradora}
-                onChange={handleChange}
+                value={formData.aseguradora || ''}
+                onChange={e => setFormData(prev => ({ ...prev, aseguradora: e.target.value }))}
                 className="w-full border border-gray-300 rounded px-3 py-2"
               >
                 <option value="">Selecciona una aseguradora</option>
-                <option value="PORTO & COMPAÑIA LTDA">PORTO & COMPAÑIA LTDA</option>
-                <option value="UNISEG RIESGOS Y SEGUROS">UNISEG RIESGOS Y SEGUROS</option>
-                <option value="ALIANZ SEGURO S.A.">ALIANZ SEGURO S.A.</option>
-                <option value="ASEGURADORA SOLIDARIA DE COLOMBIA">ASEGURADORA SOLIDARIA DE COLOMBIA</option>
-                <option value="AXA COLPATRIA SEGUROS S.A.">AXA COLPATRIA SEGUROS S.A.</option>
-                <option value="BBVA SEGUROS COLOMBIA S.A.">BBVA SEGUROS COLOMBIA S.A.</option>
-                <option value="CD ASESORES DE SEGUROS">CD ASESORES DE SEGUROS</option>
-                <option value="CORPORACION DE VOLQUETEROS CORPORAVOL">CORPORACION DE VOLQUETEROS CORPORAVOL</option>
-                <option value="CRAWFORD COLOMBIA S.A.S.">CRAWFORD COLOMBIA S.A.S.</option>
-                <option value="ECOEQUIPOS COLOMBIA S.A.S">ECOEQUIPOS COLOMBIA S.A.S</option>
-                <option value="EGON SEGUROS LTDA">EGON SEGUROS LTDA</option>
-                <option value="EUROSEGUROS SU AGENCIA LTDA">EUROSEGUROS SU AGENCIA LTDA</option>
-                <option value="ITAÚ CORREDOR DE SEGUROS">ITAÚ CORREDOR DE SEGUROS</option>
-                <option value="JANNA SEGUROS LTDA.">JANNA SEGUROS LTDA.</option>
-                <option value="LA EQUIDAD SEGUROS">LA EQUIDAD SEGUROS</option>
-                <option value="LA PREVISORA S.A.">LA PREVISORA S.A.</option>
-                <option value="LIBERTY SEGUROS S.A.">LIBERTY SEGUROS S.A.</option>
-                <option value="MAPFRE SEGUROS GENERALES DE COLOMBIA S.A.">MAPFRE SEGUROS GENERALES DE COLOMBIA S.A.</option>
-                <option value="MCA SEGUROS INTEGRLES LTDA">MCA SEGUROS INTEGRLES LTDA</option>
-                <option value="PROSER AJUSTES SAS">PROSER AJUSTES SAS</option>
-                <option value="SBS SEGUROS COLOMBIA S.A.">SBS SEGUROS COLOMBIA S.A.</option>
-                <option value="SEGUROS ALFA S.A.">SEGUROS ALFA S.A.</option>
-                <option value="SEGUTOS BOLÍVAR">SEGUTOS BOLÍVAR</option>
-                <option value="SEGUROS CONFIANZA S.A.">SEGUROS CONFIANZA S.A.</option>
-                <option value="SEGUROS DEL ESTADO">SEGUROS DEL ESTADO</option>
-                <option value="SEGUROS GENERALES SURAMERICANA S.A.">SEGUROS GENERALES SURAMERICANA S.A.</option>
-                <option value="ZÚRICH COLOMBIA SEGUROS S.A.">ZÚRICH COLOMBIA SEGUROS S.A.</option>
+                {aseguradoras.map((aseg, idx) => (
+                  <option key={aseg.codiAsgrdra} value={aseg.codiAsgrdra}>{aseg.rzonSocial}</option>
+                ))}
               </select>
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1">Clasificación *</label>
-              <Select
-                options={clasificaciones}
-                value={formData.clasificacion}
-                onChange={handleClasificacionChange}
-                placeholder="Selecciona o busca una clasificación"
-                isClearable
-              />
+              <select
+                name="clasificacion"
+                value={formData.clasificacion || ''}
+                onChange={e => setFormData(prev => ({ ...prev, clasificacion: e.target.value }))}
+                className="w-full border border-gray-300 rounded px-3 py-2"
+                required
+              >
+                <option value="">Selecciona clasificación</option>
+                {clasificaciones && clasificaciones.map((cl) => (
+                  <option key={cl.codIdentificador} value={String(cl.codIdentificador)}>{cl.rzonDescripcion}</option>
+                ))}
+              </select>
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1">Ciudad de Inspección *</label>
@@ -166,35 +152,26 @@ const ActivacionRiesgo = ({ formData, setFormData }) => {
               <label className="block text-sm font-medium mb-1">Inspector *</label>
               <select
                 name="responsable"
-                value={formData.responsable}
-                onChange={handleChange}
+                value={formData.responsable || ''}
+                onChange={e => setFormData(prev => ({ ...prev, responsable: e.target.value }))}
                 className="border px-2 py-2 w-full rounded"
+                required
               >
                 <option value="">Seleccionar...</option>
-                {[
-                  "Alexander Escalante",
-                  "Alfonso Marquez",
-                  "Andrés Mejía",
-                  "Armando Fontalvo",
-                  "Arnaldo Andrés Tapia Gutierrez",
-                  "Bernardo Sojo Guzmán",
-                  "Byron Leon",
-                  "Dario Mayo",
-                  "Elkin Gabriel Tapia Gutierrez",
-                  "Gabriel Moreno",
-                  "Guillermo Segundo Mangonez Arcia",
-                  "Iskharly José Tapia Gutierrez",
-                  "Ladys Andrea Escalante Bossio",
-                  "Luis Enrique Truyol",
-                  "María Fernanda Sanín",
-                  "Maria Garcias",
-                  "Mario Alberto Pinilla de la Torre",
-                  "Milagro Navarro",
-                  "Orlando Quijano"
-                ].map((responsable, idx) => (
-                  <option key={idx} value={responsable}>{responsable}</option>
+                {responsables.map((resp) => (
+                  <option key={resp.codiRespnsble} value={resp.codiRespnsble}>{resp.nmbrRespnsble}</option>
                 ))}
               </select>
+              {/* Si el código no está en la lista, mostrar el nombre en un input de solo lectura */}
+              {!selectedResp && formData.responsable && (
+                <input
+                  type="text"
+                  value={formData.responsable}
+                  readOnly
+                  className="w-full border border-gray-300 rounded px-3 py-2 mt-2 bg-gray-100 text-red-600"
+                  title="Inspector no encontrado en la lista actual"
+                />
+              )}
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1">Quien Solicita *</label>
@@ -244,17 +221,18 @@ const ActivacionRiesgo = ({ formData, setFormData }) => {
         <div className="mt-4">
           <label className="block text-sm font-medium mb-1">Estado *</label>
           <select
-            name="estado"
-            value={formData.estado}
-            onChange={handleChange}
+            name="codiEstdo"
+            value={formData.codiEstdo ? String(formData.codiEstdo) : ''}
+            onChange={e => setFormData(prev => ({ ...prev, codiEstdo: e.target.value }))}
             className="w-full border border-gray-300 rounded px-3 py-2"
             required
           >
             <option value="">Selecciona estado</option>
-            <option value="Asignado">Asignado</option>
-            <option value="En proceso">En proceso</option>
-            <option value="Facturado">Facturado</option>
-            <option value="Finalizado">Finalizado</option>
+            {estados.map(est => (
+              <option key={est.codiEstdo} value={String(est.codiEstdo)}>
+                {est.descEstdo}
+              </option>
+            ))}
           </select>
         </div>
       </form>

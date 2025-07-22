@@ -32,16 +32,108 @@ const AgregarCasoRiesgo = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [estados, setEstados] = useState([]);
+  const [aseguradoras, setAseguradoras] = useState([]);
+  const [responsables, setResponsables] = useState([]);
+  const [clasificaciones, setClasificaciones] = useState([]);
 
   useEffect(() => {
-    axios.get('http://13.59.106.174:3000/api/estados-riesgos')
+    axios.get('http://13.59.106.174:3000/api/estados/estados-riesgos')
       .then(res => setEstados(res.data))
       .catch(() => setEstados([]));
   }, []);
 
+  useEffect(() => {
+    axios.get('http://13.59.106.174:3000/api/clientes')
+      .then(res => {
+        // Extraer aseguradoras únicas por codiAsgrdra
+        const mapa = new Map();
+        res.data.forEach(c => {
+          if (c.codiAsgrdra && c.rzonSocial) {
+            mapa.set(c.codiAsgrdra, c.rzonSocial);
+          }
+        });
+        setAseguradoras(Array.from(mapa, ([codiAsgrdra, rzonSocial]) => ({ codiAsgrdra, rzonSocial })));
+      })
+      .catch(() => setAseguradoras([]));
+  }, []);
+
+  useEffect(() => {
+    axios.get('http://13.59.106.174:3000/api/responsables')
+      .then(res => {
+        setResponsables(res.data.map(r => ({ codiRespnsble: r.codiRespnsble, nmbrRespnsble: r.nmbrRespnsble })));
+      })
+      .catch(() => setResponsables([]));
+  }, []);
+
+  useEffect(() => {
+    axios.get('http://13.59.106.174:3000/api/estados/clasificaciones-riesgo')
+      .then(res => {
+        setClasificaciones(res.data.map(c => ({ codIdentificador: c.codIdentificador, rzonDescripcion: c.rzonDescripcion })));
+      })
+      .catch(() => setClasificaciones([]));
+  }, []);
+
   const onEditarCaso = (caso, idx) => {
+    // Mapeo robusto para todos los campos relacionales
+    // Aseguradora
+    let aseguradoraValue = '';
+    if (caso.codiAsgrdra) {
+      aseguradoraValue = String(caso.codiAsgrdra);
+    } else if (caso.aseguradora) {
+      const found = aseguradoras.find(a => a.rzonSocial === caso.aseguradora);
+      aseguradoraValue = found ? String(found.codiAsgrdra) : '';
+    }
+    // Responsable (inspector) - prioriza codiIspector
+    let responsableValue = '';
+    if (caso.codiIspector) {
+      responsableValue = String(caso.codiIspector);
+    } else if (caso.codiRespnsble) {
+      responsableValue = String(caso.codiRespnsble);
+    } else if (caso.responsable) {
+      const found = responsables.find(r => r.nmbrRespnsble === caso.responsable);
+      responsableValue = found ? String(found.codiRespnsble) : '';
+    } else if (caso.funcSolicita) {
+      const found = responsables.find(r => r.nmbrRespnsble === caso.funcSolicita);
+      responsableValue = found ? String(found.codiRespnsble) : '';
+    }
+    // Estado
+    let estadoValue = '';
+    if (caso.codiEstdo) {
+      estadoValue = String(caso.codiEstdo);
+    } else if (caso.estado) {
+      const found = estados.find(e => e.descEstdo === caso.estado);
+      estadoValue = found ? String(found.codiEstdo) : '';
+    }
+    // Ciudad
+    let ciudadValue = null;
+    if (typeof caso.ciudadSucursal === 'string' && caso.ciudadSucursal) {
+      ciudadValue = ciudadesColombia.find(c => typeof c.label === 'string' && c.label.startsWith(caso.ciudadSucursal));
+    } else if (typeof caso.ciudad === 'string' && caso.ciudad) {
+      ciudadValue = ciudadesColombia.find(c => c.label === caso.ciudad);
+    }
+    // Clasificación
+    let clasificacionValue = null;
+    if (caso.codiClasificacion) {
+      clasificacionValue = { label: caso.codiClasificacion, value: caso.codiClasificacion };
+    } else if (caso.clasificacion) {
+      clasificacionValue = { label: caso.clasificacion, value: caso.clasificacion };
+    }
+    // Quien Solicita
+    let quienSolicitaValue = null;
+    if (caso.funcSolicita) {
+      quienSolicitaValue = { label: caso.funcSolicita, value: caso.funcSolicita };
+    } else if (caso.quienSolicita) {
+      quienSolicitaValue = { label: caso.quienSolicita, value: caso.quienSolicita };
+    }
     setFormData({
       nmroRiesgo: caso.nmroRiesgo || '',
+      aseguradora: aseguradoraValue,
+      responsable: responsableValue,
+      codiEstdo: estadoValue,
+      ciudad: ciudadValue,
+      clasificacion: clasificacionValue,
+      quienSolicita: quienSolicitaValue,
+      // ...otros campos normales...
       codiIspector: caso.codiIspector || '',
       codiAsgrdra: caso.codiAsgrdra || '',
       asgrBenfcro: caso.asgrBenfcro || '',
@@ -52,7 +144,6 @@ const AgregarCasoRiesgo = () => {
       fchaInspccion: caso.fchaInspccion ? new Date(caso.fchaInspccion).toISOString().slice(0,10) : '',
       observInspeccion: caso.observInspeccion || '',
       adjuntoInspeccion: caso.adjuntoInspeccion || null,
-      codiClasificacion: caso.codiClasificacion || '',
       fchaInforme: caso.fchaInforme ? new Date(caso.fchaInforme).toISOString().slice(0,10) : '',
       anxoInfoFnal: caso.anxoInfoFnal || null,
       observInforme: caso.observInforme || '',
@@ -60,7 +151,6 @@ const AgregarCasoRiesgo = () => {
       funcSolicita: caso.funcSolicita || '',
       codigoPoblado: caso.codigoPoblado || '',
       ciudadSucursal: caso.ciudadSucursal || '',
-      codiEstdo: caso.codiEstdo ? caso.codiEstdo.toString() : '',
       vlorTarifaAseguradora: caso.vlorTarifaAseguradora || '',
       vlorHonorarios: caso.vlorHonorarios || '',
       vlorGastos: caso.vlorGastos || '',
@@ -68,17 +158,11 @@ const AgregarCasoRiesgo = () => {
       fchaFactra: caso.fchaFactra ? new Date(caso.fchaFactra).toISOString().slice(0,10) : '',
       totalPagado: caso.totalPagado || '',
       anxoFactra: caso.anxoFactra || null,
-      // selects y objetos
-      clasificacion: caso.codiClasificacion ? { label: caso.codiClasificacion, value: caso.codiClasificacion } : null,
-      quienSolicita: caso.funcSolicita ? { label: caso.funcSolicita, value: caso.funcSolicita } : null,
-      ciudad: ciudadesColombia.find(c => c.label === (caso.ciudadSucursal || caso.ciudad)) || null,
       asegurado: caso.asgrBenfcro || caso.asegurado || '',
       direccion: caso.codDireccion || caso.direccion || '',
-      estado: caso.codiEstdo ? caso.codiEstdo.toString() : '',
       fechaAsignacion: caso.fchaAsgncion ? new Date(caso.fchaAsgncion).toISOString().slice(0,10) : '',
       fechaInspeccion: caso.fchaInspccion ? new Date(caso.fchaInspccion).toISOString().slice(0,10) : '',
       observaciones: caso.observInspeccion || '',
-      responsable: caso.funcSolicita || '',
     });
     setEditando(true);
     setCasoEditadoIndex(idx);
@@ -122,7 +206,7 @@ const AgregarCasoRiesgo = () => {
   const renderizarContenido = () => {
     switch (pestanaActiva) {
       case 'activacion':
-        return <ActivacionRiesgo formData={formData} setFormData={setFormData} />;
+        return <ActivacionRiesgo formData={formData} setFormData={setFormData} estados={estados} aseguradoras={aseguradoras} responsables={responsables} clasificaciones={clasificaciones} />;
       case 'seguimiento':
         return <SeguimientoRiesgo formData={formData} setFormData={setFormData} />;
       case 'facturacion':
@@ -160,6 +244,20 @@ const AgregarCasoRiesgo = () => {
     }
     // eslint-disable-next-line
   }, [id, casos]);
+
+  // Efecto para auto-seleccionar responsable cuando la lista esté lista y estés editando
+  useEffect(() => {
+    if (editando && responsables.length > 0 && casoEditadoIndex !== null) {
+      const caso = casos[casoEditadoIndex];
+      if (caso && (!formData.responsable || formData.responsable === '')) {
+        setFormData(prev => ({
+          ...prev,
+          responsable: caso.codiRespnsble ? String(caso.codiRespnsble) : (caso.responsable || ''),
+        }));
+      }
+    }
+    // eslint-disable-next-line
+  }, [responsables, editando, casoEditadoIndex]);
 
   return (
     <div className="p-4">
@@ -244,6 +342,23 @@ const AgregarCasoRiesgo = () => {
       <p>
         {formData.ciudad_siniestro ? formData.ciudad_siniestro.split("/")[0] : "_________"}
       </p>
+      {/* Select de Estado conectado a la lista real */}
+      <div className="mb-4">
+        <label className="block mb-1 font-semibold">Estado *</label>
+        <select
+          value={formData.codiEstdo ? String(formData.codiEstdo) : ''}
+          onChange={e => setFormData({ ...formData, codiEstdo: e.target.value })}
+          className="border px-3 py-2 rounded w-full"
+          required
+        >
+          <option value="">Selecciona estado</option>
+          {estados.map(est => (
+            <option key={est.codiEstdo} value={String(est.codiEstdo)}>
+              {est.descEstdo}
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 };
