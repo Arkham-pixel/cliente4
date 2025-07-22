@@ -15,12 +15,6 @@ const comunicadosIniciales = [
   // { id: 1, titulo: "Mantenimiento", mensaje: "La plataforma estará en mantenimiento el sábado.", fecha: "2025-06-28" }
 ];
 
-const usuarioActual = {
-  nombre: localStorage.getItem('nombre') || "Usuario",
-  rol: localStorage.getItem('rol') || "usuario",
-  login: localStorage.getItem('login') || ""
-};
-
 function diasDesde(fecha) {
   const hoy = new Date();
   const fechaCom = new Date(fecha);
@@ -45,14 +39,23 @@ const Inicio = () => {
   const [editandoComId, setEditandoComId] = useState(null);
   const [editComunicado, setEditComunicado] = useState({ titulo: "", mensaje: "" });
   const [busquedaComunicado, setBusquedaComunicado] = useState("");
+  const [usuarioActual, setUsuarioActual] = useState({ nombre: "Usuario", rol: "usuario", login: "" });
 
   // Cargar tareas y comunicados al iniciar
   useEffect(() => {
+    const login = localStorage.getItem('login');
+    if (!login) return; // No hace nada si no hay login
+
+    const nombre = localStorage.getItem('nombre') || "Usuario";
+    const rol = localStorage.getItem('rol') || "usuario";
+    setUsuarioActual({ nombre, rol, login });
+
     const token = localStorage.getItem('token');
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
     const fetchTareas = async () => {
       try {
-        const res = await axios.get(`${API}/tareas?login=${usuarioActual.login}`, { headers });
+        const res = await axios.get(`${API}/tareas?login=${login}`, { headers });
         setTareas(res.data);
       } catch (err) {
         alert("Error al cargar tareas");

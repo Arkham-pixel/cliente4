@@ -19,6 +19,7 @@ export default function Login() {
         login,
         pswd
       });
+      console.log('Respuesta login:', res.data);
       if (res.data.twoFARequired) {
         setStep(2);
         setInfoCorreo(res.data.email);
@@ -39,13 +40,22 @@ export default function Login() {
         login,
         code: twoFACode
       });
-      if (res.data.token) {
+      console.log('Respuesta 2FA:', res.data);
+      if (res.data.token && res.data.user && res.data.user.role) {
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('tipoUsuario', 'secur');
         localStorage.setItem('rol', res.data.user.role);
+        localStorage.setItem('login', login);
+        console.log('Guardado en localStorage:', {
+          token: res.data.token,
+          tipoUsuario: 'secur',
+          rol: res.data.user.role,
+          login: login
+        });
         navigate('/inicio');
       } else {
-        setError('Respuesta inesperada del servidor');
+        setError('Respuesta del servidor incompleta. Falta token o rol.');
+        console.error('Respuesta incompleta:', res.data);
       }
     } catch (err) {
       setError(err.response?.data?.mensaje || 'Código incorrecto o expirado');
