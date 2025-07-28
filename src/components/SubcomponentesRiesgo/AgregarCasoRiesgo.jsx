@@ -5,7 +5,6 @@ import SeguimientoRiesgo from "./SeguimientoRiesgo.jsx";
 import FacturacionRiesgo from "./FacturacionRiesgo.jsx";
 import ListaCasosRiesgo from "./ListaCasosRiesgo";
 import { useCasosRiesgo } from "../../context/CasosRiesgoContext";
-import ciudadesColombia from "../../data/colombia.json"; // si usas react-select
 import axios from 'axios';
 
 const initialFormData = {
@@ -22,7 +21,7 @@ const initialFormData = {
   quienSolicita: null,
 };
 
-const AgregarCasoRiesgo = () => {
+const AgregarCasoRiesgo = ({ casoInicial, onClose }) => {
   const [pestanaActiva, setPestanaActiva] = useState('activacion');
   const [formData, setFormData] = useState(initialFormData);
   const [editando, setEditando] = useState(false);
@@ -35,15 +34,16 @@ const AgregarCasoRiesgo = () => {
   const [aseguradoras, setAseguradoras] = useState([]);
   const [responsables, setResponsables] = useState([]);
   const [clasificaciones, setClasificaciones] = useState([]);
+  const [ciudades, setCiudades] = useState([]);
 
   useEffect(() => {
-    axios.get('http://13.59.106.174:3000/api/estados/estados-riesgos')
+    axios.get('https://api.grupoproser.com.co/api/estados/estados-riesgos')
       .then(res => setEstados(res.data))
       .catch(() => setEstados([]));
   }, []);
 
   useEffect(() => {
-    axios.get('http://13.59.106.174:3000/api/clientes')
+    axios.get('https://api.grupoproser.com.co/api/clientes')
       .then(res => {
         // Extraer aseguradoras únicas por codiAsgrdra
         const mapa = new Map();
@@ -58,7 +58,7 @@ const AgregarCasoRiesgo = () => {
   }, []);
 
   useEffect(() => {
-    axios.get('http://13.59.106.174:3000/api/responsables')
+    axios.get('https://api.grupoproser.com.co/api/responsables')
       .then(res => {
         setResponsables(res.data.map(r => ({ codiRespnsble: r.codiRespnsble, nmbrRespnsble: r.nmbrRespnsble })));
       })
@@ -66,12 +66,27 @@ const AgregarCasoRiesgo = () => {
   }, []);
 
   useEffect(() => {
-    axios.get('http://13.59.106.174:3000/api/estados/clasificaciones-riesgo')
+    axios.get('https://api.grupoproser.com.co/api/estados/clasificaciones-riesgo')
       .then(res => {
-        setClasificaciones(res.data.map(c => ({ codIdentificador: c.codIdentificador, rzonDescripcion: c.rzonDescripcion })));
+        setClasificaciones(res.data.map(c => ({ codiIdentificador: c.codiIdentificador, rzonDescripcion: c.rzonDescripcion })));
       })
       .catch(() => setClasificaciones([]));
   }, []);
+
+  useEffect(() => {
+    axios.get('https://api.grupoproser.com.co/api/ciudades')
+      .then(res => {
+        // Mapeo para react-select: value = codiMunicipio, label = descMunicipio - descDepto
+        setCiudades(res.data.map(c => ({
+          value: c.codiMunicipio,
+          label: `${c.descMunicipio} - ${c.descDepto}`,
+          departamento: c.descDepto,
+          ...c
+        })));
+      })
+      .catch(() => setCiudades([]));
+  }, []);
+
 
   const onEditarCaso = (caso, idx) => {
     // Mapeo robusto para todos los campos relacionales
@@ -106,17 +121,17 @@ const AgregarCasoRiesgo = () => {
     }
     // Ciudad
     let ciudadValue = null;
-    if (typeof caso.ciudadSucursal === 'string' && caso.ciudadSucursal) {
-      ciudadValue = ciudadesColombia.find(c => typeof c.label === 'string' && c.label.startsWith(caso.ciudadSucursal));
-    } else if (typeof caso.ciudad === 'string' && caso.ciudad) {
-      ciudadValue = ciudadesColombia.find(c => c.label === caso.ciudad);
+    if (caso.ciudadSucursal || caso.ciudad) {
+      const codigo = caso.ciudadSucursal || caso.ciudad;
+      ciudadValue = ciudades.find(c => c.value === codigo || c.label.startsWith(codigo));
     }
     // Clasificación
-    let clasificacionValue = null;
+    let clasificacionValue = '';
     if (caso.codiClasificacion) {
-      clasificacionValue = { label: caso.codiClasificacion, value: caso.codiClasificacion };
+      clasificacionValue = String(caso.codiClasificacion);
     } else if (caso.clasificacion) {
-      clasificacionValue = { label: caso.clasificacion, value: caso.clasificacion };
+      const found = clasificaciones.find(c => c.rzonDescripcion === caso.clasificacion);
+      clasificacionValue = found ? String(found.codiIdentificador) : '';
     }
     // Quien Solicita
     let quienSolicitaValue = null;
@@ -131,7 +146,7 @@ const AgregarCasoRiesgo = () => {
       responsable: responsableValue,
       codiEstdo: estadoValue,
       ciudad: ciudadValue,
-      clasificacion: clasificacionValue,
+      codiClasificacion: clasificacionValue,
       quienSolicita: quienSolicitaValue,
       // ...otros campos normales...
       codiIspector: caso.codiIspector || '',
@@ -169,18 +184,131 @@ const AgregarCasoRiesgo = () => {
     setPestanaActiva('activacion');
   };
 
-  const guardarCaso = () => {
+  // Si recibimos casoInicial, llenamos el formulario automáticamente
+  useEffect(() => {
+    if (casoInicial) {
+      // Copia la lógica de onEditarCaso pero usando casoInicial
+      // (puedes extraer la lógica a una función para evitar duplicidad)
+      let aseguradoraValue = '';
+      if (casoInicial.codiAsgrdra) {
+        aseguradoraValue = String(casoInicial.codiAsgrdra);
+      } else if (casoInicial.aseguradora) {
+        const found = aseguradoras.find(a => a.rzonSocial === casoInicial.aseguradora);
+        aseguradoraValue = found ? String(found.codiAsgrdra) : '';
+      }
+      let responsableValue = '';
+      if (casoInicial.codiIspector) {
+        responsableValue = String(casoInicial.codiIspector);
+      } else if (casoInicial.codiRespnsble) {
+        responsableValue = String(casoInicial.codiRespnsble);
+      } else if (casoInicial.responsable) {
+        const found = responsables.find(r => r.nmbrRespnsble === casoInicial.responsable);
+        responsableValue = found ? String(found.codiRespnsble) : '';
+      } else if (casoInicial.funcSolicita) {
+        const found = responsables.find(r => r.nmbrRespnsble === casoInicial.funcSolicita);
+        responsableValue = found ? String(found.codiRespnsble) : '';
+      }
+      let estadoValue = '';
+      if (casoInicial.codiEstdo) {
+        estadoValue = String(casoInicial.codiEstdo);
+      } else if (casoInicial.estado) {
+        const found = estados.find(e => e.descEstdo === casoInicial.estado);
+        estadoValue = found ? String(found.codiEstdo) : '';
+      }
+      let ciudadValue = null;
+      if (casoInicial.ciudadSucursal || casoInicial.ciudad) {
+        const codigo = casoInicial.ciudadSucursal || casoInicial.ciudad;
+        ciudadValue = ciudades.find(c => c.value === codigo || c.label.startsWith(codigo));
+      }
+      let clasificacionValue = '';
+      if (casoInicial.codiClasificacion) {
+        clasificacionValue = String(casoInicial.codiClasificacion);
+      } else if (casoInicial.clasificacion) {
+        const found = clasificaciones.find(c => c.rzonDescripcion === casoInicial.clasificacion);
+        clasificacionValue = found ? String(found.codiIdentificador) : '';
+      }
+      let quienSolicitaValue = null;
+      if (casoInicial.funcSolicita) {
+        quienSolicitaValue = { label: casoInicial.funcSolicita, value: casoInicial.funcSolicita };
+      } else if (casoInicial.quienSolicita) {
+        quienSolicitaValue = { label: casoInicial.quienSolicita, value: casoInicial.quienSolicita };
+      }
+      setFormData({
+        nmroRiesgo: casoInicial.nmroRiesgo || '',
+        aseguradora: aseguradoraValue,
+        responsable: responsableValue,
+        codiEstdo: estadoValue,
+        ciudad: ciudadValue,
+        codiClasificacion: clasificacionValue,
+        quienSolicita: quienSolicitaValue,
+        codiIspector: casoInicial.codiIspector || '',
+        codiAsgrdra: casoInicial.codiAsgrdra || '',
+        asgrBenfcro: casoInicial.asgrBenfcro || '',
+        nmroConsecutivo: casoInicial.nmroConsecutivo || '',
+        fchaAsgncion: casoInicial.fchaAsgncion ? new Date(casoInicial.fchaAsgncion).toISOString().slice(0,10) : '',
+        observAsignacion: casoInicial.observAsignacion || '',
+        adjuntoAsignacion: casoInicial.adjuntoAsignacion || null,
+        fchaInspccion: casoInicial.fchaInspccion ? new Date(casoInicial.fchaInspccion).toISOString().slice(0,10) : '',
+        observInspeccion: casoInicial.observInspeccion || '',
+        adjuntoInspeccion: casoInicial.adjuntoInspeccion || null,
+        fchaInforme: casoInicial.fchaInforme ? new Date(casoInicial.fchaInforme).toISOString().slice(0,10) : '',
+        anxoInfoFnal: casoInicial.anxoInfoFnal || null,
+        observInforme: casoInicial.observInforme || '',
+        codDireccion: casoInicial.codDireccion || '',
+        funcSolicita: casoInicial.funcSolicita || '',
+        codigoPoblado: casoInicial.codigoPoblado || '',
+        ciudadSucursal: casoInicial.ciudadSucursal || '',
+        vlorTarifaAseguradora: casoInicial.vlorTarifaAseguradora || '',
+        vlorHonorarios: casoInicial.vlorHonorarios || '',
+        vlorGastos: casoInicial.vlorGastos || '',
+        nmroFactra: casoInicial.nmroFactra || '',
+        fchaFactra: casoInicial.fchaFactra ? new Date(casoInicial.fchaFactra).toISOString().slice(0,10) : '',
+        totalPagado: casoInicial.totalPagado || '',
+        anxoFactra: casoInicial.anxoFactra || null,
+        asegurado: casoInicial.asgrBenfcro || casoInicial.asegurado || '',
+        direccion: casoInicial.codDireccion || casoInicial.direccion || '',
+        fechaAsignacion: casoInicial.fchaAsgncion ? new Date(casoInicial.fchaAsgncion).toISOString().slice(0,10) : '',
+        fechaInspeccion: casoInicial.fchaInspccion ? new Date(casoInicial.fchaInspccion).toISOString().slice(0,10) : '',
+        observaciones: casoInicial.observInspeccion || '',
+      });
+      setEditando(true);
+      setCasoEditadoIndex(null);
+      setPestanaActiva('activacion');
+    }
+  }, [casoInicial, aseguradoras, responsables, estados, ciudades, clasificaciones]);
+
+  const guardarCaso = async () => {
     const nuevoCaso = {
       ...formData,
-      ciudad: formData.ciudad ? formData.ciudad.label : "",
-      quienSolicita: formData.quienSolicita ? formData.quienSolicita.label : "",
-      clasificacion: formData.clasificacion ? formData.clasificacion.label : "",
+      ciudad: formData.ciudad ? formData.ciudad.value : '',
+      quienSolicita: formData.quienSolicita ? formData.quienSolicita.label : '',
+      clasificacion: formData.clasificacion ? formData.clasificacion.label : '',
     };
-    if (editando && casoEditadoIndex !== null) {
-      editarCaso(casoEditadoIndex, nuevoCaso);
-      setEditando(false);
-      setCasoEditadoIndex(null);
-    } else {
+    if (editando && casoInicial && casoInicial._id) {
+      // PUT directo al backend
+      try {
+        let dataToSend = nuevoCaso;
+        let config = {};
+        const formDataSend = new FormData();
+        let hasFile = false;
+        Object.entries(nuevoCaso).forEach(([key, value]) => {
+          if (value instanceof File) {
+            formDataSend.append(key, value);
+            hasFile = true;
+          } else if (value !== undefined && value !== null) {
+            formDataSend.append(key, value);
+          }
+        });
+        if (hasFile) {
+          dataToSend = formDataSend;
+          config.headers = { 'Content-Type': 'multipart/form-data' };
+        }
+        await axios.put(`https://api.grupoproser.com.co/api/casos/${casoInicial._id}`, dataToSend, config);
+        if (onClose) onClose();
+      } catch (err) {
+        alert('Error al guardar los cambios');
+      }
+    } else if (!editando) {
       agregarCaso(nuevoCaso);
     }
     setFormData(initialFormData);
@@ -206,9 +334,9 @@ const AgregarCasoRiesgo = () => {
   const renderizarContenido = () => {
     switch (pestanaActiva) {
       case 'activacion':
-        return <ActivacionRiesgo formData={formData} setFormData={setFormData} estados={estados} aseguradoras={aseguradoras} responsables={responsables} clasificaciones={clasificaciones} />;
+        return <ActivacionRiesgo formData={formData} setFormData={setFormData} estados={estados} aseguradoras={aseguradoras} responsables={responsables} clasificaciones={clasificaciones} ciudades={ciudades} />;
       case 'seguimiento':
-        return <SeguimientoRiesgo formData={formData} setFormData={setFormData} />;
+        return <SeguimientoRiesgo formData={formData} setFormData={setFormData} ciudades={ciudades} />;
       case 'facturacion':
         return <FacturacionRiesgo formData={formData} setFormData={setFormData} />;
       default:
@@ -237,7 +365,9 @@ const AgregarCasoRiesgo = () => {
 
   useEffect(() => {
     if (id && casos.length > 0) {
-      const idx = casos.findIndex(c => c.id_riesgo?.toString() === id || c.id?.toString() === id);
+      const idx = casos.findIndex(
+        c => c._id?.toString() === id || c.id_riesgo?.toString() === id || c.id?.toString() === id
+      );
       if (idx !== -1) {
         onEditarCaso(casos[idx], idx);
       }
@@ -333,7 +463,11 @@ const AgregarCasoRiesgo = () => {
           INICIAR INSPECCIÓN
         </button>
       </div>
-      <ListaCasosRiesgo onEditarCaso={onEditarCaso} />
+      {!casoInicial && (
+        <div>
+          <ListaCasosRiesgo onEditarCaso={onEditarCaso} ciudades={ciudades} estados={estados} />
+        </div>
+      )}
       <p>
         {formData.ciudad && formData.ciudad.label
           ? formData.ciudad.label.split("/")[0]
@@ -343,22 +477,7 @@ const AgregarCasoRiesgo = () => {
         {formData.ciudad_siniestro ? formData.ciudad_siniestro.split("/")[0] : "_________"}
       </p>
       {/* Select de Estado conectado a la lista real */}
-      <div className="mb-4">
-        <label className="block mb-1 font-semibold">Estado *</label>
-        <select
-          value={formData.codiEstdo ? String(formData.codiEstdo) : ''}
-          onChange={e => setFormData({ ...formData, codiEstdo: e.target.value })}
-          className="border px-3 py-2 rounded w-full"
-          required
-        >
-          <option value="">Selecciona estado</option>
-          {estados.map(est => (
-            <option key={est.codiEstdo} value={String(est.codiEstdo)}>
-              {est.descEstdo}
-            </option>
-          ))}
-        </select>
-      </div>
+    
     </div>
   );
 };

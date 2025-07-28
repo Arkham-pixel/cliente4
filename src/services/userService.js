@@ -1,7 +1,7 @@
 // src/services/userService.js
 import axios from "axios";
 
-const API_URL = "http://13.59.106.174:3000";
+const API_URL = "https://api.grupoproser.com.co";
 
 // Asegúrate de usar el protocolo correcto:
 //const API_URL = "https://grupoproser.com.co/api";
@@ -20,8 +20,8 @@ export const loginUsuario = async (datos) => {
 export const obtenerPerfil = async (token, tipo = "normal") => {
   const url =
     tipo === "secur"
-      ? "http://13.59.106.174:3000/api/secur-users/perfil"
-      : "http://13.59.106.174:3000/api/usuarios/perfil";
+      ? "https://api.grupoproser.com.co/api/secur-users/perfil"
+      : "https://api.grupoproser.com.co/api/usuarios/perfil";
   return axios.get(url, {
     headers: { Authorization: `Bearer ${token}` }
   });
@@ -43,8 +43,8 @@ export const actualizarFoto = (formData, token) =>
 export const actualizarPerfil = async (data, token, tipo = "normal") => {
   const url =
     tipo === "secur"
-      ? "http://13.59.106.174:3000/api/secur-users/perfil"
-      : "http://13.59.106.174:3000/api/usuarios/perfil";
+      ? "https://api.grupoproser.com.co/api/secur-users/perfil"
+      : "https://api.grupoproser.com.co/api/usuarios/perfil";
   return axios.put(url, data, {
     headers: { Authorization: `Bearer ${token}` }
   });

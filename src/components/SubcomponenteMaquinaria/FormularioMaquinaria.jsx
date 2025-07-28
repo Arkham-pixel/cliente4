@@ -60,6 +60,8 @@ export const convertirHtmlADocx = (html) => {
   return docxParagraphs;
 };
 
+const CLIENT_ID = "262224611220-om055q2l4g4j1kd5v6kv1jkabjo5cdfo.apps.googleusercontent.com";
+const SCOPE = "https://www.googleapis.com/auth/drive.file";
 
 export default function FormularioMaquinaria() {
   // Estados principales
@@ -110,6 +112,11 @@ export default function FormularioMaquinaria() {
   const [mantenimiento, setMantenimiento] = useState("");
   const [funcionamiento, setFuncionamiento] = useState("");
   const [registroFotografico, setRegistroFotografico] = useState([]);
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [accessToken, setAccessToken] = useState("");
+  const [subiendo, setSubiendo] = useState(false);
+  const [enlaceDrive, setEnlaceDrive] = useState("");
+  const [errorDrive, setErrorDrive] = useState("");
 
 
   // Convierte el canvas de firma en un ArrayBuffer
@@ -126,6 +133,7 @@ const getFirmaArrayBuffer = () => {
 
   
 const generarWord = async ({ inspectorSeleccionado, cargoSeleccionado, firmaCanvas, fecha }) => {
+    let isMounted = true;
     // Usa la primera imagen del registro fotográfico como portada
 
     let imagenPresentacion = null;
@@ -695,77 +703,85 @@ const blob = await Packer.toBlob(doc);
   // 2. Descargar localmente
   saveAs(blob, `Inspeccion_Maquinaria_${nombre || "maquinaria"}.docx`);
 
-if (!accessToken) {
-  alert('Debes iniciar sesión con Google primero.');
-  return;
-}
-
-// 1. Metadata en JSON
-const metadata = {
-  name: `Inspeccion_Maquinaria_${nombre || 'maquinaria'}.docx`,
-  mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  // parents: ['TU_FOLDER_ID'], // opcional
+    // 3. Subir a Google Drive si autenticado
+    if (!accessToken) {
+      if (isMounted) setErrorDrive('Debes iniciar sesión con Google primero.');
+      return;
+    }
+    if (isMounted) setSubiendo(true);
+    if (isMounted) setErrorDrive("");
+    if (isMounted) setEnlaceDrive("");
+    try {
+      const metadata = {
+        name: `Inspeccion_Maquinaria_${nombre || 'maquinaria'}.docx`,
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      };
+      const boundary = '-------314159265358979323846';
+      const delimiter = "\r\n--" + boundary + "\r\n";
+      const closeDelimiter = "\r\n--" + boundary + "--";
+      const multipartRequestBody =
+        delimiter +
+        'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+        JSON.stringify(metadata) +
+        delimiter +
+        'Content-Type: ' + metadata.mimeType + '\r\n\r\n';
+      const body = new Blob([ multipartRequestBody, blob, closeDelimiter ]);
+      const res = await fetch(
+        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink',
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + accessToken,
+            'Content-Type': 'multipart/related; boundary=' + boundary,
+          },
+          body,
+        }
+      );
+      const data = await res.json();
+      if (data.error) throw data.error;
+      if (isMounted) setEnlaceDrive(data.webViewLink);
+    } catch (err) {
+      if (isMounted) setErrorDrive('No se pudo subir el documento a Drive. ' + (err.message || ''));
+    } finally {
+      if (isMounted) setSubiendo(false);
+    }
+  return () => { isMounted = false; };
 };
-const metaBlob = new Blob([JSON.stringify(metadata)], { type: 'application/json' });
-
-// 2. Construye un multipart/related
-const boundary = '-------314159265358979323846';
-const delimiter = "\r\n--" + boundary + "\r\n";
-const closeDelimiter = "\r\n--" + boundary + "--";
-const multipartRequestBody =
-    delimiter +
-    'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
-    JSON.stringify(metadata) +
-    delimiter +
-    'Content-Type: ' + metadata.mimeType + '\r\n\r\n';
-
-// Blobs no se pueden concatenar directamente con string, así que:
-const body = new Blob([ multipartRequestBody, blob, closeDelimiter ]);
-
-// 3. Llamada fetch al endpoint de upload
-fetch(
-  'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink',
-  {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer ' + accessToken,
-      'Content-Type': 'multipart/related; boundary=' + boundary,
-    },
-    body,
-  }
-)
-.then(res => res.json())
-.then(data => {
-  if (data.error) throw data.error;
-  alert(`Subido ✔\nID: ${data.id}\nEnlace: ${data.webViewLink}`);
-})
-.catch(err => {
-  console.error('Error subiendo archivo:', err);
-  alert('No se pudo subir el documento a Drive.');
-})
-  
-
-
-
-
-  
-
-  };
 
   useEffect(() => {
+    let isMounted = true;
     function start() {
       gapi.client.init({
-        apiKey: "TU_API_KEY",
-        clientId: "TU_CLIENT_ID.apps.googleusercontent.com",
-        scope: "https://www.googleapis.com/auth/drive.file",
+        clientId: CLIENT_ID,
+        scope: SCOPE,
         discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
+      }).then(() => {
+        const auth = gapi.auth2.getAuthInstance();
+        if (isMounted) setIsSignedIn(auth.isSignedIn.get());
+        if (auth.isSignedIn.get()) {
+          const token = auth.currentUser.get().getAuthResponse().access_token;
+          if (isMounted) setAccessToken(token);
+        }
+        auth.isSignedIn.listen(signedIn => {
+          if (isMounted) setIsSignedIn(signedIn);
+          if (signedIn) {
+            const token = auth.currentUser.get().getAuthResponse().access_token;
+            if (isMounted) setAccessToken(token);
+          } else {
+            if (isMounted) setAccessToken("");
+          }
+        });
       });
     }
     gapi.load("client:auth2", start);
 
-    
+    return () => { isMounted = false; };
   }, []);
   
+
+  const handleLogin = () => {
+    gapi.auth2.getAuthInstance().signIn();
+  };
 
   return (
     <div className="bg-gray-900 min-h-screen p-6">
@@ -932,20 +948,33 @@ fetch(
             onChange={e => setFecha(e.target.value)}
             className="bg-gray-800 border-b border-gray-600 px-3 py-2 text-white rounded w-48"
           />
+            {!isSignedIn && (
             <button
-              onClick={async () => {
-                const firmaCanvas = await getFirmaArrayBuffer();
-                await generarWord({
-                  inspectorSeleccionado,
-                  cargoSeleccionado,
-                  firmaCanvas,
-                  fecha,
-                });
-              }}
-              className="bg-green-700 hover:bg-green-800 text-white font-bold py-2 px-6 rounded shadow"
+              onClick={handleLogin}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow"
             >
-              Exportar Word
+              Iniciar sesión con Google
             </button>
+          )}
+          {subiendo && <span className="text-yellow-400 font-semibold">Subiendo a Google Drive...</span>}
+          {enlaceDrive && (
+            <a href={enlaceDrive} target="_blank" rel="noopener noreferrer" className="text-green-400 underline font-semibold">Ver archivo en Google Drive</a>
+          )}
+          {errorDrive && <span className="text-red-400 font-semibold">{errorDrive}</span>}
+          <button
+            onClick={async () => {
+              const firmaCanvas = await getFirmaArrayBuffer();
+              await generarWord({
+                inspectorSeleccionado,
+                cargoSeleccionado,
+                firmaCanvas,
+                fecha,
+              });
+            }}
+            className="bg-green-700 hover:bg-green-800 text-white font-bold py-2 px-6 rounded shadow"
+          >
+            Exportar Word y subir a Drive
+          </button>
         </div>
       </div>
     </div>

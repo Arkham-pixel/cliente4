@@ -1,7 +1,7 @@
 // src/services/complexService.js
 import axios from 'axios';
 
-const API_URL ="http:13.59.106.174/api"
+const API_URL ="https://api.grupoproser.com.co/api"
 export const obtenerCasosComplex = async () => {
   const response = await fetch(`${API_URL}/complex`);
   if (!response.ok) throw new Error("Error al obtener los casos");

@@ -1,19 +1,6 @@
 import React from "react";
 import Select from "react-select";
-import ciudadesData from "../../data/colombia.json";
-
-const clasificaciones = [
-  { value: "ADMINISTRACIÓN DE RIESGOS", label: "ADMINISTRACIÓN DE RIESGOS" },
-  { value: "COPROPIEDADES", label: "COPROPIEDADES" },
-  { value: "HOGAR", label: "HOGAR" },
-  { value: "HOSPITALES", label: "HOSPITALES" },
-  { value: "INDUSTRIALES", label: "INDUSTRIALES" },
-  { value: "MAQUINARIA AMARILLA", label: "MAQUINARIA AMARILLA" },
-  { value: "PYME", label: "PYME" },
-  { value: "PYME COMERCIAL", label: "PYME COMERCIAL" },
-  { value: "PYME INDUSTRIAL", label: "PYME INDUSTRIAL" },
-  { value: "TRC", label: "TRC" }
-];
+// import ciudadesData from "../../data/colombia.json";
 
 const solicitantes = [
   { value: "ADRIANA RAMÍREZ ORTIZ", label: "ADRIANA RAMÍREZ ORTIZ" },
@@ -34,15 +21,9 @@ const solicitantes = [
 ];
 
 // Construir opciones para react-select
-const ciudadesColombia = ciudadesData.flatMap(dep =>
-  dep.ciudades.map(ciudad => ({
-    value: ciudad,
-    label: `${ciudad} - ${dep.departamento}`,
-    departamento: dep.departamento
-  }))
-);
+// Elimina ciudadesColombia y usa la prop ciudades
 
-const ActivacionRiesgo = ({ formData, setFormData, estados = [], aseguradoras = [], responsables = [] }) => {
+const ActivacionRiesgo = ({ formData, setFormData, estados = [], aseguradoras = [], responsables = [], clasificaciones = [], ciudades = [] }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -72,10 +53,8 @@ const ActivacionRiesgo = ({ formData, setFormData, estados = [], aseguradoras = 
     }));
   };
 
-  console.log('DEBUG - formData.responsable:', formData.responsable);
-  console.log('DEBUG - responsables:', responsables);
+  
   const selectedResp = responsables.find(r => String(r.codiRespnsble) === String(formData.responsable));
-  console.log('Inspector seleccionado:', selectedResp);
 
   return (
     <div className="p-8 bg-white rounded shadow max-w-5xl mx-auto">
@@ -101,22 +80,26 @@ const ActivacionRiesgo = ({ formData, setFormData, estados = [], aseguradoras = 
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1">Clasificación *</label>
               <select
-                name="clasificacion"
-                value={formData.clasificacion || ''}
-                onChange={e => setFormData(prev => ({ ...prev, clasificacion: e.target.value }))}
+                name="codiClasificacion"
+                value={formData.codiClasificacion || ''}
+                onChange={e => setFormData(prev => ({ ...prev, codiClasificacion: e.target.value }))}
                 className="w-full border border-gray-300 rounded px-3 py-2"
                 required
               >
                 <option value="">Selecciona clasificación</option>
-                {clasificaciones && clasificaciones.map((cl) => (
-                  <option key={cl.codIdentificador} value={String(cl.codIdentificador)}>{cl.rzonDescripcion}</option>
-                ))}
+                {clasificaciones && clasificaciones
+                  .filter(cl => cl.codiIdentificador !== undefined && cl.codiIdentificador !== null)
+                  .map((cl) => (
+                    <option key={String(cl.codiIdentificador)} value={String(cl.codiIdentificador)}>
+                      {cl.rzonDescripcion}
+                    </option>
+                  ))}
               </select>
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1">Ciudad de Inspección *</label>
               <Select
-                options={ciudadesColombia}
+                options={ciudades}
                 value={formData.ciudad}
                 onChange={handleCiudadChange}
                 placeholder="Selecciona o busca ciudad y departamento"

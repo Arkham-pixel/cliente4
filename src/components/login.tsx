@@ -15,7 +15,7 @@ export default function Login() {
     e.preventDefault();
     setError('');
     try {
-      const res = await axios.post('http://13.59.106.174:3000/api/secur-users/login', {
+      const res = await axios.post('https://api.grupoproser.com.co/api/secur-users/login', {
         login,
         pswd
       });
@@ -36,7 +36,7 @@ export default function Login() {
     e.preventDefault();
     setError('');
     try {
-      const res = await axios.post('http://13.59.106.174:3000/api/secur-users/2fa', {
+      const res = await axios.post('https://api.grupoproser.com.co/api/secur-users/2fa', {
         login,
         code: twoFACode
       });
@@ -129,4 +129,4 @@ export default function Login() {
       </div>
     </div>
   );
-}
+} 

@@ -1,65 +1,49 @@
-import React, { useState, useRef, useEffect } from "react";
+import React from "react";
 
-function RegistroFotografico({ onChange }) {
-  const [fotos, setFotos] = useState([]);
-  const isMounted = useRef(false);
-
-  useEffect(() => {
-    isMounted.current = true;
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
-
+export default function FotosActa({ fotosActa, setFotosActa }) {
   const handleFotoChange = (index, file) => {
     if (file) {
       const reader = new FileReader();
       reader.onload = (ev) => {
-        if (!isMounted.current) return;
-        const nuevasFotos = [...fotos];
+        const nuevasFotos = [...fotosActa];
         nuevasFotos[index] = {
           ...nuevasFotos[index],
           src: ev.target.result,
-          file: file, // 👈 GUARDAR EL FILE REAL AQUÍ
+          file: file,
         };
-        setFotos(nuevasFotos);
-        onChange(nuevasFotos); // Notificar el cambio
+        setFotosActa(nuevasFotos);
       };
       reader.readAsDataURL(file);
     }
   };
 
   const handleDescripcionChange = (index, value) => {
-    if (!isMounted.current) return;
-    const nuevasFotos = [...fotos];
+    const nuevasFotos = [...fotosActa];
     nuevasFotos[index] = { ...nuevasFotos[index], descripcion: value };
-    setFotos(nuevasFotos);
-    onChange(nuevasFotos);
+    setFotosActa(nuevasFotos);
   };
 
   const handleAddFoto = () => {
-    if (!isMounted.current) return;
-    setFotos([...fotos, { src: "", descripcion: "" }]);
+    setFotosActa([...fotosActa, { src: "", descripcion: "" }]);
   };
 
   const handleRemoveFoto = (index) => {
-    if (!isMounted.current) return;
-    const nuevasFotos = fotos.filter((_, i) => i !== index);
-    setFotos(nuevasFotos);
-    onChange(nuevasFotos);
+    const nuevasFotos = fotosActa.filter((_, i) => i !== index);
+    setFotosActa(nuevasFotos);
   };
 
   return (
-    <div className="mb-6">
-      <h2 className="font-bold mb-4 text-base text-center">REGISTRO FOTOGRÁFICO</h2>
-      <div className="grid grid-cols-2 gap-6 justify-items-center">
-        {fotos.map((foto, i) => (
-          <div key={i} className="flex flex-col items-center border border-gray-700 p-3 rounded">
+    <section className="mb-4 border p-3 rounded">
+      <h2 className="font-bold text-lg mb-2">Fotos del Acta</h2>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {fotosActa.map((foto, i) => (
+          <div key={i} className="flex flex-col items-center border border-gray-300 p-2 rounded">
+            <div className="mb-1 font-bold">Foto Nro. {i + 1}</div>
             {foto.src && (
               <img
                 src={foto.src}
                 alt={`Foto ${i + 1}`}
-                className="w-72 h-56 object-cover border border-gray-400 mb-2"
+                className="w-32 h-32 object-cover border border-gray-400 mb-2"
               />
             )}
             <input
@@ -72,7 +56,7 @@ function RegistroFotografico({ onChange }) {
               type="text"
               value={foto.descripcion}
               onChange={(e) => handleDescripcionChange(i, e.target.value)}
-              className="w-72 bg-gray-800 border-b border-gray-600 px-2 py-1 text-xs text-white mb-1 text-center"
+              className="w-full bg-gray-100 border-b border-gray-400 px-2 py-1 text-xs mb-1 text-center"
               placeholder={`Descripción foto ${i + 1}`}
             />
             <button
@@ -94,10 +78,6 @@ function RegistroFotografico({ onChange }) {
           Añadir Foto
         </button>
       </div>
-    </div>
+    </section>
   );
-}
-
-export default function RegistroFotograficoMaquinaria({ onChange }) {
-  return <RegistroFotografico onChange={onChange} />;
-}
+} 

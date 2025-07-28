@@ -1,4 +1,4 @@
-const API_URL = "http://13.59.106.174:3000/api/siniestros";
+const API_URL = "https://api.grupoproser.com.co/api/siniestros";
 
 export const getSiniestros = async (params = {}) => {
   const query = new URLSearchParams(params).toString();

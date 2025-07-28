@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { FaCalculator } from "react-icons/fa";
 
-function DropZone({ onFile, label }) {
+function DropZone({ onFile, label, existingFile }) {
   const inputRef = useRef();
   const handleDrop = (e) => {
     e.preventDefault();
@@ -27,18 +27,19 @@ function DropZone({ onFile, label }) {
         <span role="img" aria-label="upload">📁</span>
         <div>{label}</div>
         <div className="text-xs text-gray-400">Arrastra un archivo y suéltalo aquí</div>
+        {existingFile && (
+          <div className="text-xs mt-1 text-green-700 font-semibold">{typeof existingFile === 'string' ? existingFile : existingFile.name}</div>
+        )}
       </div>
     </div>
   );
 }
 
-// Helper para mantener el $ siempre visible y solo permitir números
 function moneyInputValue(value) {
-  if (!value) return "$";
-  return "$ " + Number(value.replace(/\D/g, "")).toLocaleString("es-CO");
+  if (!value || value === "$" || value === "$ ") return "$";
+  return "$ " + Number(String(value).replace(/\D/g, "")).toLocaleString("es-CO");
 }
 
-// Calculadora simple
 function Calculadora({ open, onClose, onResult }) {
   const [exp, setExp] = useState("");
   if (!open) return null;
@@ -87,22 +88,14 @@ function Calculadora({ open, onClose, onResult }) {
   );
 }
 
-export default function FacturacionRiesgo() {
-  const [valorTarifa, setValorTarifa] = useState("");
-  const [gastos, setGastos] = useState("");
-  const [honorarios, setHonorarios] = useState("");
-  const [numeroFactura, setNumeroFactura] = useState("");
-  const [totalPagado, setTotalPagado] = useState("");
-  const [fechaFactura, setFechaFactura] = useState("");
-  const [adjuntoFactura, setAdjuntoFactura] = useState(null);
-
+export default function FacturacionRiesgo({ formData, setFormData }) {
   // Para mostrar la calculadora
   const [calcOpen, setCalcOpen] = useState(false);
   const [calcTarget, setCalcTarget] = useState(null);
 
-  const handleMoneyChange = (setter) => (e) => {
+  const handleMoneyChange = (field) => (e) => {
     const value = e.target.value.replace(/\D/g, "");
-    setter(value);
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   // Abre la calculadora para el campo correspondiente
@@ -113,8 +106,7 @@ export default function FacturacionRiesgo() {
 
   // Cuando la calculadora retorna un resultado
   const handleCalcResult = (result) => {
-    if (calcTarget === "gastos") setGastos(result);
-    if (calcTarget === "honorarios") setHonorarios(result);
+    if (calcTarget) setFormData(prev => ({ ...prev, [calcTarget]: result }));
   };
 
   return (
@@ -129,8 +121,8 @@ export default function FacturacionRiesgo() {
           <label className="block text-sm font-semibold mb-1">Valor Tarifa Aseguradora</label>
           <input
             type="text"
-            value={moneyInputValue(valorTarifa)}
-            onChange={handleMoneyChange(setValorTarifa)}
+            value={moneyInputValue(formData.vlorTarifaAseguradora)}
+            onChange={handleMoneyChange('vlorTarifaAseguradora')}
             className="w-full border rounded px-2 py-1 mb-4"
             placeholder="$"
           />
@@ -139,7 +131,7 @@ export default function FacturacionRiesgo() {
             <button
               type="button"
               className="ml-2 text-blue-600 hover:text-blue-800"
-              onClick={() => openCalc("gastos")}
+              onClick={() => openCalc("vlorGastos")}
               tabIndex={-1}
               title="Abrir calculadora"
             >
@@ -148,16 +140,16 @@ export default function FacturacionRiesgo() {
           </label>
           <input
             type="text"
-            value={moneyInputValue(gastos)}
-            onChange={handleMoneyChange(setGastos)}
+            value={moneyInputValue(formData.vlorGastos)}
+            onChange={handleMoneyChange('vlorGastos')}
             className="w-full border rounded px-2 py-1 mb-4"
             placeholder="$"
           />
           <label className="block text-sm font-semibold mb-1">Fecha Factura</label>
           <input
             type="date"
-            value={fechaFactura}
-            onChange={e => setFechaFactura(e.target.value)}
+            value={formData.fchaFactra ? String(formData.fchaFactra).slice(0,10) : ''}
+            onChange={e => setFormData(prev => ({ ...prev, fchaFactra: e.target.value }))}
             className="w-full border rounded px-2 py-1 mb-4"
           />
         </div>
@@ -167,7 +159,7 @@ export default function FacturacionRiesgo() {
             <button
               type="button"
               className="ml-2 text-blue-600 hover:text-blue-800"
-              onClick={() => openCalc("honorarios")}
+              onClick={() => openCalc("vlorHonorarios")}
               tabIndex={-1}
               title="Abrir calculadora"
             >
@@ -176,24 +168,24 @@ export default function FacturacionRiesgo() {
           </label>
           <input
             type="text"
-            value={moneyInputValue(honorarios)}
-            onChange={handleMoneyChange(setHonorarios)}
+            value={moneyInputValue(formData.vlorHonorarios)}
+            onChange={handleMoneyChange('vlorHonorarios')}
             className="w-full border rounded px-2 py-1 mb-4"
             placeholder="$"
           />
           <label className="block text-sm font-semibold mb-1">Numero Factura</label>
           <input
             type="text"
-            value={numeroFactura.replace(/\D/g, "")}
-            onChange={e => setNumeroFactura(e.target.value.replace(/\D/g, ""))}
+            value={formData.nmroFactra ? String(formData.nmroFactra).replace(/\D/g, "") : ''}
+            onChange={e => setFormData(prev => ({ ...prev, nmroFactra: e.target.value.replace(/\D/g, "") }))}
             className="w-full border rounded px-2 py-1 mb-4"
             placeholder="0"
           />
           <label className="block text-sm font-semibold mb-1">Total Pagado</label>
           <input
             type="text"
-            value={moneyInputValue(totalPagado)}
-            onChange={handleMoneyChange(setTotalPagado)}
+            value={moneyInputValue(formData.totalPagado)}
+            onChange={handleMoneyChange('totalPagado')}
             className="w-full border rounded px-2 py-1 mb-4"
             placeholder="$"
           />
@@ -201,10 +193,7 @@ export default function FacturacionRiesgo() {
       </div>
       <div className="mb-6">
         <label className="block text-sm font-semibold mb-1">Adjunto Factura</label>
-        <DropZone onFile={setAdjuntoFactura} label="Adjunta la factura" />
-        {adjuntoFactura && (
-          <div className="text-xs mt-1">{adjuntoFactura.name}</div>
-        )}
+        <DropZone onFile={file => setFormData(prev => ({ ...prev, anxoFactra: file }))} label="Adjunta la factura" existingFile={formData.anxoFactra} />
       </div>
     </div>
   );

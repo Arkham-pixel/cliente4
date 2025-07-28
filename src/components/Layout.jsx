@@ -148,6 +148,12 @@ export default function Layout() {
                   Formulario de inspección{' '}
                   <span className="text-xs text-gray-400">(Próximamente)</span>
                 </Link>
+                <Link
+                  to="/reporte-pol"
+                  className="block px-4 py-2 hover:bg-blue-50"
+                >
+                  Formulario POL
+                </Link>
               </div>
             )}
           </div>

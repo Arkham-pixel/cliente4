@@ -18,6 +18,7 @@ import MiCuenta from './components/SubcomponenteCuenta/miCuenta'
 import FormularioMaquinaria from './components/SubcomponenteMaquinaria/FormularioMaquinaria'
 import FormularioCasoComplex from './components/SubcomponenteCompex/FormularioCasoComplex'
 import SiniestrosList from "./components/SiniestrosList";
+import ReportePolPadre from './components/ReportePol/ReportePolPadre';
 
 import { CasosRiesgoProvider } from './context/CasosRiesgoContext'
 import RequireAuth from './components/RequireAuth'
@@ -35,7 +36,7 @@ function LoginRedirect() {
 // Función para guardar el caso complex
 const guardarCasoComplex = async (formData) => {
   try {
-    const response = await fetch('http://13.59.106.174:3000/api/complex', {
+    const response = await fetch('https://api.grupoproser.com.co/api/complex', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
@@ -94,6 +95,7 @@ export default function App() {
           <Route path="cuenta" element={<Cuenta />} />
           <Route path="micuenta" element={<MiCuenta />} />
           <Route path="formulario-maquinaria" element={<FormularioMaquinaria />} />
+          <Route path="reporte-pol" element={<ReportePolPadre />} />
           <Route path="siniestros" element={<SiniestrosList />} />
         </Route>
 

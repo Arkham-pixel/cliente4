@@ -2,8 +2,51 @@ import React, { useEffect, useState } from 'react';
 import { obtenerCasosRiesgo, deleteCasoRiesgo } from '../../services/riesgoService'; // Ajusta la ruta si es necesario
 import * as XLSX from 'xlsx';
 import { useNavigate } from 'react-router-dom';
+import AgregarCasoRiesgo from '../SubcomponentesRiesgo/AgregarCasoRiesgo';
 
-const ReporteRiesgo = () => {
+const getCiudadNombre = (codigo, ciudades) => {
+  if (!ciudades) return codigo;
+  const ciudad = ciudades.find(c => c.value === codigo || c.codiMunicipio === codigo);
+  return ciudad ? ciudad.label : codigo;
+};
+
+const getEstadoNombre = (codigo, estados) => {
+  if (!estados) return codigo;
+  const estado = estados.find(e => String(e.codiEstdo) === String(codigo));
+  return estado ? estado.descEstdo : codigo;
+};
+
+// Lista completa de columnas posibles (puedes agregar más si tu base tiene más campos)
+const todasLasColumnas = [
+  { clave: 'nmroRiesgo', label: 'N° Riesgo' },
+  { clave: 'asgrBenfcro', label: 'Asegurado' },
+  { clave: 'codiAsgrdra', label: 'Cód. Aseguradora' },
+  { clave: 'ciudadSucursal', label: 'Ciudad' },
+  { clave: 'codiEstdo', label: 'Estado' },
+  { clave: 'fchaAsgncion', label: 'Fecha Asignación' },
+  { clave: 'fchaInspccion', label: 'Fecha Inspección' },
+  { clave: 'fchaInforme', label: 'Fecha Informe Final' },
+  { clave: 'codiIspector', label: 'Inspector' },
+  { clave: 'observInspeccion', label: 'Observaciones Inspección' },
+  { clave: 'observAsignacion', label: 'Observaciones Asignación' },
+  { clave: 'vlorTarifaAseguradora', label: 'Tarifa Aseguradora' },
+  { clave: 'vlorHonorarios', label: 'Honorarios' },
+  { clave: 'vlorGastos', label: 'Gastos' },
+  { clave: 'totalPagado', label: 'Total Pagado' },
+  { clave: 'nmroConsecutivo', label: 'Consecutivo' },
+  { clave: 'adjuntoAsignacion', label: 'Adjunto Asignación' },
+  { clave: 'adjuntoInspeccion', label: 'Adjunto Inspección' },
+  { clave: 'anxoInfoFnal', label: 'Adjunto Informe Final' },
+  { clave: 'anxoFactra', label: 'Adjunto Factura' },
+  { clave: 'fchaFactra', label: 'Fecha Factura' },
+  { clave: 'nmroFactra', label: 'Número Factura' },
+  { clave: 'funcSolicita', label: 'Quien Solicita' },
+  { clave: 'codDireccion', label: 'Dirección' },
+  { clave: 'codigoPoblado', label: 'Código Poblado' },
+  // ...agrega más si tu base tiene más campos
+];
+
+const ReporteRiesgo = ({ ciudades, estados }) => {
   const [casos, setCasos] = useState([]);
   const [campoBusqueda, setCampoBusqueda] = useState('numero_siniestro');
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
@@ -11,6 +54,15 @@ const ReporteRiesgo = () => {
 
   const [paginaActual, setPaginaActual] = useState(1);
   const elementosPorPagina = 10;
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [casoParaEditar, setCasoParaEditar] = useState(null);
+  const [columnasSeleccionadas, setColumnasSeleccionadas] = useState([
+    'nmroRiesgo', 'asgrBenfcro', 'codiAsgrdra', 'ciudadSucursal', 'codiEstdo',
+    'fchaAsgncion', 'fchaInspccion', 'fchaInforme', 'codiIspector',
+    'observInspeccion', 'observAsignacion', 'vlorTarifaAseguradora',
+    'vlorHonorarios', 'vlorGastos', 'totalPagado'
+  ]);
+  const [modalColumnas, setModalColumnas] = useState(false);
 
   const navigate = useNavigate();
 
@@ -28,7 +80,17 @@ const ReporteRiesgo = () => {
   };
 
   const handleEdit = (id) => {
-    navigate(`/riesgos/editar/${id}`);
+    const caso = casos.find(c => c._id?.toString() === id?.toString() || c.id_riesgo?.toString() === id?.toString() || c.id?.toString() === id?.toString());
+    if (caso) {
+      setCasoParaEditar(caso);
+      setModalAbierto(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setModalAbierto(false);
+    setCasoParaEditar(null);
+    obtenerCasos(); // Recarga la lista tras editar
   };
 
   const handleDelete = async (id) => {
@@ -44,20 +106,8 @@ const ReporteRiesgo = () => {
     }
   };
 
-  // Ajusta los campos visibles según tu modelo de riesgos
-  const camposVisibles = [
-    { clave: 'numero_siniestro', label: 'No. de Siniestro' },
-    { clave: 'numero_ajuste', label: 'No. Ajuste' },
-    { clave: 'aseguradora', label: 'Aseguradora' },
-    { clave: 'asegurado', label: 'Asegurado' },
-    { clave: 'ciudad', label: 'Ciudad' },
-    { clave: 'fecha_asignacion', label: 'Fecha Asignación' },
-    { clave: 'fecha_inspeccion', label: 'Fecha Inspección' },
-    { clave: 'fecha_informe_final', label: 'Fecha Informe Final' },
-    { clave: 'estado', label: 'Estado' },
-    { clave: 'responsable', label: 'Responsable' },
-    { clave: 'observaciones', label: 'Observaciones' },
-  ];
+  // Ajusta los campos visibles según tu modelo de riesgos real
+  const camposVisibles = todasLasColumnas.filter(col => columnasSeleccionadas.includes(col.clave));
 
   const casosFiltrados = casos.filter(caso => {
     const valor = caso[campoBusqueda]?.toString().toLowerCase() || '';
@@ -89,7 +139,15 @@ const ReporteRiesgo = () => {
     const worksheet = XLSX.utils.json_to_sheet(casosOrdenados.map(caso => {
       const fila = {};
       camposVisibles.forEach(({ clave, label }) => {
-        fila[label] = caso[clave] || '';
+        if (clave === 'ciudadSucursal') {
+          fila[label] = getCiudadNombre(caso[clave], ciudades);
+        } else if (clave === 'codiEstdo') {
+          fila[label] = getEstadoNombre(caso[clave], estados);
+        } else if (clave === 'fchaAsgncion' || clave === 'fchaInspccion' || clave === 'fchaInforme' || clave === 'fchaFactra') {
+          fila[label] = caso[clave] ? new Date(caso[clave]).toLocaleDateString() : '';
+        } else {
+          fila[label] = caso[clave] || '';
+        }
       });
       return fila;
     }));
@@ -131,6 +189,12 @@ const ReporteRiesgo = () => {
           🔍 Buscar
         </button>
         <button
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
+          onClick={() => setModalColumnas(true)}
+        >
+          🗂️ Columnas
+        </button>
+        <button
           className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
           onClick={exportarExcel}
         >
@@ -164,19 +228,27 @@ const ReporteRiesgo = () => {
               ) : 
               casosPaginados.map((caso, index) => (
                 <tr key={index} className="border-b hover:bg-gray-50">
-                  {camposVisibles.map(({ clave }) => (
-                    <td key={clave} className="p-2 whitespace-nowrap">{caso[clave] || ''}</td>
+                  {camposVisibles.map(({ clave, label }) => (
+                    <td key={clave} className="p-2 whitespace-nowrap">
+                      {clave === 'ciudadSucursal'
+                        ? getCiudadNombre(caso[clave], ciudades)
+                        : clave === 'codiEstdo'
+                          ? getEstadoNombre(caso[clave], estados)
+                          : (clave === 'fchaAsgncion' || clave === 'fchaInspccion' || clave === 'fchaInforme' || clave === 'fchaFactra')
+                            ? (caso[clave] ? new Date(caso[clave]).toLocaleDateString() : '')
+                            : caso[clave] || ''}
+                    </td>
                   ))}
                   <td className="p-2 whitespace-nowrap space-x-2">
                     <button
                       className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs"
-                      onClick={() => handleEdit(caso.id_riesgo)}
+                      onClick={() => handleEdit(caso._id || caso.id_riesgo)}
                     >
                       ✏️ Editar
                     </button>
                     <button
                       className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 text-xs"
-                      onClick={() => handleDelete(caso.id_riesgo)}
+                      onClick={() => handleDelete(caso._id || caso.id_riesgo)}
                     >
                       🗑️ Borrar
                     </button>
@@ -209,6 +281,62 @@ const ReporteRiesgo = () => {
           </button>
         </div>
       </div>
+      {/* Modal de edición */}
+      {modalAbierto && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded shadow-lg p-6 max-w-3xl w-full relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-red-600 text-2xl font-bold"
+              onClick={handleCloseModal}
+              title="Cerrar"
+            >
+              ×
+            </button>
+            <AgregarCasoRiesgo casoInicial={casoParaEditar} onClose={handleCloseModal} />
+          </div>
+        </div>
+      )}
+      {/* Modal de selección de columnas */}
+      {modalColumnas && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded shadow-lg p-6 max-w-lg w-full relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-red-600 text-2xl font-bold"
+              onClick={() => setModalColumnas(false)}
+              title="Cerrar"
+            >
+              ×
+            </button>
+            <h3 className="text-lg font-bold mb-2">Selecciona columnas a exportar</h3>
+            <div className="grid grid-cols-2 gap-2 max-h-80 overflow-y-auto">
+              {todasLasColumnas.map(col => (
+                <label key={col.clave} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={columnasSeleccionadas.includes(col.clave)}
+                    onChange={e => {
+                      if (e.target.checked) {
+                        setColumnasSeleccionadas(prev => [...prev, col.clave]);
+                      } else {
+                        setColumnasSeleccionadas(prev => prev.filter(c => c !== col.clave));
+                      }
+                    }}
+                  />
+                  {col.label}
+                </label>
+              ))}
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                onClick={() => setModalColumnas(false)}
+              >
+                Aceptar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

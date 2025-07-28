@@ -1,15 +1,7 @@
-import React, { useState, useRef } from "react";
-import colombia from "../../data/colombia.json";
+import React, { useRef } from "react";
+import Select from "react-select";
 
-// Genera un array plano de todas las ciudades
-const todasLasCiudades = colombia.flatMap((dep) =>
-  dep.ciudades.map((ciudad) => ({
-    nombre: ciudad,
-    departamento: dep.departamento,
-  }))
-);
-
-function DropZone({ onFile, label }) {
+function DropZone({ onFile, label, existingFile }) {
   const inputRef = useRef();
 
   const handleDrop = (e) => {
@@ -41,20 +33,17 @@ function DropZone({ onFile, label }) {
         <div className="text-xs text-gray-400">
           Arrastra un archivo o haz clic aquí
         </div>
+        {existingFile && (
+          <div className="text-xs mt-1 text-green-700 font-semibold">{typeof existingFile === 'string' ? existingFile : existingFile.name}</div>
+        )}
       </div>
     </div>
   );
 }
 
-export default function SeguimientoRiesgo() {
-  const [ciudad, setCiudad] = useState("");
-  const [consecutivo, setConsecutivo] = useState("");
-  const [obsAsignacion, setObsAsignacion] = useState("");
-  const [adjuntoInspeccion, setAdjuntoInspeccion] = useState(null);
-  const [adjuntoAsignacion, setAdjuntoAsignacion] = useState(null);
-  const [fechaInforme, setFechaInforme] = useState("");
-  const [adjuntoFinal, setAdjuntoFinal] = useState(null);
-  const [obsFinal, setObsFinal] = useState("");
+export default function SeguimientoRiesgo({ formData, setFormData, ciudades = [] }) {
+  // Buscar la ciudad seleccionada por código
+  const ciudadSeleccionada = ciudades.find(c => c.value === (formData.ciudadSucursal || formData.ciudad || (formData.ciudad && formData.ciudad.value)));
 
   return (
     <div className="p-6 bg-white rounded shadow max-w-3xl mx-auto">
@@ -62,24 +51,19 @@ export default function SeguimientoRiesgo() {
         Seguimiento de Riesgo
       </h2>
 
-      {/* Solo el select de ciudad */}
+      {/* Select ciudad y consecutivo */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div>
           <label className="font-semibold block mb-1">
             Ciudad Sucursal Aseguradora
           </label>
-          <select
-            value={ciudad}
-            onChange={(e) => setCiudad(e.target.value)}
-            className="w-full border rounded px-2 py-1"
-          >
-            <option value="">Seleccione...</option>
-            {todasLasCiudades.map((c, idx) => (
-              <option key={idx} value={c.nombre}>
-                {c.nombre} ({c.departamento})
-              </option>
-            ))}
-          </select>
+          <Select
+            options={ciudades}
+            value={ciudadSeleccionada || null}
+            onChange={selected => setFormData(prev => ({ ...prev, ciudadSucursal: selected ? selected.value : '' }))}
+            placeholder="Seleccione..."
+            isClearable
+          />
         </div>
         <div>
           <label className="font-semibold block mb-1">
@@ -87,8 +71,8 @@ export default function SeguimientoRiesgo() {
           </label>
           <input
             type="text"
-            value={consecutivo}
-            onChange={(e) => setConsecutivo(e.target.value)}
+            value={formData.nmroConsecutivo || ''}
+            onChange={e => setFormData(prev => ({ ...prev, nmroConsecutivo: e.target.value }))}
             className="w-full border rounded px-2 py-1"
           />
         </div>
@@ -98,18 +82,15 @@ export default function SeguimientoRiesgo() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div>
           <label className="font-semibold block mb-1">Adjunto Inspección</label>
-          <DropZone onFile={setAdjuntoInspeccion} label="Adjunta inspección" />
-          {adjuntoInspeccion && (
-            <div className="text-xs mt-1">{adjuntoInspeccion.name}</div>
-          )}
+          <DropZone onFile={file => setFormData(prev => ({ ...prev, adjuntoInspeccion: file }))} label="Adjunta inspección" existingFile={formData.adjuntoInspeccion} />
         </div>
         <div>
           <label className="font-semibold block mb-1">
             Observaciones Asignación
           </label>
           <textarea
-            value={obsAsignacion}
-            onChange={(e) => setObsAsignacion(e.target.value)}
+            value={formData.observAsignacion || ''}
+            onChange={e => setFormData(prev => ({ ...prev, observAsignacion: e.target.value }))}
             className="w-full border rounded px-2 py-1 min-h-[80px]"
           />
         </div>
@@ -118,17 +99,14 @@ export default function SeguimientoRiesgo() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div>
           <label className="font-semibold block mb-1">Adjunto Asignación</label>
-          <DropZone onFile={setAdjuntoAsignacion} label="Adjunta asignación" />
-          {adjuntoAsignacion && (
-            <div className="text-xs mt-1">{adjuntoAsignacion.name}</div>
-          )}
+          <DropZone onFile={file => setFormData(prev => ({ ...prev, adjuntoAsignacion: file }))} label="Adjunta asignación" existingFile={formData.adjuntoAsignacion} />
         </div>
         <div>
           <label className="font-semibold block mb-1">Fecha de Informe</label>
           <input
             type="date"
-            value={fechaInforme}
-            onChange={(e) => setFechaInforme(e.target.value)}
+            value={formData.fchaInforme ? String(formData.fchaInforme).slice(0,10) : ''}
+            onChange={e => setFormData(prev => ({ ...prev, fchaInforme: e.target.value }))}
             className="w-full border rounded px-2 py-1"
           />
         </div>
@@ -137,16 +115,15 @@ export default function SeguimientoRiesgo() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="font-semibold block mb-1">Adjunto Informe Final</label>
-          <DropZone onFile={setAdjuntoFinal} label="Adjunta informe final" />
-          {adjuntoFinal && <div className="text-xs mt-1">{adjuntoFinal.name}</div>}
+          <DropZone onFile={file => setFormData(prev => ({ ...prev, anxoInfoFnal: file }))} label="Adjunta informe final" existingFile={formData.anxoInfoFnal} />
         </div>
         <div>
           <label className="font-semibold block mb-1">
             Observaciones Informe Final
           </label>
           <textarea
-            value={obsFinal}
-            onChange={(e) => setObsFinal(e.target.value)}
+            value={formData.observInforme || ''}
+            onChange={e => setFormData(prev => ({ ...prev, observInforme: e.target.value }))}
             className="w-full border rounded px-2 py-1 min-h-[80px]"
           />
         </div>
