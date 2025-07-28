@@ -4,27 +4,6 @@ import app from "./app.js";
 import dotenv from 'dotenv';
 dotenv.config();
 
-import cors from 'cors';
-
-const allowedOrigins = [
-  'https://aplicacion.grupoproser.com.co', // Producción
-  'http://localhost:5173' // Desarrollo local (opcional)
-];
-
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Permite requests sin Origin (como Postman o curl)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    } else {
-      return callback(new Error('No permitido por CORS'));
-    }
-  },
-  
-};
-
-app.use(cors(corsOptions));
 const MONGO_URI = process.env.MONGO_URI;
 if (!MONGO_URI) {
   console.error("❌ La variable de entorno MONGO_URI no está definida.");

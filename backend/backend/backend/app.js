@@ -22,14 +22,31 @@ import casosRoutes from './routes/casos.js';
 
 const app = express();
 
-// 1️ Middlewares globales
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    methods: ["GET","POST","PUT","DELETE","OPTIONS"],
-    allowedHeaders: ["Content-Type","Authorization"],
-  })
-);
+// 1️ Middlewares globales - CORS configurado para desarrollo y producción
+const allowedOrigins = [
+  'https://aplicacion.grupoproser.com.co',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:8080'
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Permite requests sin Origin (como Postman)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      console.log('CORS bloqueado para origen:', origin);
+      return callback(new Error('No permitido por CORS'));
+    }
+  },
+  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
+  allowedHeaders: ["Content-Type","Authorization"],
+  credentials: true
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // 2️ Asegúrate de que exista la carpeta uploads/
@@ -60,5 +77,6 @@ app.use('/api/casos', casosRoutes);
 
 console.log('EMAIL_USER:', process.env.EMAIL_USER);
 console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? '***' : 'NO DEFINIDO');
+console.log('🚀 CORS configurado para orígenes:', allowedOrigins);
 
 export default app; 
