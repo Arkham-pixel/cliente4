@@ -70,10 +70,10 @@ app.use('/api/funcionarios-aseguradora', funcionarioAseguradoraRoutes);
 app.use('/api/responsables', responsableRoutes);
 app.use('/api/estados', estadoRoutes);
 app.use('/api/complex', complexRoutes);
+app.use('/api/casos', complexRoutes);
 app.use('/api/tareas', tareasRoutes);
 app.use('/api/comunicados', comunicadosRoutes);
 app.use('/api/usuarios', usuariosRoutes);
-app.use('/api/casos', casosRoutes);
 
 console.log('EMAIL_USER:', process.env.EMAIL_USER);
 console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? '***' : 'NO DEFINIDO');
