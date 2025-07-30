@@ -25,7 +25,8 @@ const app = express();
 
 // 1️ Middlewares globales - CORS configurado para desarrollo y producción
 const allowedOrigins = [
-  'https://aplicacion.grupoproser.com.co',
+  'https://aplicacion.grupoproser.com.co',     
+  'https://proser-aplicativo.web.app',         
   'http://localhost:5173',
   'http://localhost:3000',
   'http://localhost:8080'
