@@ -42,11 +42,33 @@ const corsOptions = {
     }
   },
   methods: ["GET","POST","PUT","DELETE","OPTIONS"],
-  allowedHeaders: ["Content-Type","Authorization"],
-  credentials: true
+  allowedHeaders: ["Content-Type","Authorization","X-Requested-With"],
+  credentials: true,
+  optionsSuccessStatus: 200
 };
 
+// Aplicar CORS antes de cualquier middleware
 app.use(cors(corsOptions));
+
+// Middleware adicional para debugging CORS
+app.use((req, res, next) => {
+  console.log(`🌐 ${req.method} ${req.path} - Origin: ${req.headers.origin}`);
+  
+  // Asegurar headers CORS en todas las respuestas
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // Manejar preflight requests
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+  
+  next();
+});
+
 app.use(express.json());
 
 // 2️ Asegúrate de que exista la carpeta uploads/
@@ -78,5 +100,6 @@ app.use('/api/usuarios', usuariosRoutes);
 console.log('EMAIL_USER:', process.env.EMAIL_USER);
 console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? '***' : 'NO DEFINIDO');
 console.log('🚀 CORS configurado para orígenes:', allowedOrigins);
+console.log('🔧 Headers CORS aplicados automáticamente');
 
 export default app; 
