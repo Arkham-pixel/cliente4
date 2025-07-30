@@ -19,6 +19,7 @@ import tareasRoutes from './routes/tareas.routes.js';
 import comunicadosRoutes from './routes/comunicados.routes.js';
 import usuariosRoutes from './routes/usuarios.routes.js';
 import casosRoutes from './routes/casos.js';
+import riesgosRoutes from './routes/riesgos.routes.js';
 
 const app = express();
 
@@ -93,6 +94,7 @@ app.use('/api/responsables', responsableRoutes);
 app.use('/api/estados', estadoRoutes);
 app.use('/api/complex', complexRoutes);
 app.use('/api/casos', casosRoutes);
+app.use('/api/riesgos', riesgosRoutes);
 app.use('/api/tareas', tareasRoutes);
 app.use('/api/comunicados', comunicadosRoutes);
 app.use('/api/usuarios', usuariosRoutes);
