@@ -92,7 +92,7 @@ app.use('/api/funcionarios-aseguradora', funcionarioAseguradoraRoutes);
 app.use('/api/responsables', responsableRoutes);
 app.use('/api/estados', estadoRoutes);
 app.use('/api/complex', complexRoutes);
-app.use('/api/casos', complexRoutes);
+app.use('/api/casos', casosRoutes);
 app.use('/api/tareas', tareasRoutes);
 app.use('/api/comunicados', comunicadosRoutes);
 app.use('/api/usuarios', usuariosRoutes);
