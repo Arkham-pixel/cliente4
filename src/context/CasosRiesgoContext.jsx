@@ -32,6 +32,8 @@ export const CasosRiesgoProvider = ({ children }) => {
 
   const agregarCaso = async (nuevoCaso) => {
     try {
+      console.log('📝 DATOS A ENVIAR DESDE FRONTEND:', JSON.stringify(nuevoCaso, null, 2));
+      
       let dataToSend = nuevoCaso;
       let config = {};
       // Si hay archivos adjuntos, usar FormData
@@ -49,10 +51,26 @@ export const CasosRiesgoProvider = ({ children }) => {
         dataToSend = formData;
         config.headers = { 'Content-Type': 'multipart/form-data' };
       }
-      await api.post('https://api.grupoproser.com.co/api/riesgos', dataToSend, config);
+      
+      console.log('📤 ENVIANDO AL BACKEND:', dataToSend);
+      
+      const response = await api.post('https://api.grupoproser.com.co/api/riesgos', dataToSend, config);
+      
+      console.log('✅ RESPUESTA DEL BACKEND:', response.data);
+      
+      // Mostrar notificación de éxito
+      if (response.data.success) {
+        alert(`✅ ${response.data.message}`);
+      }
+      
       await cargarCasos();
     } catch (err) {
-      console.error('Error al agregar caso de riesgo:', err);
+      console.error('❌ Error al agregar caso de riesgo:', err);
+      console.error('❌ Detalles del error:', err.response?.data);
+      
+      // Mostrar error al usuario
+      const errorMessage = err.response?.data?.message || err.message || 'Error al crear el caso de riesgo';
+      alert(`❌ ${errorMessage}`);
     }
   };
 

@@ -1,5 +1,6 @@
 // models/Complex.js
 import mongoose from 'mongoose';
+import secondaryConnection from '../db/secondaryConnection.js';
 
 const ComplexSchema = new mongoose.Schema({
   numero_ajuste: { type: String, unique: true },
@@ -66,6 +67,7 @@ const ComplexSchema = new mongoose.Schema({
       comentario: String
     }
   ],
-});
+}, { collection: 'gsk3cAppsiniestro' });
 
-export default mongoose.model('Complex', ComplexSchema);
+const Complex = secondaryConnection.model('Complex', ComplexSchema);
+export default Complex;

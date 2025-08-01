@@ -5,11 +5,40 @@ import Siniestro from '../models/CasoComplex.js';
 // Crear un nuevo caso
 export const crearComplex = async (req, res) => {
   try {
-    const nuevo = new Complex(req.body);
+    console.log('🎯 ===== INICIANDO CREACIÓN DE COMPLEX =====');
+    console.log('📝 DATOS RECIBIDOS EN crearComplex:', JSON.stringify(req.body, null, 2));
+    
+    // Generar numero_ajuste único si está vacío
+    let datosParaGuardar = { ...req.body };
+    if (!datosParaGuardar.numero_ajuste || datosParaGuardar.numero_ajuste === '') {
+      const ultimo = await Complex.findOne().sort({ numero_ajuste: -1 });
+      const nuevoNumero = ultimo && ultimo.numero_ajuste ? 
+        parseInt(ultimo.numero_ajuste) + 1 : 1;
+      datosParaGuardar.numero_ajuste = String(nuevoNumero);
+      console.log('🔢 NUEVO NUMERO_AJUSTE GENERADO:', datosParaGuardar.numero_ajuste);
+    }
+    
+    const nuevo = new Complex(datosParaGuardar);
+    
+    console.log('💾 OBJETO A GUARDAR:', JSON.stringify(nuevo, null, 2));
+    
     await nuevo.save();
-    res.status(201).json(nuevo);
+    
+    console.log('✅ COMPLEX GUARDADO EXITOSAMENTE:', JSON.stringify(nuevo, null, 2));
+    console.log('🎯 ===== COMPLEX CREADO CON ÉXITO =====');
+    
+    res.status(201).json({
+      success: true,
+      message: `Caso complex #${datosParaGuardar.numero_ajuste} creado exitosamente`,
+      complex: nuevo
+    });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error('❌ ERROR AL GUARDAR COMPLEX:', error);
+    console.error('❌ DETALLES DEL ERROR:', error.message);
+    res.status(400).json({ 
+      success: false,
+      error: error.message 
+    });
   }
 };
 
