@@ -24,8 +24,8 @@ import riesgosRoutes from './routes/riesgos.routes.js';
 const app = express();
 
 // 1️ Middlewares globales - CORS configurado para desarrollo y producción
-// COMENTADO: CORS manejado por Nginx
-/*
+import cors from "cors";
+
 const allowedOrigins = [
   'https://aplicacion.grupoproser.com.co',     
   'https://proser-aplicativo.web.app',         
@@ -53,9 +53,8 @@ const corsOptions = {
 
 // Aplicar CORS antes de cualquier middleware
 app.use(cors(corsOptions));
-*/
 
-// Middleware adicional para debugging CORS
+// Middleware para logging de requests (opcional)
 app.use((req, res, next) => {
   console.log(`🌐 ${req.method} ${req.path} - Origin: ${req.headers.origin}`);
   next();
