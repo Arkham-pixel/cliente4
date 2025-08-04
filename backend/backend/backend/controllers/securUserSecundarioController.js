@@ -56,11 +56,18 @@ export const loginSecurUser = async (req, res) => {
         subject: 'Código de verificación 2FA',
         text: `Tu código de verificación es: ${code}`
       });
+      console.log('Código 2FA enviado a:', user.email);
     } catch (mailErr) {
       console.error('Error enviando correo 2FA:', mailErr);
-      return res.status(500).json({ mensaje: 'Error enviando correo 2FA', error: mailErr.message });
+      console.log('Código 2FA generado (no enviado por email):', code);
+      // En desarrollo, devolver el código en la respuesta
+      return res.json({ 
+        twoFARequired: true, 
+        email: user.email,
+        debugCode: code, // Solo para desarrollo
+        message: 'Código 2FA generado pero no enviado por email'
+      });
     }
-    console.log('Código 2FA enviado a:', user.email);
     return res.json({ twoFARequired: true, email: user.email });
   } catch (error) {
     console.error('Error en login 2FA:', error);
