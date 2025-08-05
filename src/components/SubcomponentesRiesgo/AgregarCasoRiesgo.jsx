@@ -37,13 +37,13 @@ const AgregarCasoRiesgo = ({ casoInicial, onClose }) => {
   const [ciudades, setCiudades] = useState([]);
 
   useEffect(() => {
-    axios.get('https://api.grupoproser.com.co/api/estados/estados-riesgos')
+    axios.get('/api/estados/estados-riesgos')
       .then(res => setEstados(res.data))
       .catch(() => setEstados([]));
   }, []);
 
   useEffect(() => {
-    axios.get('https://api.grupoproser.com.co/api/clientes')
+    axios.get('/api/clientes')
       .then(res => {
         // Extraer aseguradoras únicas por codiAsgrdra
         const mapa = new Map();
@@ -58,7 +58,7 @@ const AgregarCasoRiesgo = ({ casoInicial, onClose }) => {
   }, []);
 
   useEffect(() => {
-    axios.get('https://api.grupoproser.com.co/api/responsables')
+    axios.get('/api/responsables')
       .then(res => {
         setResponsables(res.data.map(r => ({ codiRespnsble: r.codiRespnsble, nmbrRespnsble: r.nmbrRespnsble })));
       })
@@ -66,7 +66,7 @@ const AgregarCasoRiesgo = ({ casoInicial, onClose }) => {
   }, []);
 
   useEffect(() => {
-    axios.get('https://api.grupoproser.com.co/api/estados/clasificaciones-riesgo')
+    axios.get('/api/estados/clasificaciones-riesgo')
       .then(res => {
         setClasificaciones(res.data.map(c => ({ codiIdentificador: c.codiIdentificador, rzonDescripcion: c.rzonDescripcion })));
       })
@@ -74,7 +74,7 @@ const AgregarCasoRiesgo = ({ casoInicial, onClose }) => {
   }, []);
 
   useEffect(() => {
-    axios.get('https://api.grupoproser.com.co/api/ciudades')
+    axios.get('/api/ciudades')
       .then(res => {
         // Mapeo para react-select: value = codiMunicipio, label = descMunicipio - descDepto
         setCiudades(res.data.map(c => ({
@@ -303,7 +303,7 @@ const AgregarCasoRiesgo = ({ casoInicial, onClose }) => {
           dataToSend = formDataSend;
           config.headers = { 'Content-Type': 'multipart/form-data' };
         }
-        await axios.put(`https://api.grupoproser.com.co/api/casos/${casoInicial._id}`, dataToSend, config);
+        await axios.put(`/api/casos/${casoInicial._id}`, dataToSend, config);
         if (onClose) onClose();
       } catch (err) {
         alert('Error al guardar los cambios');

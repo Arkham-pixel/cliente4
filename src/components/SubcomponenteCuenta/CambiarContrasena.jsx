@@ -34,7 +34,7 @@ export default function CambiarContrasena() {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(
-        "https://api.grupoproser.com.co/api/secur-users/cambiar-password",
+        "/api/secur-users/cambiar-password",
         { oldPassword, newPassword },
         { headers: { Authorization: `Bearer ${token}` } }
       );

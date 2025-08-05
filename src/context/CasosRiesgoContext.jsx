@@ -23,7 +23,7 @@ export const CasosRiesgoProvider = ({ children }) => {
 
   const cargarCasos = async () => {
     try {
-      const res = await api.get("https://api.grupoproser.com.co/api/riesgos");
+      const res = await api.get("/api/riesgos");
       setCasos(res.data);
     } catch (err) {
       console.error("Error al cargar casos de riesgo:", err);
@@ -54,7 +54,7 @@ export const CasosRiesgoProvider = ({ children }) => {
       
       console.log('📤 ENVIANDO AL BACKEND:', dataToSend);
       
-      const response = await api.post('https://api.grupoproser.com.co/api/riesgos', dataToSend, config);
+      const response = await api.post('/api/riesgos', dataToSend, config);
       
       console.log('✅ RESPUESTA DEL BACKEND:', response.data);
       
@@ -94,7 +94,7 @@ export const CasosRiesgoProvider = ({ children }) => {
         dataToSend = formData;
         config.headers = { 'Content-Type': 'multipart/form-data' };
       }
-      await api.put(`https://api.grupoproser.com.co/api/riesgos/${caso._id}`, dataToSend, config);
+      await api.put(`/api/riesgos/${caso._id}`, dataToSend, config);
       await cargarCasos();
     } catch (err) {
       console.error('Error al editar caso de riesgo:', err);

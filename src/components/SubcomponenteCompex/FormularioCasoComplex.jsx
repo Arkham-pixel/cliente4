@@ -167,7 +167,7 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
       // Buscar el cliente seleccionado para obtener su código
       const cliente = aseguradoraOptionsRaw.find(c => c.rzonSocial === formData.aseguradora);
       if (cliente && cliente.codiAsgrdra) {
-        fetch(`https://api.grupoproser.com.co/api/funcionarios-aseguradora?codiAsgrdra=${cliente.codiAsgrdra}`)
+        fetch(`/api/funcionarios-aseguradora?codiAsgrdra=${cliente.codiAsgrdra}`)
           .then(res => res.json())
           .then(data => {
             setFuncionarios(data.map(f => f.nmbrContcto));
@@ -182,7 +182,7 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
 
   // Guardar los datos crudos de clientes para obtener el código
   useEffect(() => {
-    fetch('https://api.grupoproser.com.co/api/clientes')
+    fetch('/api/clientes')
       .then(res => res.json())
       .then(data => {
         setAseguradoraOptionsRaw(data);
@@ -191,7 +191,7 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
   }, []);
 
   useEffect(() => {
-    fetch('https://api.grupoproser.com.co/api/ciudades')
+    fetch('/api/ciudades')
       .then(res => res.json())
       .then(data => {
         // Transformar para react-select: { value, label }
@@ -204,7 +204,7 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
   }, []);
 
   useEffect(() => {
-    fetch('https://api.grupoproser.com.co/api/responsables')
+    fetch('/api/responsables')
       .then(res => res.json())
       .then(data => {
         setResponsables(data.map(r => r.nmbrRespnsble));
@@ -212,7 +212,7 @@ export default function FormularioCasoComplex({ initialData, onSave, onCancel })
   }, []);
 
   useEffect(() => {
-    fetch('https://api.grupoproser.com.co/api/estados')
+    fetch('/api/estados')
       .then(res => res.json())
       .then(data => {
         const mapped = (data || [])

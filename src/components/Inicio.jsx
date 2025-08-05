@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API = 'https://api.grupoproser.com.co/api';
+const API = '/api';
 
 // Simulación de usuarios y comunicados reales (reemplaza por tu backend o contexto)
 const usuariosEjemplo = [

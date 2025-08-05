@@ -1,7 +1,7 @@
 // src/services/securUserService.js
 
 export async function loginSecurUser({ login, pswd }) {
-  const response = await fetch("https://api.grupoproser.com.co/api/secur-users/login", {
+  const response = await fetch("http://api.grupoproser.com.co/api/secur-users/login", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"

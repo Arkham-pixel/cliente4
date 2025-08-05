@@ -36,7 +36,7 @@ function LoginRedirect() {
 // Función para guardar el caso complex
 const guardarCasoComplex = async (formData) => {
   try {
-    const response = await fetch('https://api.grupoproser.com.co/api/complex', {
+    const response = await fetch('/api/complex', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
