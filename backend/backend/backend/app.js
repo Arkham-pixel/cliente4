@@ -45,17 +45,26 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.json());
-
-// Middleware para logging de requests con body
+// Middleware para logging de requests con body (ANTES de express.json) - TEMPORALMENTE COMENTADO
+/*
 app.use((req, res, next) => {
   console.log(`🌐 ${req.method} ${req.path} - Origin: ${req.headers.origin}`);
   console.log(`📦 Headers:`, req.headers);
-  if (req.body && Object.keys(req.body).length > 0) {
-    console.log(`📄 Body:`, JSON.stringify(req.body, null, 2));
-  }
+  
+  // Capturar el body raw para debugging
+  let data = '';
+  req.on('data', chunk => {
+    data += chunk;
+  });
+  req.on('end', () => {
+    console.log(`📄 Raw Body:`, data);
+  });
+  
   next();
 });
+*/
+
+app.use(express.json());
 
 // 2️ Asegúrate de que exista la carpeta uploads/
 const uploadsDir = path.resolve("uploads");
