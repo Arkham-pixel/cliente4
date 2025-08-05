@@ -17,8 +17,12 @@ export default function Login() {
     try {
       const requestData = { login, pswd };
       console.log('🚀 Enviando petición login:', requestData);
+      console.log('📡 URL:', 'http://api.grupoproser.com.co/api/secur-users/login');
+      console.log('📦 Headers:', { 'Content-Type': 'application/json' });
+      console.log('📄 JSON string:', JSON.stringify(requestData));
+      
       const res = await axios.post('http://api.grupoproser.com.co/api/secur-users/login', requestData);
-      console.log('Respuesta login:', res.data);
+      console.log('✅ Respuesta login:', res.data);
       if (res.data.twoFARequired) {
         setStep(2);
         setInfoCorreo(res.data.email);
@@ -27,6 +31,10 @@ export default function Login() {
         setError('Respuesta inesperada del servidor');
       }
     } catch (err) {
+      console.error('❌ Error completo:', err);
+      console.error('❌ Error response:', err.response);
+      console.error('❌ Error data:', err.response?.data);
+      console.error('❌ Error status:', err.response?.status);
       setError(err.response?.data?.mensaje || 'Error al iniciar sesión');
     }
   };

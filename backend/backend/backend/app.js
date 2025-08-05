@@ -23,46 +23,37 @@ import riesgosRoutes from './routes/riesgos.routes.js';
 
 const app = express();
 
-// 1️ Middlewares globales - CORS manejado por Nginx
-// COMENTADO: CORS manejado por Nginx
-
-// Middleware para logging de requests (opcional)
+// Middleware de logging detallado
 app.use((req, res, next) => {
-  console.log(`🌐 ${req.method} ${req.path} - Origin: ${req.headers.origin}`);
-  next();
-});
-
-// Middleware CORS
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
-  res.header("Access-Control-Allow-Credentials", "true");
-  if (req.method === "OPTIONS") {
-    res.status(200).end();
-    return;
-  }
-  next();
-});
-
-// Middleware para logging de requests con body (ANTES de express.json) - TEMPORALMENTE COMENTADO
-/*
-app.use((req, res, next) => {
-  console.log(`🌐 ${req.method} ${req.path} - Origin: ${req.headers.origin}`);
-  console.log(`📦 Headers:`, req.headers);
+  console.log('🌐 === NUEVA PETICIÓN ===');
+  console.log('📡 Método:', req.method);
+  console.log('🔗 URL:', req.url);
+  console.log('📦 Headers:', req.headers);
+  console.log('📄 Content-Type:', req.headers['content-type']);
+  console.log('📏 Content-Length:', req.headers['content-length']);
   
-  // Capturar el body raw para debugging
+  // Capturar el body raw
   let data = '';
   req.on('data', chunk => {
     data += chunk;
+    console.log('📥 Chunk recibido:', chunk.toString());
   });
   req.on('end', () => {
-    console.log(`📄 Raw Body:`, data);
+    console.log('📄 Body completo:', data);
+    console.log('📄 Body length:', data.length);
+    console.log('📄 Body type:', typeof data);
+    try {
+      const parsed = JSON.parse(data);
+      console.log('✅ JSON parseado correctamente:', parsed);
+    } catch (e) {
+      console.log('❌ Error parseando JSON:', e.message);
+      console.log('❌ Posición del error:', e.message.match(/position (\d+)/)?.[1]);
+    }
+    console.log('🌐 === FIN PETICIÓN ===');
   });
   
   next();
 });
-*/
 
 app.use(express.json());
 
