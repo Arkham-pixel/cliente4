@@ -15,10 +15,9 @@ export default function Login() {
     e.preventDefault();
     setError('');
     try {
-      const res = await axios.post('http://api.grupoproser.com.co/api/secur-users/login', {
-        login,
-        pswd
-      });
+      const requestData = { login, pswd };
+      console.log('🚀 Enviando petición login:', requestData);
+      const res = await axios.post('http://api.grupoproser.com.co/api/secur-users/login', requestData);
       console.log('Respuesta login:', res.data);
       if (res.data.twoFARequired) {
         setStep(2);
